@@ -1,0 +1,42 @@
+[
+    {
+        "name": "r301",
+        "rpm": 810,
+        "mags": [
+            {"size": 18, "audio":  "r301_0"},
+            {"size": 20, "audio":  "r301_1"},
+            {"size": 25, "audio":  "r301_2"},
+            {"size": 28, "audio":  "r301_3"}
+        ]
+    },
+    {
+        "name": "alternator",
+        "rpm": 600,
+        "mags": [
+            {"size": 19, "audio":  "alternator_0"},
+            {"size": 22, "audio":  "alternator_1"},
+            {"size": 25, "audio":  "alternator_2"},
+            {"size": 27, "audio":  "alternator_3"}
+        ]
+    },
+    {
+        "name": "flatline",
+        "rpm": 600,
+        "mags": [
+            {"size": 20, "audio":  "flatline_0"},
+            {"size": 25, "audio":  "flatline_1"},
+            {"size": 28, "audio":  "flatline_2"},
+            {"size": 30, "audio":  "flatline_3"}
+        ]
+    },
+    {
+        "name": "r99",
+        "rpm": 1080,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    }
+]

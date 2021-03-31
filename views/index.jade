@@ -1,0 +1,80 @@
+extends layout
+
+block content
+  #game
+    #control
+      #settings
+          p
+            input(type='text' id='sens')
+            | in-game sens
+          p
+            input(type='text' id='weapon')
+            | weapon
+          p 
+            input(type='text' id='barrel')
+            | barrel (0..3)
+          p
+            input(type='text' id='stock')
+            | stock (0..3)
+          p
+            input(type='text' id='mag')
+            | mag (0..3)
+           p
+            input(type='checkbox' id='trace')
+            | trace
+          p
+            input(type='checkbox' id='hint')
+            | hint
+          p
+            input(type='text' id='volume')
+            | volume
+          p
+            input(type='checkbox' id='mute')
+            | mute
+          button#show-all show all
+      #score
+        p#current-score
+      #weapon-select
+        div
+          img(src="/images/r99.png", alt="r99")
+        div
+          img(src="/images/r301.png", alt="r301")
+        div
+          img(src="/images/volt.png", alt="volt")
+        div
+          img(src="/images/alternator.png", alt="alternator")
+        div
+          img(src="/images/devotion.png", alt="devotion")
+        div
+          img(src="/images/flatline.png", alt="flatline")
+        div
+          img(src="/images/havoc.png", alt="havoc")
+        div
+          img(src="/images/hemlok.png", alt="hemlok")
+        div
+          img(src="/images/lstar.png", alt="lstar")
+        div
+          img(src="/images/prowler.png", alt="prowler")
+        div
+          img(src="/images/re45.png", alt="re45")
+        div
+          img(src="/images/spitfire.png", alt="spitfire")
+      #mag-select
+        div.mag-0
+          img(src="/images/magi.png")
+        div.mag-1
+          img(src="/images/magi.png")
+        div.mag-2
+          img(src="/images/magi.png")
+        div.mag-3
+          img(src="/images/magi.png")
+      #attachment-select
+        div.mag-0
+          img(src="/images/barrel_stocki.png")
+        div.mag-1
+          img(src="/images/barrel_stocki.png")
+        div.mag-2
+          img(src="/images/barrel_stocki.png")
+        div.mag-3
+          img(src="/images/barrel_stocki.png")
+    #stage

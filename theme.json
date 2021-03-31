@@ -1,0 +1,15 @@
+{
+	"backgroud": "#121212",
+	"foreground": "#F8F9FA",
+	"active": "#f9c74f",
+	"selection": "#90be6d",
+	"helper": "#adb5bd",
+	"error": "#f94144",
+	"focusBorder": "#181a1f",
+	"red": "#704040",
+	"green": "#407040",
+	"yellow": "#707040",
+	"attachment_1": "#a8a8a8",
+	"attachment_2": "#51a8d6",
+	"attachment_3": "#b237c8"
+}

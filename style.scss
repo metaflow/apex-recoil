@@ -1,0 +1,159 @@
+@import './reset.scss';
+@import './theme.scss';
+
+@function map-deep-get($map, $keys...) {
+    @each $key in $keys {
+        $map: map-get($map, $key);
+    }
+    @return $map;
+}
+
+$background: map-deep-get($theme, "backgroud");
+$foreground: map-deep-get($theme, "foreground");
+$error: map-deep-get($theme, "error");
+$attachment_1: map-deep-get($theme, "attachment_1");
+$attachment_2: map-deep-get($theme, "attachment_2");
+$attachment_3: map-deep-get($theme, "attachment_3");
+
+html, body {
+    height: 100%;
+    font: 14px "Lucida Console", Monaco, monospace;
+    color: $foreground;
+    background-color: $background;
+    margin: 0;
+    overflow: hidden;
+}
+
+a {
+    color: #00b7ff;
+}
+
+#stage {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: crosshair;    
+}
+
+.hidden {
+    display: none;
+}
+
+#editor {
+    flex-direction: row;
+    display: flex;
+    #tools {
+        overflow-wrap: anywhere;
+        flex-basis: 300px;
+        border-right: 1px white solid;
+        max-width: 300px;
+        padding: 4px;
+        p {
+            margin-bottom: 4px;
+        }
+    }
+}
+
+#game {
+    flex-direction: row;
+    display: flex;
+    #control {
+        max-width: 300px;
+        min-width: 300px;
+        border-right: 1px white solid;
+        border-right-style: inset;
+        #settings {     
+            padding: 4px;
+        }
+        #score {
+            padding: 4px;
+        }
+        #weapon-select {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            // max-width: 300px;
+            div {
+                width: 140px;
+                margin: 4px;
+                border: 1px solid transparent;
+                &:hover {
+                    border-color: $foreground;
+                }
+                img {
+                    padding: 4px;
+                    max-width: 140px;
+                    max-height: 50px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    display: block;
+                }
+            }        
+        }
+        #attachment-select {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            div {
+                width: 40px;
+                margin: 4px;
+                border: 1px solid transparent;
+                &:hover {
+                    border-color: $foreground;
+                }
+                img {
+                    padding: 4px;
+                    width: 40px;
+                    // height: 40px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    display: block;
+                }
+                &.mag-1 {
+                    background-color: adjust-color($attachment_1, $alpha: -0.5);
+                }
+                &.mag-2 {
+                    background-color: adjust-color($attachment_2, $alpha: -0.5);
+                }
+                &.mag-3 {
+                    background-color: adjust-color($attachment_3, $alpha: -0.5);
+                }
+            }
+        }
+        #mag-select {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            div {
+                width: 40px;
+                margin: 4px;
+                border: 1px solid transparent;
+                &:hover {
+                    border-color: $foreground;
+                }
+                img {
+                    padding: 4px;
+                    width: 40px;
+                    height: 40px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    display: block;
+                }
+                &.mag-1 {
+                    background-color: adjust-color($attachment_1, $alpha: -0.5);
+                }
+                &.mag-2 {
+                    background-color: adjust-color($attachment_2, $alpha: -0.5);
+                }
+                &.mag-3 {
+                    background-color: adjust-color($attachment_3, $alpha: -0.5);
+                }
+            }
+        }
+    }
+}
+
+input[type="text"] {
+    width: 6ch;
+    margin-right: 4px;
+}
