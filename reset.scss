@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-// https://boag.online/blog/my-sass-reset
-
 *, *:before, *:after{
     box-sizing: border-box;
 }
@@ -40,11 +38,11 @@ body{
     line-height: 1;
 }
 
-ol, ul{
+ol, ul {
     list-style: none;
 }
 
-blockquote, q{
+blockquote, q  y{
     quotes: none;
 }
 
