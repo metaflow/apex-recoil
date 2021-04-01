@@ -100,3 +100,10 @@ gulp.task('js', function(){
     .pipe(maps.write('./'))
     .pipe(gulp.dest('./public/gen'));
  });
+
+var jade = require('gulp-jade');
+gulp.task('templates', function() {
+  return gulp.src('./views/*.jade')
+    .pipe(jade())
+    .pipe(gulp.dest('./public/'))
+});

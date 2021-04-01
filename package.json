@@ -8,7 +8,7 @@
     "watch": "gulp watch",
     "tsc": "tsc",
     "dev": "npm-run-all -p -r devstart watch",
-    "build": "gulp js"
+    "static": "gulp js templates"
   },
   "dependencies": {
     "@ctrl/tinycolor": "^3.4.0",
