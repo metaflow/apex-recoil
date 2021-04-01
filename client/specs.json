@@ -38,5 +38,85 @@
             {"size": 24, "audio":  "r99_2"},
             {"size": 27, "audio":  "r99_3"}
         ]
+    },
+    {
+        "name": "devotion",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    },
+    {
+        "name": "havoc",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    },
+    {
+        "name": "hemlok",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    },
+    {
+        "name": "lstar",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    },
+    {
+        "name": "prowler",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    },
+    {
+        "name": "re45",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    },
+    {
+        "name": "spitfire",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
+    },
+    {
+        "name": "volt",
+        "rpm": 1,
+        "mags": [
+            {"size": 20, "audio":  "r99_0"},
+            {"size": 22, "audio":  "r99_1"},
+            {"size": 24, "audio":  "r99_2"},
+            {"size": 27, "audio":  "r99_3"}
+        ]
     }
 ]

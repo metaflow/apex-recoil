@@ -66,7 +66,6 @@ export function attrInput(id: string) {
     const a = document.getElementById(id) as HTMLInputElement;
     if (a != null) {
         a.value = getAttr(id);
-        console.log(id, a, a.type);
         if (a.type == 'text') {
             a.onkeyup = a.onchange = () => {
                 setAttr(id, a.value);

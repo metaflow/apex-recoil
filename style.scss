@@ -10,6 +10,7 @@
 
 $background: map-deep-get($theme, "backgroud");
 $foreground: map-deep-get($theme, "foreground");
+$active: map-deep-get($theme, "active");
 $error: map-deep-get($theme, "error");
 $attachment_1: map-deep-get($theme, "attachment_1");
 $attachment_2: map-deep-get($theme, "attachment_2");
@@ -54,6 +55,12 @@ a {
     }
 }
 
+.grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
 #game {
     flex-direction: row;
     display: flex;
@@ -69,16 +76,17 @@ a {
             padding: 4px;
         }
         #weapon-select {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            // max-width: 300px;
             div {
                 width: 140px;
                 margin: 4px;
                 border: 1px solid transparent;
+                cursor: pointer;
                 &:hover {
                     border-color: $foreground;
+                }
+                &.selected {
+                    border-color: $active;
+                    background-color: adjust-color($active, $alpha: -0.5);
                 }
                 img {
                     padding: 4px;
@@ -91,9 +99,6 @@ a {
             }        
         }
         #attachment-select {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
             div {
                 width: 40px;
                 margin: 4px;
@@ -109,21 +114,35 @@ a {
                     margin-right: auto;
                     display: block;
                 }
-                &.mag-1 {
+                &.attachment-0 {
+                    &.selected {
+                        border-color: $active;
+                    }
+                }
+                &.attachment-1 {
+                    &.selected {
+                        border-color: $active;
+                        background-color: $attachment_1;
+                    }
                     background-color: adjust-color($attachment_1, $alpha: -0.5);
                 }
-                &.mag-2 {
+                &.attachment-2 {
+                    &.selected {
+                        border-color: $active;
+                        background-color: $attachment_2;
+                    }
                     background-color: adjust-color($attachment_2, $alpha: -0.5);
                 }
-                &.mag-3 {
+                &.attachment-3 {
+                    &.selected {
+                        border-color: $active;
+                        background-color: $attachment_3;
+                    }
                     background-color: adjust-color($attachment_3, $alpha: -0.5);
                 }
             }
         }
         #mag-select {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
             div {
                 width: 40px;
                 margin: 4px;
@@ -139,14 +158,31 @@ a {
                     margin-right: auto;
                     display: block;
                 }
+                &.mag-0 {
+                    &.selected {
+                        border-color: $active;
+                    }
+                }
                 &.mag-1 {
-                    background-color: adjust-color($attachment_1, $alpha: -0.5);
+                    background-color: adjust-color($attachment_1, $alpha: -0.8);
+                    &.selected {
+                        border-color: $active;
+                        background-color: $attachment_1;
+                    }
                 }
                 &.mag-2 {
-                    background-color: adjust-color($attachment_2, $alpha: -0.5);
+                    background-color: adjust-color($attachment_2, $alpha: -0.8);
+                    &.selected {
+                        border-color: $active;
+                        background-color: $attachment_2;
+                    }
                 }
                 &.mag-3 {
-                    background-color: adjust-color($attachment_3, $alpha: -0.5);
+                    background-color: adjust-color($attachment_3, $alpha: -0.8);
+                    &.selected {
+                        border-color: $active;
+                        background-color: $attachment_3;
+                    }
                 }
             }
         }

@@ -8,6 +8,7 @@ import specs from './specs.json';
 import theme from '../theme.json';
 import sl from "stats-lite";
 import tinygradient from "tinygradient";
+import e from "express";
 
 interface Recoil {
     weapon: string;
@@ -33,6 +34,8 @@ interface SetupStats {
     mag: string;
     barrel: string;
     stock: string;
+    trace: boolean;
+    hint: boolean;
     results: number[];
 };
 
@@ -41,7 +44,9 @@ function addStat(c: SetupStats, stats: SetupStats[]): SetupStats {
         return x.weapon == c.weapon &&
             x.barrel == c.barrel &&
             x.mag == c.mag &&
-            x.stock == c.stock;
+            x.stock == c.stock &&
+            x.trace == c.trace &&
+            x.hint == c.hint;
     });
     console.log(c, s);
     if (s === undefined) {
@@ -68,7 +73,6 @@ export function setupGame() {
     
     setAttr('current', '0');
     let stats: SetupStats[] = JSON.parse(getAttr('stats'));
-    console.log('stats', stats);
     attrInput('weapon');
     attrInput('barrel');
     attrInput('stock');
@@ -97,6 +101,51 @@ export function setupGame() {
         return z;
     });
 
+    const showAllTraces = () => {
+        clear();
+        const name = getAttr('weapon');
+        const stock = getAttr('stock');
+        const barrel = getAttr('barrel');
+        const w = weapons.get(getAttr('weapon'));
+        if (w == null) {
+            console.log('weapon', getAttr('weapon'), 'not found');
+            return;
+        }
+        const n = w.mags[Number(getAttr('mag'))].size;
+        const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
+        rr.forEach((r, i) => {
+            if (r.points.length < n) {
+                console.log('missing points', r.comment, r.points.length);
+                return;
+            }
+            const start = new Point((150 + 200 * i) / Number(getAttr('sens')), 50);
+            const linePoints: number[] = [];
+            const line = new Konva.Line({
+                points: [],
+                stroke: new TinyColor('white').darken(50).toString(),
+                strokeWidth: 0.5,
+            });
+            current.push(line);
+            layer.add(line);
+            r.points.forEach((raw, i) => {
+                if (i >= n) return;
+                const p = new Point(raw);
+                p.s(1 / Number(getAttr('sens')));
+                const xy = start.clone().sub(p);
+                linePoints.push(xy.x, xy.y);
+                const h = new Konva.Circle({
+                    radius: 2,
+                    fill: new TinyColor('white').shade(50).toString(),
+                    position: xy,
+                });
+                current.push(h);
+                layer.add(h);
+            });
+            line.points(linePoints);
+        });
+        stage.batchDraw();
+    };
+
     const weapons = new Map<string, Weapon>();
     specs.forEach(s => {
         weapons.set(s.name, {
@@ -107,7 +156,66 @@ export function setupGame() {
                 return z;
             })
         });
-    })
+
+        const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
+        if (d != null) {
+            d.addEventListener('click', () => {
+                // console.log(s.name);
+                setAttr('weapon', s.name);
+            })
+        } else {
+            console.error(`#weapon-select .${s.name}`, 'not found');
+        }
+    });
+
+    watchAttr('weapon', (v: string) => {
+        const s = document.querySelector(`#weapon-select .selected`) as HTMLDivElement;
+        if (s != null) s.classList.remove('selected');
+        const d = document.querySelector(`#weapon-select .${v}`) as HTMLDivElement;
+        if (d == null) return;
+        d.classList.add('selected');
+        showAllTraces();
+    });
+
+    for (let i = 0; i <= 3; i++) {
+        const d = document.querySelector(`#mag-select .mag-${i}`) as HTMLDivElement;
+        if (d != null) {
+            d.addEventListener('click', () => { setAttr('mag', i + ''); });
+        } else {
+            console.error(`#mag-select .mag-${i}`, 'not found');
+        }
+    }
+
+    watchAttr('mag', (v: string) => {
+        const s = document.querySelector(`#mag-select .selected`) as HTMLDivElement;
+        if (s != null) s.classList.remove('selected');
+        const d = document.querySelector(`#mag-select .mag-${v}`) as HTMLDivElement;
+        if (d == null) return;
+        d.classList.add('selected');
+        showAllTraces();
+    });
+
+    for (let i = 0; i <= 3; i++) {
+        const d = document.querySelector(`#attachment-select .attachment-${i}`) as HTMLDivElement;
+        if (d != null) {
+            d.addEventListener('click', () => {
+                // Stock before barrel as we watch barrel to show selection.
+                setAttr('stock', i + '');
+                setAttr('barrel', i + '');
+            });
+        } else {
+            console.error(`#attachment-select .attachment-${i}`, 'not found');
+        }
+    }
+
+    watchAttr('barrel', (v: string) => {
+        const s = document.querySelector(`#attachment-select .selected`) as HTMLDivElement;
+        if (s != null) s.classList.remove('selected');
+        const d = document.querySelector(`#attachment-select .attachment-${v}`) as HTMLDivElement;
+        if (d == null) return;
+        d.classList.add('selected');
+        showAllTraces();
+    });
 
     let recoil: Recoil | null = null;
 
@@ -123,60 +231,14 @@ export function setupGame() {
             return;
         }
         const x = Math.floor(Math.random() * rr.length);
-        // console.log('selected', x, 'out of', rr.length);
         recoil = rr[x];
     };
     watchAttr('weapon', pickNextRun);
     watchAttr('stock', pickNextRun);
-    watchAttr('barrel', pickNextRun);
+    watchAttr('barrel', pickNextRun);    
 
-    const btn = document.getElementById('show-all') as HTMLButtonElement;
-    if (btn !== null) {
-        btn.addEventListener('click', () => {
-            clear();
-            const name = getAttr('weapon');
-            const stock = getAttr('stock');
-            const barrel = getAttr('barrel');
-            const w = weapons.get(getAttr('weapon'));
-            if (w == null) {
-                console.log('weapon', getAttr('weapon'), 'not found');
-                return;
-            }
-            const n = w.mags[Number(getAttr('mag'))].size;
-            const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
-            rr.forEach((r, i) => {
-                if (r.points.length < n) {
-                    console.log('missing points', r.comment, r.points.length);
-                    return;
-                }
-                const start = new Point((150 + 200 * i) / Number(getAttr('sens')), 50);
-                const linePoints: number[] = [];
-                const line = new Konva.Line({
-                    points: [],
-                    stroke: new TinyColor('white').darken(50).toString(),
-                    strokeWidth: 0.5,
-                });
-                current.push(line);
-                layer.add(line);
-                r.points.forEach((raw, i) => {
-                    if (i >= n) return;
-                    const p = new Point(raw);
-                    p.s(1 / Number(getAttr('sens')));
-                    const xy = start.clone().sub(p);
-                    linePoints.push(xy.x, xy.y);
-                    const h = new Konva.Circle({
-                        radius: 2,
-                        fill: new TinyColor('white').shade(50).toString(),
-                        position: xy,
-                    });
-                    current.push(h);
-                    layer.add(h);
-                });
-                line.points(linePoints);
-            });
-            stage.batchDraw();
-        });
-    }
+    const btn = document.getElementById('show-all') as HTMLButtonElement;    
+    if (btn !== null) btn.addEventListener('click', showAllTraces);
 
     const clear = () => {
         current.forEach(c => c.remove());
@@ -231,13 +293,12 @@ export function setupGame() {
         }
         const target = new Konva.Circle({
             radius: 6,
-            fill: new TinyColor('red').desaturate(50).toString(),
+            stroke: new TinyColor('red').desaturate(50).toString(),
+            strokeWidth: 2,
             position: start.plain(),
         });
-        if (trace) {
-            layer.add(target);
-            current.push(target);
-        }
+        layer.add(target);
+        current.push(target);
         let hitMarker = new Konva.Circle();
         const traceLines: Konva.Line[] = [];
         recoil.points.forEach((raw, i) => {
@@ -306,10 +367,11 @@ export function setupGame() {
                         barrel: getAttr('barrel'),
                         stock: getAttr('stock'),
                         results: [x],
+                        hint: getAttr('hint') == 'true',
+                        trace: getAttr('trace') == 'true',
                     }, stats);
                     setAttr('current', `score: ${x} best: ${sl.percentile(st.results, 100)} avg: ${Math.round(sl.mean(st.results))}`);
                     setAttr('stats', JSON.stringify(stats))
-                    target.hide();
                     pickNextRun();
                     traceLines.forEach(x => {
                         layer.add(x);
