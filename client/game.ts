@@ -49,7 +49,8 @@ interface SetupStats {
     mag: string;
     barrel: string;
     stock: string;
-    hint: boolean;
+    hint: string;
+    randomTrace: string;
     results: number[];
 };
 
@@ -134,7 +135,8 @@ function addStat(c: SetupStats, stats: SetupStats[]): SetupStats {
             x.barrel == c.barrel &&
             x.mag == c.mag &&
             x.stock == c.stock &&
-            x.hint == c.hint;
+            x.hint == c.hint &&
+            x.randomTrace == c.randomTrace;
     });
     console.log(c, s);
     if (s === undefined) {
@@ -332,7 +334,7 @@ export function setupGame() {
     };
     // TODO: make "pickNextRun" a function instead and call ad hoc.
     watchAttr('weapon', pickNextRun);
-    watchAttr('stock', pickNextRun);
+    // watchAttr('stock', pickNextRun);
     watchAttr('barrel', pickNextRun);
     watchAttr('random-trace', pickNextRun);
 
@@ -417,13 +419,9 @@ export function setupGame() {
             window.setTimeout(() => {
                 // Position of pointer in "virtual" coordinates.
                 let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
-                let hit = cur.clone();
+                let hit = cur.clone().add(p);
                 let traceTarget = start.clone().sub(p);
-                let perfectPoint = traceTarget.clone();
-                // if (!trace) {
-                    hit.add(p);
-                    perfectPoint = start.clone();
-                // }
+                const perfectPoint = start.clone();
                 if (showHint) {
                     target.position(traceTarget.plain());
                 }
@@ -460,7 +458,8 @@ export function setupGame() {
                         barrel: getAttr('barrel'),
                         stock: getAttr('stock'),
                         results: [x],
-                        hint: getAttr('hint') == 'true',
+                        hint: getAttr('hint'),
+                        randomTrace: getAttr('random-trace'),
                     }, stats);
                     setAttr('current', `score: ${x} best: ${sl.percentile(st.results, 100)} avg: ${Math.round(sl.mean(st.results))}`);
                     setAttr('stats', JSON.stringify(stats))
