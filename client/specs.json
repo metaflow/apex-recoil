@@ -10,16 +10,6 @@
         ]
     },
     {
-        "name": "alternator",
-        "rpm": 600,
-        "mags": [
-            {"size": 19, "audio":  "alternator_0"},
-            {"size": 22, "audio":  "alternator_1"},
-            {"size": 25, "audio":  "alternator_2"},
-            {"size": 27, "audio":  "alternator_3"}
-        ]
-    },
-    {
         "name": "flatline",
         "rpm": 600,
         "mags": [
@@ -40,83 +30,93 @@
         ]
     },
     {
+        "name": "volt",
+        "rpm": 720,
+        "mags": [
+            {"size": 19, "audio":  "volt_0"},
+            {"size": 21, "audio":  "volt_1"},
+            {"size": 23, "audio":  "volt_2"},
+            {"size": 26, "audio":  "volt_3"}
+        ]
+    },
+    {
+        "name": "alternator",
+        "rpm": 600,
+        "mags": [
+            {"size": 19, "audio":  "alternator_0"},
+            {"size": 22, "audio":  "alternator_1"},
+            {"size": 25, "audio":  "alternator_2"},
+            {"size": 27, "audio":  "alternator_3"}
+        ]
+    },
+    {
         "name": "devotion",
         "rpm": 1,
         "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""}
         ]
     },
     {
         "name": "havoc",
         "rpm": 1,
         "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""}
         ]
     },
     {
         "name": "hemlok",
         "rpm": 1,
         "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""}
         ]
     },
     {
         "name": "lstar",
         "rpm": 1,
         "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""}
         ]
     },
     {
         "name": "prowler",
         "rpm": 1,
         "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""}
         ]
     },
     {
         "name": "re45",
         "rpm": 1,
         "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""}
         ]
     },
     {
         "name": "spitfire",
         "rpm": 1,
         "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
-        ]
-    },
-    {
-        "name": "volt",
-        "rpm": 1,
-        "mags": [
-            {"size": 20, "audio":  "r99_0"},
-            {"size": 22, "audio":  "r99_1"},
-            {"size": 24, "audio":  "r99_2"},
-            {"size": 27, "audio":  "r99_3"}
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""},
+            {"size": 1, "audio":  ""}
         ]
     }
 ]

@@ -24,7 +24,6 @@ import specs from './specs.json';
 import theme from '../theme.json';
 import sl from "stats-lite";
 import tinygradient from "tinygradient";
-import e from "express";
 
 interface Recoil {
     weapon: string;
@@ -54,6 +53,41 @@ interface SetupStats {
     hint: boolean;
     results: number[];
 };
+
+function distanceScore(distance: number) {
+    if (distance < 5) {
+        return 4 - 2 * distance / 5;
+    } else if (distance < 10) {
+        return 2 - (distance - 5) / (10 - 5);
+    } else if (distance < 50) {
+        return 1 - (distance - 10) / (50 - 10);
+    }
+    return 0
+}
+
+function combinedRecoil(rr: Recoil[]): Recoil {
+    const f = rr[0];
+    const n = f.points.length;
+    const z: Recoil = {
+        weapon: f.weapon,
+        barrel: f.barrel,
+        stock: f.stock,
+        comment: "median",
+        points: [{x: 0, y: 0}],
+    };
+    for (let i = 1; i < n; i++) {
+        const dx: number[] = [];
+        const dy: number[] = [];
+        rr.forEach(r => {
+            const p = new Point(r.points[i]).sub(new Point(r.points[i - 1]));
+            dx.push(p.x);
+            dy.push(p.y);
+        });
+        const p = z.points[i - 1];
+        z.points.push({x: sl.median(dx) + p.x, y: sl.median(dy) + p.y});
+    }
+    return z;
+}
 
 function addStat(c: SetupStats, stats: SetupStats[]): SetupStats {
     let s = stats.find(x => {
@@ -129,6 +163,7 @@ export function setupGame() {
         }
         const n = w.mags[Number(getAttr('mag'))].size;
         const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
+        rr.push(combinedRecoil(rr));
         rr.forEach((r, i) => {
             if (r.points.length < n) {
                 console.log('missing points', r.comment, r.points.length);
@@ -341,19 +376,10 @@ export function setupGame() {
                     perfectPoint = start.clone();
                 }
                 target.position(perfectPoint.plain());
-                let s = 0;
-                {
-                    const distance = new Point(hit).distance(perfectPoint) / sens;
-                    if (distance < 5) {
-                        s = 4 - 2 * distance / 5;
-                    } else if (distance < 10) {
-                        s = 2 - (distance - 5) / (10 - 5);
-                    } else if (distance < 50) {
-                        s = 1 - (distance - 10) / (50 - 10);
-                    }
-                    scores.push(s);
-                    score += s;
-                }
+                const distance = new Point(hit).distance(perfectPoint) / sens;
+                let s = distanceScore(distance);
+                scores.push(s);
+                score += s;
                 let scoreColor = (scoreGrad.rgbAt(s / 4) as unknown) as TinyColor;
                 scoreColor = scoreColor.desaturate(50);
                 {
