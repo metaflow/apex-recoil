@@ -93,7 +93,7 @@ export function attrInput(id: string) {
     const a = document.getElementById(id) as HTMLInputElement;
     if (a != null) {
         a.value = getAttr(id);
-        if (a.type == 'text') {
+        if (a.type == 'text' || a.type == 'range') {
             a.onkeyup = a.onchange = () => {
                 setAttr(id, a.value);
             };
@@ -111,6 +111,7 @@ export function attrInput(id: string) {
             });
             return;
         }
+        console.error('unknown input type', a.type);
     }
 };
 

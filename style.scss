@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-@import './reset.scss';
-@import './theme.scss';
+@import "./reset.scss";
+@import "./theme.scss";
 
 @function map-deep-get($map, $keys...) {
     @each $key in $keys {
@@ -32,7 +32,8 @@ $attachment_1: map-deep-get($theme, "attachment_1");
 $attachment_2: map-deep-get($theme, "attachment_2");
 $attachment_3: map-deep-get($theme, "attachment_3");
 
-html, body {
+html,
+body {
     height: 100%;
     font: 14px "Lucida Console", Monaco, monospace;
     color: $foreground;
@@ -49,7 +50,7 @@ a {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    cursor: crosshair;    
+    cursor: crosshair;
 }
 
 .hidden {
@@ -85,7 +86,7 @@ a {
         min-width: 300px;
         border-right: 1px white solid;
         border-right-style: inset;
-        #settings {     
+        #settings {
             padding: 4px;
         }
         #score {
@@ -112,7 +113,7 @@ a {
                     margin-right: auto;
                     display: block;
                 }
-            }        
+            }
         }
         #attachment-select {
             div {
@@ -210,9 +211,74 @@ a {
         font-size: 3em;
         padding: 8px;
     }
+
+    .slider {
+        -webkit-appearance: none;
+        width: 100px;
+        height: 2px;
+        background: $foreground;
+        outline: none;
+        // opacity: 0.7;
+        // -webkit-transition: .2s;
+        // transition: opacity .2s;
+        /* Special styling for WebKit/Blink */
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            // border: 1px solid #000000;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: $active;
+            // margin-top: -14px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+            // box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; /* Add cool effects to your sliders! */
+        }
+
+        /* All the same stuff for Firefox */
+        &::-moz-range-thumb {
+            // box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: $active;
+        }
+    }
+    .slider::-webkit-slider-thumb,
+    .slider::-moz-range-thumb {
+        // -webkit-appearance: none;
+        // appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #4caf50;
+        cursor: pointer;
+    }
 }
 
 input[type="text"] {
     width: 6ch;
     margin-right: 4px;
 }
+
+// /* Special styling for WebKit/Blink */
+// input[type="range"]::-webkit-slider-thumb {
+//     -webkit-appearance: none;
+//     border: 1px solid #000000;
+//     height: 36px;
+//     width: 16px;
+//     border-radius: 3px;
+//     background: #ffffff;
+//     cursor: pointer;
+//     margin-top: -14px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+//     box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; /* Add cool effects to your sliders! */
+// }
+
+// /* All the same stuff for Firefox */
+// input[type="range"]::-moz-range-thumb {
+//     box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+//     border: 1px solid #000000;
+//     height: 36px;
+//     width: 16px;
+//     border-radius: 3px;
+//     background: #ffffff;
+//     cursor: pointer;
+// }

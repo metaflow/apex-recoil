@@ -197,12 +197,10 @@ function addStat(v: number): TrialStats {
     s.last = v;
     s.bestAllTime = Math.max(s.bestAllTime, v);
     setAttr('stats', JSON.stringify(stats));
-    console.log('updated stats', stats);
     return s;
 }
 
 export function setupGame() {
-    console.log('setup game');
     attrNamespace('game:');
     initAttr('sens', '5');
     initAttr('weapon', 'r301');
@@ -246,7 +244,7 @@ export function setupGame() {
         const w = weapons.get(name);
         const sens = Number(getAttr('sens'));
         if (w == null) {
-            console.log('weapon', getAttr('weapon'), 'not found');
+            console.error('weapon', getAttr('weapon'), 'not found');
             return;
         }
         const n = w.mags[Number(getAttr('mag'))].size;
@@ -259,7 +257,7 @@ export function setupGame() {
         rr.unshift(median);
         rr.forEach((r, i) => {
             if (r.points.length < n) {
-                console.log('missing points', r.comment, r.points.length);
+                console.error('missing points', r.comment, r.points.length);
                 return;
             }
             const start = new Point((150 + 200 * i) / sens, 50);
@@ -311,7 +309,6 @@ export function setupGame() {
         const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
         if (d != null) {
             d.addEventListener('click', () => {
-                // console.log(s.name);
                 setAttr('weapon', s.name);
             })
         }
@@ -373,9 +370,8 @@ export function setupGame() {
         const stock = getAttr('stock');
         const barrel = getAttr('barrel');
         const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
-        // console.log(rr);
         if (rr.length == 0) {
-            console.log('no recoils for', name, stock, barrel);
+            console.error('no recoils for', name, stock, barrel);
             return null;
         }
         const x = Math.floor(Math.random() * rr.length);
@@ -387,7 +383,6 @@ export function setupGame() {
 
     const showStats = () => {
         const s = statsForSetup(trialSetup());
-        console.log('stats', s);
         const p = document.getElementById('current-score');
         if (p) {
             if (s) {
@@ -422,7 +417,9 @@ best all time: ${s.bestAllTime}`;
         'green',
     ]);
 
+    let shooting = false;
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
+        if (shooting) return;        
         const recoil = pickRecoil();
         if (recoil == null) {
             console.log('no recoil selected');
@@ -438,6 +435,7 @@ best all time: ${s.bestAllTime}`;
             console.log('weapon', getAttr('weapon'), 'not found');
             return;
         }
+        shooting = true;
         // TODO: global error handler.
         const d = 60 * 1000 / w.rpm; // del ay b/w rounds.
         const sens = Number(getAttr('sens'));
@@ -506,7 +504,6 @@ best all time: ${s.bestAllTime}`;
         hintShapes.push(hintLine);
         layer.add(hintLine);
         let hitIndex = -1;
-        console.log('timePoints', timePoints);
         const fps: number[] = [];
         var anim = new Konva.Animation(function (frame: any) {
             fps.push(frame.frameRate);
@@ -517,7 +514,6 @@ best all time: ${s.bestAllTime}`;
                 for (let i = 0; i <= hitIndex; i++) {
                     hintCircles[i].radius(1);
                 }
-                // console.log('hit');
                 const p = new Point(recoil.points[hitIndex]).s(1 / sens);
                 // Cursor position.
                 let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
@@ -529,7 +525,6 @@ best all time: ${s.bestAllTime}`;
                 }
                 const distance = new Point(hit).distance(start) * sens;
                 let s = distanceScore(distance);
-                console.log('distance', distance, s);
                 scores.push(s);
                 score += s;
                 let scoreColor = (scoreGrad.rgbAt(s) as unknown) as TinyColor;
@@ -552,7 +547,10 @@ best all time: ${s.bestAllTime}`;
                     })
                     traceLines.push(q);
                 }
+                // Finished.
                 if (hitIndex + 1 >= n) {
+                    shooting = false;
+                    anim.stop();
                     const x = Math.round(100 * score / n);
                     addStat(x);
                     traceLines.forEach(x => {
@@ -561,15 +559,7 @@ best all time: ${s.bestAllTime}`;
                     });
                     hintShapes.forEach(s => s.visible(true));
                     hitMarker.radius(2);
-                    // target.position(start.plain());
                     hintTarget.visible(false);
-                    // Finished.
-                    anim.stop();
-                    console.log('FPS',
-                        '1%', sl.percentile(fps, 0.01),
-                        'min', sl.percentile(fps, 0),
-                        'median', sl.median(fps),
-                        '90%', sl.percentile(fps, 0.9));
                 }
             }
             if (followMarkers) {
