@@ -17,26 +17,11 @@ extends layout
 
 block content
   #game
-    #control
-      #settings
-          p
-            input(type='text' id='sens')
-            | in-game sens
-          p
-            input(type='checkbox' id='hint')
-            | hint
-          p
-            input(type='checkbox' id='random-trace')
-            | random trace
-          p
-            input(type='text' id='volume')
-            | volume
-          p
-            input(type='checkbox' id='mute')
-            | mute
-          button#show-all show all
-      #score
+    #control      
+      #score   
+        p score
         p#current-score
+        p#score-stats
       #weapon-select.grid
         div.r99
           img(src="/images/r99.png", alt="r99")
@@ -80,4 +65,21 @@ block content
           img(src="/images/barrel_stocki.png")
         div.attachment-3
           img(src="/images/barrel_stocki.png")
+      #settings
+          p
+            input(type='text' id='sens')
+            | in-game sens
+          p
+            input(type='checkbox' id='hint')
+            | hint
+          p
+            input(type='checkbox' id='random-trace')
+            | random trace
+          p
+            input(type='text' id='volume')
+            | volume
+          p
+            input(type='checkbox' id='mute')
+            | mute
+          button#show-all show all
     #stage

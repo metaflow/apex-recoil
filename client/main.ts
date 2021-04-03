@@ -25,7 +25,13 @@ export const stage = new Konva.Stage({
     height: window.screen.height,
 });
 
-export const layer = new Konva.Layer();
+/* https://konvajs.org/docs/sandbox/Animation_Stress_Test.html#page-title
+* setting the listening property to false will improve
+* drawing performance because the rectangles won't have to be
+* drawn onto the hit graph */
+export const layer = new Konva.Layer({
+    listening: false
+});
 stage.add(layer);
 layer.scaleX(1);
 layer.scaleY(1);
@@ -59,18 +65,23 @@ export function setAttr(name: string, value: string) {
     onAttrUpdates.forEach(f => f(attrNamespace() + ':' + name, value));
 }
 
-export function watchAttrs(fn:attrUpdateFn) {
+export function watchAttrs(fn: attrUpdateFn) {
     onAttrUpdates.push(fn);
 }
 
-export function watchAttr(name: string, fn:(v: string) => void) {
+export function watchAttr(names: string | string[], fn: (v: string) => void) {
+    if (typeof names == 'string') {
+        names = [names];
+    }
     onAttrUpdates.push((n: string, v: string) => {
-        if (n == attrNamespace() + ':' + name) fn(v);
+        for (const x of names) {
+            if (n == attrNamespace() + ':' + x) fn(v);
+        }
     });
 }
 
 export function pokeAttrs() {
-    for(let i = 0; i < localStorage.length; i++) {
+    for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k == null) continue;
         // console.log('poke', k, localStorage.getItem(k));

@@ -203,6 +203,13 @@ a {
             }
         }
     }
+    #score {
+        text-align: right;
+    }
+    #current-score {
+        font-size: 3em;
+        padding: 8px;
+    }
 }
 
 input[type="text"] {
