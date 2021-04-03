@@ -51,6 +51,7 @@ interface TrialSetup {
     barrel: string;
     stock: string;
     hint: string;
+    followMarkers: string;
     randomTrace: string;
 }
 
@@ -66,10 +67,11 @@ interface TrialStats {
     todayResults: number[];
 };
 
-function distanceScore(distance: number) {
-    const dd = distance * distance / 100
-    if (distance < 10) return 1 + 3 * (1 - dd);
-    return 1 / dd;
+function distanceScore(distance: number) {    
+    const k = 20;
+    const a = 1;
+    const t = a / (a + 200 / k);
+    return Math.max(0, (a / (a + distance/k) - t) / (1 - t));
 }
 
 function medianRecoil(rr: Recoil[]): Recoil {
@@ -156,6 +158,7 @@ function trialSetup(): TrialSetup {
         stock: getAttr('stock'),
         hint: getAttr('hint'),
         randomTrace: getAttr('random-trace'),
+        followMarkers: getAttr('follow-markers'),
     };
 }
 
@@ -210,6 +213,7 @@ export function setupGame() {
     initAttr('volume', '50');
     initAttr('mute', 'false');
     initAttr('hint', 'true');
+    initAttr('follow-markers', 'true');
     initAttr('random-trace', 'true');
 
     setAttr('current', '0');
@@ -218,6 +222,7 @@ export function setupGame() {
     attrInput('hint');
     attrInput('volume');
     attrInput('random-trace');
+    attrInput('follow-markers');
     attrInput('mute');
 
     let allShapes: Konva.Shape[] = [];
@@ -379,11 +384,6 @@ export function setupGame() {
         }
         return medianRecoil(rr);
     };
-    // TODO: make "pickNextRun" a function instead and call ad hoc.
-    // watchAttr('weapon', pickNextRun);
-    // // watchAttr('stock', pickNextRun);
-    // watchAttr('barrel', pickNextRun);
-    // watchAttr('random-trace', pickNextRun);
 
     const showStats = () => {
         const s = statsForSetup(trialSetup());
@@ -406,7 +406,7 @@ best all time: ${s.bestAllTime}`;
             }
         }
     };
-    watchAttr(['stats', 'mag', 'weapon', 'barrel', 'stock', 'hint', 'random-trace'],
+    watchAttr(['stats', 'mag', 'weapon', 'barrel', 'stock', 'hint', 'random-trace', 'follow-markers'],
         showStats);
     const btn = document.getElementById('show-all') as HTMLButtonElement;
     if (btn !== null) btn.addEventListener('click', showAllTraces);
@@ -452,12 +452,13 @@ best all time: ${s.bestAllTime}`;
             sound.play();
         }
         const showHint = getAttr('hint') == 'true';
+        const followMarkers = getAttr('follow-markers') == 'true';
         const hintTarget = new Konva.Circle({
             radius: 3,
             stroke: new TinyColor('red').desaturate(50).toString(),
             strokeWidth: 2,
             position: start.plain(),
-            visible: showHint,
+            visible: followMarkers,
         });
         layer.add(hintTarget);
         allShapes.push(hintTarget);        
@@ -483,7 +484,7 @@ best all time: ${s.bestAllTime}`;
             timePoints.push(i * d);
             const xy = start.clone().sub(p);
             const c = new Konva.Circle({
-                radius: 10,
+                radius: followMarkers ? 10 : 1,
                 stroke: new TinyColor(theme.foreground).shade(50).toString(),
                 strokeWidth: 1,
                 position: xy,
@@ -518,19 +519,20 @@ best all time: ${s.bestAllTime}`;
                 }
                 // console.log('hit');
                 const p = new Point(recoil.points[hitIndex]).s(1 / sens);
-                // Cursor position relative to the start.
+                // Cursor position.
                 let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
+                // Hit relative to start.
                 let hit = cur.clone().add(p);
                 let traceTarget = start.clone().sub(p);
                 if (showHint) {
                     hintTarget.position(traceTarget.plain());
                 }
-                const perfectPoint = start.clone();
-                const distance = new Point(hit).distance(perfectPoint) * sens;
+                const distance = new Point(hit).distance(start) * sens;
                 let s = distanceScore(distance);
+                console.log('distance', distance, s);
                 scores.push(s);
                 score += s;
-                let scoreColor = (scoreGrad.rgbAt(s / 4) as unknown) as TinyColor;
+                let scoreColor = (scoreGrad.rgbAt(s) as unknown) as TinyColor;
                 scoreColor = scoreColor.desaturate(50);
                 {
                     hitMarker.radius(2);
@@ -551,7 +553,7 @@ best all time: ${s.bestAllTime}`;
                     traceLines.push(q);
                 }
                 if (hitIndex + 1 >= n) {
-                    const x = Math.round(100 * score / 4 / n);
+                    const x = Math.round(100 * score / n);
                     addStat(x);
                     traceLines.forEach(x => {
                         layer.add(x);
@@ -570,11 +572,13 @@ best all time: ${s.bestAllTime}`;
                         '90%', sl.percentile(fps, 0.9));
                 }
             }
-            for (let i = hitIndex; i < n; i++) {
-                const d = timePoints[i] - frame.time;
-                // d / 30 - will be closing over 300 ms (30 * 10).
-                hintCircles[i].radius(Math.max(1, Math.min(10, d / 40)));
-            }
+            if (followMarkers) {
+                for (let i = hitIndex; i < n; i++) {
+                    const d = timePoints[i] - frame.time;
+                    // d / 30 - will be closing over 300 ms (30 * 10).
+                    hintCircles[i].radius(Math.max(1, Math.min(10, d / 40)));
+                }
+            }            
             // return updated;
             // target.x(100 * Math.sin((frame.time * 2 * Math.PI) / 1000) + start.x);
         }, layer);
