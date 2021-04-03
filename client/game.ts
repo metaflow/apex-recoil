@@ -203,18 +203,44 @@ function addStat(v: number): TrialStats {
 export function setupGame() {
     attrNamespace('game:');
     initAttr('sens', '5');
-    initAttr('weapon', 'r301');
-    initAttr('stock', '2');
-    initAttr('barrel', '2');
+    initAttr('weapon', 'r99');
+    initAttr('stock', '0');
+    initAttr('barrel', '0');
     initAttr('mag', '0');
     initAttr('stats', '[]');
-    initAttr('volume', '50');
+    initAttr('volume', '20');
     initAttr('mute', 'false');
     initAttr('hint', 'true');
     initAttr('follow-markers', 'true');
     initAttr('random-trace', 'true');
+    initAttr('show-instructions', 'true');
 
-    setAttr('current', '0');
+    watchAttr('show-instructions', (v: string) => {
+        const e = document.getElementById('instructions');
+        if (!e) return
+        e.style.display = (v == 'true') ? 'block' : 'none';
+    });
+
+    {
+        const e = document.getElementById('dismiss-instructions');
+        e?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setAttr('show-instructions', 'false');
+            return false;
+        });
+    }
+
+    {
+        const e = document.getElementById('show-instructions');
+        e?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setAttr('show-instructions', 'true');
+            return false;
+        });
+    }
+
     stats = JSON.parse(getAttr('stats'));
     attrInput('sens');
     attrInput('hint');
@@ -235,6 +261,18 @@ export function setupGame() {
         };
         return z;
     });
+    let sound: Howl|null = null;
+    watchAttr(['weapon', 'mag', 'mute'], () => {
+        if (getAttr('mute') == 'true') return;
+        const w = weapons.get(getAttr('weapon'));
+        if (w == null) {
+            console.log('weapon', getAttr('weapon'), 'not found');
+            return;
+        }
+        sound = new Howl({
+            src: [`./audio/${w.mags[Number(getAttr('mag'))].audio}.mp3`]
+        });
+    })
 
     const showAllTraces = () => {
         clear();        
@@ -243,18 +281,21 @@ export function setupGame() {
         const barrel = getAttr('barrel');
         const w = weapons.get(name);
         const sens = Number(getAttr('sens'));
+        if (!Number.isFinite(sens) || sens < 0.1) return;
         if (w == null) {
             console.error('weapon', getAttr('weapon'), 'not found');
             return;
         }
         const n = w.mags[Number(getAttr('mag'))].size;
-        const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
+        let rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
         if (rr.length == 0) {
             console.error(`no recoils for ${name} ${stock} ${barrel}`);
             return;
         }
-        const median = medianRecoil(rr);
-        rr.unshift(median);
+        const color = new TinyColor('white').darken(50);
+        if (getAttr('random-trace') == 'false') {
+            rr = [medianRecoil(rr)];
+        }
         rr.forEach((r, i) => {
             if (r.points.length < n) {
                 console.error('missing points', r.comment, r.points.length);
@@ -262,11 +303,6 @@ export function setupGame() {
             }
             const start = new Point((150 + 200 * i) / sens, 50);
             const linePoints: number[] = [];
-            let color = new TinyColor('white').darken(50);
-            if (i == 0) {
-                // Median.
-                color = new TinyColor('green').desaturate(50);
-            }
             const line = new Konva.Line({
                 points: [],
                 stroke: color.toString(),
@@ -320,7 +356,6 @@ export function setupGame() {
         const d = document.querySelector(`#weapon-select .${v}`) as HTMLDivElement;
         if (d == null) return;
         d.classList.add('selected');
-        showAllTraces();
     });
 
     for (let i = 0; i <= 3; i++) {
@@ -338,7 +373,6 @@ export function setupGame() {
         const d = document.querySelector(`#mag-select .mag-${v}`) as HTMLDivElement;
         if (d == null) return;
         d.classList.add('selected');
-        showAllTraces();
     });
 
     for (let i = 0; i <= 3; i++) {
@@ -360,10 +394,7 @@ export function setupGame() {
         const d = document.querySelector(`#attachment-select .attachment-${v}`) as HTMLDivElement;
         if (d == null) return;
         d.classList.add('selected');
-        showAllTraces();
     });
-
-    // let recoil: Recoil | null = null;
 
     const pickRecoil = () => {
         const name = getAttr('weapon');
@@ -394,17 +425,15 @@ export function setupGame() {
         const b = document.getElementById('score-stats');
         if (b) {
             if (s) {
-                b.innerText = `today: best ${sl.percentile(s.todayResults, 1)}, median ${Math.round(sl.median(s.todayResults))}
-best all time: ${s.bestAllTime}`;
+                b.innerText = `Today's median ${Math.round(sl.median(s.todayResults))}, best ${sl.percentile(s.todayResults, 1)}
+All time best ${s.bestAllTime}`;
             } else {
-                b.innerText = 'today: best -, median -\nall time best: -';
+                b.innerText = "Today's median -, best -\nAll time best -";
             }
         }
     };
     watchAttr(['stats', 'mag', 'weapon', 'barrel', 'stock', 'hint', 'random-trace', 'follow-markers'],
         showStats);
-    const btn = document.getElementById('show-all') as HTMLButtonElement;
-    if (btn !== null) btn.addEventListener('click', showAllTraces);
 
     const clear = () => {
         allShapes.forEach(c => c.remove());
@@ -439,15 +468,11 @@ best all time: ${s.bestAllTime}`;
         // TODO: global error handler.
         const d = 60 * 1000 / w.rpm; // del ay b/w rounds.
         const sens = Number(getAttr('sens'));
-        // const m = 1 / Number(getAttr('sens'));
         const n = w.mags[Number(getAttr('mag'))].size;
         let scores: number[] = [];
         if (getAttr('mute') != 'true') {
-            var sound = new Howl({
-                src: [`./audio/${w.mags[Number(getAttr('mag'))].audio}.mp3`]
-            });
-            sound.volume(Number(getAttr('volume')) / 100);
-            sound.play();
+            sound?.volume(Number(getAttr('volume')) / 100);
+            sound?.play();
         }
         const showHint = getAttr('hint') == 'true';
         const followMarkers = getAttr('follow-markers') == 'true';

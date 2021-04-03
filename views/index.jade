@@ -18,9 +18,11 @@ extends layout
 block content
   #game
     #control      
-      #score   
-        p score
-        p#current-score
+      h1 Apex Legends Interactive Recoil Patterns
+      #score
+        p 
+          span.label Score
+          span#current-score
         p#score-stats
       #weapon-select.grid
         div.r99
@@ -68,21 +70,46 @@ block content
       #settings
           p
             input(type='text' id='sens')
-            | in-game sens
-          p
-            input(type='checkbox' id='follow-markers')
-            | follow markers
+            | in-game sensitivity          
           p
             input(type='checkbox' id='hint')
-            | hint
+            | Show path
+          p
+            input(type='checkbox' id='follow-markers')
+            | Show pacer
           p
             input(type='checkbox' id='random-trace')
-            | random trace
+            | Random trace
           p
             input.slider#volume(type='range' min="0" max="100")
             | volume
           p
             input(type='checkbox' id='mute')
-            | mute
-          button#show-all show all
-    #stage
+            | mute sound
+          p
+            #[a#show-instructions(href="#") Show instructions]
+      #copyright
+        p 
+          | 2021 by Mikhail equanimity_rulez Goncharov.
+        p
+          | Some images and reference materials come from 
+          | #[a(href="https://apexlegends.fandom.com/wiki/") Apex Legends Wiki]. 
+          | Images, audio fragments, names come from Apex Legends game or 
+          | from websites created and owned by #[a(href="https://ea.com") Electronic Arts Inc.] 
+          | or #[a(href="https://www.respawn.com/") Respawn Entertainment], who hold the 
+          | copyright of Apex Legends.
+    #workspace
+      #instructions        
+          h2 Instructions
+          ul
+            li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="blank") Make sure that "Enhance pointer precision" is off].
+            li Update the "in-game sensitivity" to your preference.
+            li Pick a weapon, mag size, and attachment level.
+            li Click anywhere on the area below.
+            li Get a high score by compensating a recoil.
+          p Enable "Show path" to see the ideal compensation trajectory. It will be shown anyway at the end.
+          p Enable "Show pacer" to see a running dot to follow.
+          p Enable "Real trace" to use one of the real traces instead of a fixed average.
+          p Scores are separated for different settings.
+          #[a#dismiss-instructions(href="#") Dismiss instructions]
+      #stage
