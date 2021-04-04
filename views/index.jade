@@ -79,22 +79,21 @@ block content
             | Show pacer
           p
             input(type='checkbox' id='random-trace')
-            | Random trace
+            | Real trace
           p
             input.slider#volume(type='range' min="0" max="100")
             | volume
           p
             input(type='checkbox' id='mute')
             | mute sound
-          p
-            #[a#show-instructions(href="#") Show instructions]
+          p #[a#show-instructions(href="#") Show instructions]
       #copyright
         p 
           | 2021 by Mikhail equanimity_rulez Goncharov.
         p
           | Some images and reference materials come from 
           | #[a(href="https://apexlegends.fandom.com/wiki/") Apex Legends Wiki]. 
-          | Images, audio fragments, names come from Apex Legends game or 
+          | Images, audio fragments, weapon names and behavior come from Apex Legends game or 
           | from websites created and owned by #[a(href="https://ea.com") Electronic Arts Inc.] 
           | or #[a(href="https://www.respawn.com/") Respawn Entertainment], who hold the 
           | copyright of Apex Legends.
@@ -107,9 +106,11 @@ block content
             li Pick a weapon, mag size, and attachment level.
             li Click anywhere on the area below.
             li Get a high score by compensating a recoil.
-          p Enable "Show path" to see the ideal compensation trajectory. It will be shown anyway at the end.
-          p Enable "Show pacer" to see a running dot to follow.
-          p Enable "Real trace" to use one of the real traces instead of a fixed average.
-          p Scores are separated for different settings.
-          #[a#dismiss-instructions(href="#") Dismiss instructions]
+          p Enable "Show path" to see the ideal compensation trajectory.
+          p Enable "Show pacer" to see a running dot to follow ("show path" is on).
+          p 
+            i I recommend starting with "show pacer" on, then with only "show path" and then, as a final test - with both options off.
+          p Enable "Real trace" to use one of the real recorded traces instead of a fixed average.
+          p Scores are counted separately for different setups.
+          p #[a#dismiss-instructions(href="#") Dismiss instructions]
       #stage

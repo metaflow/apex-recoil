@@ -1,4 +1,4 @@
-/**
+ /**
  * Copyright 2021 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,9 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     minify = require('gulp-minify-css'),
-    buffer = require('vinyl-buffer');
+    buffer = require('vinyl-buffer'),
+    zip = require('gulp-zip'),
+    clean = require('gulp-clean');
 
 sass.compiler = require('node-sass');
 
@@ -109,17 +111,48 @@ gulp.task('js', function(){
     .pipe(source('optimized.js'))
     .pipe(buffer())
     .pipe(uglify())
-    .pipe(maps.init({
-        loadMaps: true,
-        sourceRoot: './public/gen',
-    }))
-    .pipe(maps.write('./'))
-    .pipe(gulp.dest('./public/gen'));
+    // .pipe(maps.init({
+    //     loadMaps: true,
+    //     sourceRoot: './public/gen',
+    // }))
+    // .pipe(maps.write('./'))
+    .pipe(gulp.dest('./static/gen'));
  });
 
 var jade = require('gulp-jade');
 gulp.task('templates', function() {
   return gulp.src('./views/*.jade')
-    .pipe(jade())
-    .pipe(gulp.dest('./public/'))
+    .pipe(jade({
+        locals: {
+            'title': 'Apex Recoils',
+            'script': 'optimized',
+        }
+    }))
+    .pipe(gulp.dest('./static/'))
 });
+
+gulp.task('copy-to-static', function() {
+    return gulp
+        .src(['./public/audio/*.*', './public/images/*.*'], { base: './public' })
+        .pipe(gulp.dest('static'));
+});
+
+gulp.task('zip-static', function() {
+    return gulp.src('static/**/*.*')
+    .pipe(zip('static.zip'))
+    .pipe(gulp.dest('./'));
+});
+
+gulp.task('clean-static', function () {
+    return gulp.src('static', {read: false})
+        .pipe(clean());
+});
+
+gulp.task('css-static', function() {
+    return gulp.src('./style.scss')
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest('static/gen'))
+        .pipe(livereload());
+});
+
+gulp.task('static', gulp.series('clean-static', 'css-static', 'js', 'templates', 'copy-to-static'));

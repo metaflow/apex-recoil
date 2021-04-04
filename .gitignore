@@ -1,5 +1,5 @@
 public/gen/
-public/*.html
+static/
 
 # Logs
 logs

@@ -17,7 +17,7 @@
 import { TinyColor } from "@ctrl/tinycolor";
 import { Howl } from "howler";
 import Konva from "konva";
-import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, setAttr, stage, watchAttr } from "./main";
+import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, resumeAttrUpdates, setAttr, stage, suspendAttrUpdates, watchAttr } from "./main";
 import { PlainPoint, Point } from "./point";
 import rec from './recoils.json';
 import specs from './specs.json';
@@ -212,7 +212,7 @@ export function setupGame() {
     initAttr('mute', 'false');
     initAttr('hint', 'true');
     initAttr('follow-markers', 'true');
-    initAttr('random-trace', 'true');
+    initAttr('random-trace', 'false');
     initAttr('show-instructions', 'true');
 
     watchAttr('show-instructions', (v: string) => {
@@ -249,6 +249,12 @@ export function setupGame() {
     attrInput('follow-markers');
     attrInput('mute');
 
+    watchAttr('hint', (v: string) => {
+        if (v == 'false') setAttr('follow-markers', 'false');
+    });
+    watchAttr('follow-markers', (v: string) => {
+        if (v == 'true') setAttr('hint', 'true');
+    });
     let allShapes: Konva.Shape[] = [];
     let hintShapes: Konva.Shape[] = [];
     const recoils = rec.map(s => {
@@ -275,7 +281,7 @@ export function setupGame() {
     })
 
     const showAllTraces = () => {
-        clear();        
+        clear();
         const name = getAttr('weapon');
         const stock = getAttr('stock');
         const barrel = getAttr('barrel');
@@ -302,7 +308,7 @@ export function setupGame() {
                 return;
             }
             const start = new Point((150 + 200 * i) / sens, 50);
-            const linePoints: number[] = [];
+            const linePoints: number[] = [];            
             const line = new Konva.Line({
                 points: [],
                 stroke: color.toString(),
@@ -328,7 +334,7 @@ export function setupGame() {
         stage.batchDraw();
     };
 
-    watchAttr(['weapon', 'stock', 'barrel', 'barrel', 'sens', 'random-trace'],
+    watchAttr(['weapon', 'stock', 'barrel', 'barrel', 'sens', 'random-trace', 'mag'],
         showAllTraces);
 
     const weapons = new Map<string, Weapon>();
@@ -447,14 +453,14 @@ All time best ${s.bestAllTime}`;
     ]);
 
     let shooting = false;
-    stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
+    stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {                
         if (shooting) return;        
         const recoil = pickRecoil();
         if (recoil == null) {
             console.log('no recoil selected');
             return;
         }
-        clear();
+        clear();        
         const start = cursor();
         if (start == null) return;
         const start_screen = new Point(stage.getPointerPosition());
@@ -464,11 +470,12 @@ All time best ${s.bestAllTime}`;
             console.log('weapon', getAttr('weapon'), 'not found');
             return;
         }
+        suspendAttrUpdates();
         shooting = true;
         // TODO: global error handler.
         const d = 60 * 1000 / w.rpm; // del ay b/w rounds.
         const sens = Number(getAttr('sens'));
-        const n = w.mags[Number(getAttr('mag'))].size;
+        const n = w.mags[Number(getAttr('mag'))]?.size || 1;
         let scores: number[] = [];
         if (getAttr('mute') != 'true') {
             sound?.volume(Number(getAttr('volume')) / 100);
@@ -476,6 +483,11 @@ All time best ${s.bestAllTime}`;
         }
         const showHint = getAttr('hint') == 'true';
         const followMarkers = getAttr('follow-markers') == 'true';
+        if (showHint) {
+            stage.container().classList.remove('no-cursor');
+        } else {
+            stage.container().classList.add('no-cursor');
+        }
         const hintTarget = new Konva.Circle({
             radius: 3,
             stroke: new TinyColor('red').desaturate(50).toString(),
@@ -497,7 +509,9 @@ All time best ${s.bestAllTime}`;
             allShapes.push(s);
         }
         let hitMarker = new Konva.Circle();
-        const traceLines: Konva.Line[] = [];
+        // const traceHits: Konva.Shape[] = [];
+        const hitMarkers: Konva.Shape[] = [];
+        const hits: Point[] = []; 
         const timePoints: number[] = [];
         const hintLinePoints: number[] = [];
         const hintCircles: Konva.Circle[] = [];
@@ -530,15 +544,13 @@ All time best ${s.bestAllTime}`;
         layer.add(hintLine);
         let hitIndex = -1;
         const fps: number[] = [];
-        var anim = new Konva.Animation(function (frame: any) {
+        var animation = new Konva.Animation(function (frame: any) {
             fps.push(frame.frameRate);
             // let updated = false;            
             // Register next shot.
             if (frame.time > timePoints[hitIndex + 1]) {
                 hitIndex++;
-                for (let i = 0; i <= hitIndex; i++) {
-                    hintCircles[i].radius(1);
-                }
+                for (let i = 0; i <= hitIndex; i++) hintCircles[i]?.radius(1);
                 const p = new Point(recoil.points[hitIndex]).s(1 / sens);
                 // Cursor position.
                 let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
@@ -561,43 +573,39 @@ All time best ${s.bestAllTime}`;
                         fill: scoreColor.toString(),
                         position: hit,
                     });
+                    hitMarkers.push(hitMarker);
                     allShapes.push(hitMarker);
                     layer.add(hitMarker);
                 }
-                {
-                    const q = new Konva.Line({
-                        points: [traceTarget.x, traceTarget.y, cur.x, cur.y],
-                        strokeWidth: 1,
-                        stroke: scoreColor.toString(),
-                    })
-                    traceLines.push(q);
-                }
+                hits.push(cur);
                 // Finished.
                 if (hitIndex + 1 >= n) {
                     shooting = false;
-                    anim.stop();
+                    resumeAttrUpdates();
+                    animation.stop();
                     const x = Math.round(100 * score / n);
                     addStat(x);
-                    traceLines.forEach(x => {
-                        layer.add(x);
-                        allShapes.push(x);
-                    });
+                    // Move hit markers relative to hint.
+                    hits.forEach((p, i) => {
+                        hitMarkers[i]?.position(p.plain());
+                    })
                     hintShapes.forEach(s => s.visible(true));
                     hitMarker.radius(2);
                     hintTarget.visible(false);
+                    stage.container().classList.remove('no-cursor');
                 }
             }
             if (followMarkers) {
-                for (let i = hitIndex; i < n; i++) {
+                for (let i = hitIndex + 1; i < n; i++) {
                     const d = timePoints[i] - frame.time;
-                    // d / 30 - will be closing over 300 ms (30 * 10).
-                    hintCircles[i].radius(Math.max(1, Math.min(10, d / 40)));
+                    // d / 40 - will be closing over ~450 ms (30 * 15).
+                    hintCircles[i].radius(Math.max(1, Math.min(15, d / 30) / sens));
                 }
-            }            
+            }
             // return updated;
             // target.x(100 * Math.sin((frame.time * 2 * Math.PI) / 1000) + start.x);
         }, layer);
-        anim.start();
+        animation.start();
         stage.batchDraw();
     });
 }

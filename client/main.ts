@@ -18,6 +18,7 @@ import Konva from 'konva';
 import { Point } from './point';
 import { setupGame } from './game';
 import { setupEditor } from './editor';
+import e from 'express';
 
 export const stage = new Konva.Stage({
     container: 'stage',
@@ -60,9 +61,20 @@ export function initAttr(name: string, def: string) {
     if (localStorage.getItem(s) == null) localStorage.setItem(s, def);
 }
 
+let attrUpdatesActive = true;
+export function suspendAttrUpdates() {
+    attrUpdatesActive = false;
+}
+
+export function resumeAttrUpdates() {
+    attrUpdatesActive = true;    
+}
+
 export function setAttr(name: string, value: string) {
     localStorage.setItem(attrNamespace() + ':' + name, value);
-    onAttrUpdates.forEach(f => f(attrNamespace() + ':' + name, value));
+    if (attrUpdatesActive) {
+        onAttrUpdates.forEach(f => f(attrNamespace() + ':' + name, value));
+    }
 }
 
 export function watchAttrs(fn: attrUpdateFn) {
