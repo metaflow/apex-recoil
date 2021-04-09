@@ -18,7 +18,6 @@ import Konva from 'konva';
 import { Point } from './point';
 import { setupGame } from './game';
 import { setupEditor } from './editor';
-import e from 'express';
 
 export const stage = new Konva.Stage({
     container: 'stage',
@@ -46,6 +45,8 @@ export function cursor(): Point {
 let _attrNamespace = '';
 type attrUpdateFn = (name: string, v: string) => void;
 let onAttrUpdates: attrUpdateFn[] = [];
+
+export let appInitialized = false;
 
 export function attrNamespace(v?: string): string {
     if (v != null) _attrNamespace = v;
@@ -135,4 +136,5 @@ if (window.location.pathname === '/editor') {
     setupGame();
 }
 pokeAttrs();
+appInitialized = true;
 stage.batchDraw();

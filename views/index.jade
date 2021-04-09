@@ -20,9 +20,9 @@ block content
     #control      
       h1 Apex Legends Interactive Recoil Patterns
       #score
-        p 
-          span.label Score
-          span#current-score
+        //- p 
+        //-   span.label Score
+        //-   span#current-score
         p#score-stats
       #weapon-select.grid
         div.r99
@@ -75,22 +75,26 @@ block content
             input(type='checkbox' id='hint')
             | Show path
           p
-            input(type='checkbox' id='follow-markers')
+            input(type='checkbox' id='pacer')
             | Show pacer
+          p
+            input(type='checkbox' id='toggle-modes')
+            | Auto toggle hint
           p
             input(type='checkbox' id='random-trace')
             | Real trace
           p
             input.slider#volume(type='range' min="0" max="100")
-            | volume
+            | Volume
           p
             input(type='checkbox' id='mute')
-            | mute sound
+            | Mute sound
           p #[a#show-instructions(href="#") Show instructions]
       #copyright
         p 
           | 2021 by Mikhail equanimity_rulez Goncharov.
         p
+          b This app is not affiliated with or sponsored by Electronic Arts Inc. or its licensors. 
           | Some images and reference materials come from 
           | #[a(href="https://apexlegends.fandom.com/wiki/") Apex Legends Wiki]. 
           | Images, audio fragments, weapon names and behavior come from Apex Legends game or 
@@ -107,10 +111,11 @@ block content
             li Click anywhere on the area below.
             li Get a high score by compensating a recoil.
           p Enable "Show path" to see the ideal compensation trajectory.
-          p Enable "Show pacer" to see a running dot to follow ("show path" is on).
+          p Enable "Show pacer" to see a running dot to follow (only if "show path" is on).
           p 
-            i I recommend starting with "show pacer" on, then with only "show path" and then, as a final test - with both options off.
+            i I recommend "Show path", "Show pacer" and "Auto toggle path on/off" enabled.
           p Enable "Real trace" to use one of the real recorded traces instead of a fixed average.
           p Scores are counted separately for different setups.
+          p Middle button toggles the trace display mode.
           p #[a#dismiss-instructions(href="#") Dismiss instructions]
       #stage
