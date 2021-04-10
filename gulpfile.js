@@ -129,7 +129,7 @@ gulp.task('templates', function () {
 
 function copy_assets() {
     return gulp
-        .src(['./assets/**/*.*', './images/*.*'])
+        .src(['./assets/**/*.*', './etc/**/*.*'])
         .pipe(gulp.dest('public'));
 }
 
@@ -139,9 +139,9 @@ gulp.task('assets-static', function () {
         .pipe(gulp.dest('static'));
 });
 
-gulp.task('images-static', function () {
+gulp.task('etc-static', function () {
     return gulp
-        .src(['./images/*.*'])
+        .src(['./etc/**/*.*'])
         .pipe(gulp.dest('static'));
 });
 
@@ -163,4 +163,4 @@ gulp.task('css-static', function () {
         .pipe(livereload());
 });
 
-gulp.task('static', gulp.series('clean-static', 'css-static', 'js', 'templates', 'assets-static', 'images-static'));
+gulp.task('static', gulp.series('clean-static', 'css-static', 'js', 'templates', 'assets-static', 'etc-static'));
