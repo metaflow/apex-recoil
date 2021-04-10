@@ -1,18 +1,18 @@
- /**
- * Copyright 2021 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/**
+* Copyright 2021 Mikhail Goncharov
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 var gulp = require('gulp'),
     browserify = require('browserify'),
@@ -42,7 +42,7 @@ function compile_sass() {
         .pipe(maps.init())
         .pipe(sass().on('error', sass.logError))
         .pipe(maps.write())
-        .pipe(gulp.dest('./public/gen'))
+        .pipe(gulp.dest('./public'))
         .pipe(livereload());
 }
 
@@ -71,8 +71,8 @@ function scripts(watch) {
         gutil.log(gutil.colors.green('Bundling scripts...'));
         return b.bundle()
             .on('error', fancy_log)
-            .pipe(source('bundle.js'))            
-            .pipe(gulp.dest('./public/gen'))
+            .pipe(source('bundle.js'))
+            .pipe(gulp.dest('./public'))
             .pipe(wait(1000))
             .pipe(livereload());
     };
@@ -88,8 +88,9 @@ gulp.task('sass', compile_sass);
 gulp.task('default', function () { scripts(false); });
 gulp.task('watch', function () {
     compile_sass();
-    theme_sass().on('end', function() {
-        gutil.log('theme sass completed');        
+    copy_assets();
+    theme_sass().on('end', function () {
+        gutil.log('theme sass completed');
     });
     scripts(true);
     livereload();
@@ -97,7 +98,7 @@ gulp.task('watch', function () {
     gulp.watch(['theme.json'], theme_sass);
     gulp.watch(['*.scss'], compile_sass);
 });
-gulp.task('js', function(){
+gulp.task('js', function () {
     return browserify({
         basedir: '.',
         debug: false,
@@ -107,52 +108,59 @@ gulp.task('js', function(){
         cache: {},
         packageCache: {}
     }).plugin(tsify)
-    .bundle()
-    .pipe(source('optimized.js'))
-    .pipe(buffer())
-    .pipe(uglify())
-    // .pipe(maps.init({
-    //     loadMaps: true,
-    //     sourceRoot: './public/gen',
-    // }))
-    // .pipe(maps.write('./'))
-    .pipe(gulp.dest('./static/gen'));
- });
-
-var jade = require('gulp-jade');
-gulp.task('templates', function() {
-  return gulp.src('./views/*.jade')
-    .pipe(jade({
-        locals: {
-            'title': 'Apex Recoils',
-            'script': 'optimized',
-        }
-    }))
-    .pipe(gulp.dest('./static/'))
+        .bundle()
+        .pipe(source('optimized.js'))
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(gulp.dest('./static'));
 });
 
-gulp.task('copy-to-static', function() {
+var jade = require('gulp-jade');
+gulp.task('templates', function () {
+    return gulp.src('./views/*.jade')
+        .pipe(jade({
+            locals: {
+                'title': 'Apex Recoils',
+                'script': 'optimized',
+            }
+        }))
+        .pipe(gulp.dest('./static/'))
+});
+
+function copy_assets() {
     return gulp
-        .src(['./public/audio/*.*', './public/images/*.*'], { base: './public' })
+        .src(['./assets/**/*.*', './images/*.*'])
+        .pipe(gulp.dest('public'));
+}
+
+gulp.task('assets-static', function () {
+    return gulp
+        .src(['./assets/**/*.*'], { base: './assets' })
         .pipe(gulp.dest('static'));
 });
 
-gulp.task('zip-static', function() {
+gulp.task('images-static', function () {
+    return gulp
+        .src(['./images/*.*'])
+        .pipe(gulp.dest('static'));
+});
+
+gulp.task('zip-static', function () {
     return gulp.src('static/**/*.*')
-    .pipe(zip('static.zip'))
-    .pipe(gulp.dest('./'));
+        .pipe(zip('static.zip'))
+        .pipe(gulp.dest('./'));
 });
 
 gulp.task('clean-static', function () {
-    return gulp.src('static', {read: false})
+    return gulp.src('static', { read: false })
         .pipe(clean());
 });
 
-gulp.task('css-static', function() {
+gulp.task('css-static', function () {
     return gulp.src('./style.scss')
         .pipe(sass().on('error', sass.logError))
-        .pipe(gulp.dest('static/gen'))
+        .pipe(gulp.dest('static'))
         .pipe(livereload());
 });
 
-gulp.task('static', gulp.series('clean-static', 'css-static', 'js', 'templates', 'copy-to-static'));
+gulp.task('static', gulp.series('clean-static', 'css-static', 'js', 'templates', 'assets-static', 'images-static'));

@@ -1,5 +1,5 @@
 //- 
-//- Copyright 2021 Google LLC
+//- Copyright 2021 Mikhail Goncharov
 //-
 //- Licensed under the Apache License, Version 2.0 (the "License");
 //- you may not use this file except in compliance with the License.
@@ -91,15 +91,17 @@ block content
             | Mute sound
           p #[a#show-instructions(href="#") Show instructions]
       #copyright
+        a(href="https://github.com/metaflow/apex-recoil" target="blank")
+          img(src="/GitHub-Mark-Light-32px.png", alt="github")
         p 
           | 2021 by Mikhail equanimity_rulez Goncharov.
         p
           b This app is not affiliated with or sponsored by Electronic Arts Inc. or its licensors. 
           | Some images and reference materials come from 
-          | #[a(href="https://apexlegends.fandom.com/wiki/") Apex Legends Wiki]. 
+          | #[a(href="https://apexlegends.fandom.com/wiki/" target="blank") Apex Legends Wiki]. 
           | Images, audio fragments, weapon names and behavior come from Apex Legends game or 
-          | from websites created and owned by #[a(href="https://ea.com") Electronic Arts Inc.] 
-          | or #[a(href="https://www.respawn.com/") Respawn Entertainment], who hold the 
+          | from websites created and owned by #[a(href="https://ea.com" target="blank") Electronic Arts Inc.] 
+          | or #[a(href="https://www.respawn.com/" target="blank") Respawn Entertainment], who hold the 
           | copyright of Apex Legends.
     #workspace
       #instructions        
@@ -110,12 +112,12 @@ block content
             li Pick a weapon, mag size, and attachment level.
             li Click anywhere on the area below.
             li Get a high score by compensating a recoil.
-          p Enable "Show path" to see the ideal compensation trajectory.
-          p Enable "Show pacer" to see a running dot to follow (only if "show path" is on).
-          p 
-            i I recommend "Show path", "Show pacer" and "Auto toggle path on/off" enabled.
+          p #[i Middle button] toggles the trace display mode.
+          p Enable #[i Show path] to see the ideal compensation trajectory.
+          p Enable #[i Show pacer] to see a running dot to follow (only if "show path" is on).
+          p #[i Auto toggle hint] will switch between hint and no hint modes between sprays.
+          p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled.
           p Enable "Real trace" to use one of the real recorded traces instead of a fixed average.
           p Scores are counted separately for different setups.
-          p Middle button toggles the trace display mode.
           p #[a#dismiss-instructions(href="#") Dismiss instructions]
       #stage

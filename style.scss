@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google LLC
+ * Copyright 2021 Mikhail Goncharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ $menu: adjust-color($background, $lightness: +2%);
 $foreground: map-deep-get($theme, "foreground");
 $active: map-deep-get($theme, "active");
 $error: map-deep-get($theme, "error");
+$active2: map-deep-get($theme, "selection");
 $attachment_1: map-deep-get($theme, "attachment_1");
 $attachment_2: map-deep-get($theme, "attachment_2");
 $attachment_3: map-deep-get($theme, "attachment_3");
@@ -50,6 +51,7 @@ a {
 
 i {
     font-style: italic;
+    color: $active2;
 }
 
 b {
