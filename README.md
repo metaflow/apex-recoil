@@ -12,9 +12,9 @@ First of all, check [contributing](./docs/contributing.md) and [Code of conduct]
 
 # License and legal disclaimers
 
-Source code has [Apache 2 license](./LICENSE).
+Source code licensed under [Apache 2](./LICENSE).
 
-Google LLC is not affiliated with this project.
+This project is not affiliated with or sponsored by Google.
 
 This project is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.
 
