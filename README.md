@@ -9,7 +9,6 @@ I would appreciate a kind word [here](https://github.com/metaflow/apex-recoil/is
 You can also help this project by contributing to it. For example, you can [add more recoil patterns](https://github.com/metaflow/apex-recoil/issues/2) for weapons already listed or, especially, missing (like spitfire or re-45).
 
 First of all, check [contributing](./docs/contributing.md) and [Code of conduct](./docs/code-of-conduct.md).
-If you want to 
 
 # License and legal disclaimers
 
