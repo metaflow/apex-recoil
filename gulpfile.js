@@ -86,18 +86,27 @@ function scripts(watch) {
 
 gulp.task('sass', compile_sass);
 gulp.task('default', function () { scripts(false); });
-gulp.task('watch', function () {
-    compile_sass();
-    copy_assets();
-    theme_sass().on('end', function () {
-        gutil.log('theme sass completed');
-    });
-    scripts(true);
-    livereload();
-    livereload.listen();
-    gulp.watch(['theme.json'], theme_sass);
-    gulp.watch(['*.scss'], compile_sass);
-});
+
+gulp.task('watch', gulp.series(
+    function () {
+        return gulp.src('public', { read: false }).pipe(clean());
+    },
+    theme_sass,
+    compile_sass,
+    copy_assets,
+    function () {
+        theme_sass().on('end', function () {
+            gutil.log('theme sass completed');
+        });
+        scripts(true);
+        livereload();
+        livereload.listen();
+        gulp.watch(['etc/**/*.*'], copy_assets);
+        gulp.watch(['theme.json'], theme_sass);
+        gulp.watch(['*.scss'], compile_sass);
+    }
+));
+
 gulp.task('js', function () {
     return browserify({
         basedir: '.',
