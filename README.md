@@ -24,4 +24,4 @@ Some images and reference materials come from [Apex Legends Wiki](https://apexle
 
 Images, audio fragments, weapon names and behavior come from Apex Legends game or from websites created and owned by [Electronic Arts Inc.](https://ea.com) or [Respawn Entertainment](https://www.respawn.com/"), who hold the copyright of Apex Legends.
 
-Thus multimedia content from [assets](./assets) **is NOT under Apache 2.0 License** and you are likely have to contact EA if you want to reuse it.
+Thus multimedia content from [assets](./assets) **is NOT under Apache 2.0 License** and you get in touch with EA if you want to reuse it.

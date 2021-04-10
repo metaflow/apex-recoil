@@ -1,17 +1,17 @@
 tarteaucitron.init({
-    "privacyUrl": "", /* Privacy policy url */
+    "privacyUrl": "https://github.com/metaflow/apex-recoil/blob/main/docs/privacy-policy.md", /* Privacy policy url */
 
-    "hashtag": "#tarteaucitron", /* Open the panel with this hashtag */
+    "hashtag": "#cookies", /* Open the panel with this hashtag */
     "cookieName": "tarteaucitron", /* Cookie name */
 
-    "orientation": "middle", /* Banner position (top - bottom - middle - popup) */
+    "orientation": "bottom", /* Banner position (top - bottom - middle - popup) */
 
     "groupServices": false, /* Group services by category */
 
     "showAlertSmall": false, /* Show the small banner on bottom right */
     "cookieslist": false, /* Show the cookie list */
     
-    "showIcon": true, /* Show cookie icon to manage cookies */
+    "showIcon": false, /* Show cookie icon to manage cookies */
     // "iconSrc": "", /* Optionnal: URL or base64 encoded image */
     "iconPosition": "BottomRight", /* Position of the icon between BottomRight, BottomLeft, TopRight and TopLeft */
 
@@ -31,5 +31,8 @@ tarteaucitron.init({
 
     "readmoreLink": "", /* Change the default readmore link pointing to tarteaucitron.io */
     
-    "mandatory": true /* Show a message about mandatory cookies */
+    "mandatory": false /* Show a message about mandatory cookies */
 });
+
+tarteaucitron.user.gtagUa = 'G-961MVSXWCZ';
+(tarteaucitron.job = tarteaucitron.job || []).push('gtag');

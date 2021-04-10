@@ -89,11 +89,11 @@ gulp.task('default', function () { scripts(false); });
 
 gulp.task('watch', gulp.series(
     function () {
-        return gulp.src('public', { read: false }).pipe(clean());
+        return gulp.src('public/*', { read: false }).pipe(clean());
     },
-    theme_sass,
-    compile_sass,
     copy_assets,
+    theme_sass,
+    compile_sass,    
     function () {
         theme_sass().on('end', function () {
             gutil.log('theme sass completed');
@@ -129,7 +129,7 @@ gulp.task('templates', function () {
     return gulp.src('./views/*.jade')
         .pipe(jade({
             locals: {
-                'title': 'Apex Recoils',
+                'title': 'Apex Legends Recoils',
                 'script': 'optimized',
             }
         }))
