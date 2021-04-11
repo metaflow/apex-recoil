@@ -267,7 +267,7 @@ export function setupGame() {
             const line = new Konva.Line({
                 points: [],
                 stroke: color.toString(),
-                strokeWidth: 0.5,
+                strokeWidth: 1,
             });
             allShapes.push(line);
             layer.add(line);

@@ -114,7 +114,6 @@ export function setupEditor() {
             stage.batchDraw();
         });
         c.on('mousedown', function (e) {
-            // console.log(e.evt.button);
             if (e.evt.button == 1) {
                 if (anchors.has(idx)) {
                     anchors.delete(idx);

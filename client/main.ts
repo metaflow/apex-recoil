@@ -95,7 +95,6 @@ export function pokeAttrs() {
     for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k == null) continue;
-        // console.log('poke', k, localStorage.getItem(k));
         onAttrUpdates.forEach(f => f(k, localStorage.getItem(k) || ''));
     }
 }
@@ -125,8 +124,6 @@ export function attrInput(id: string) {
         console.error('unknown input type', a.type);
     }
 };
-
-console.log(window.location.pathname);
 
 if (window.location.pathname === '/editor') {
     setupEditor();
