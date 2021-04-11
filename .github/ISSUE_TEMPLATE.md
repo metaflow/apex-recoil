@@ -1,16 +1,3 @@
-## Expected Behavior
-
-
-## Actual Behavior
-
-
-## Steps to Reproduce the Problem
-
-1.
-1.
-1.
-
-## Specifications
-
-- Version:
-- Platform:
+Please check existing issues https://github.com/metaflow/apex-recoil/issues first.
+Include your browser version and platform in case of rendering issues.
+-----------
