@@ -253,8 +253,25 @@ h2 {
             }
         }
         #copyright {
+            .links {
+                font-size: 9px;
+                flex-direction: row;
+                display: flex;
+                .vertical {
+                    flex-direction: column;
+                    display: flex;
+                    align-items: flex-end;
+                    flex-grow: 1;
+                }
+            }
             a {
-                padding: 2px;
+                margin: 2px;
+                img {
+                    border: 1px solid transparent;
+                    &:hover {
+                        border: 1px solid $foreground;
+                    }
+                }
             }
             margin-top: auto;
             padding: 4px;
