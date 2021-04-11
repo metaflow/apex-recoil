@@ -1,5 +1,7 @@
 # About
 
+https://apexlegendsrecoils.online
+
 Visualization of recoil patterns from [Apex Legends](https://www.ea.com/games/apex-legends).
 
 # Contributing and support
@@ -14,16 +16,14 @@ First of all, check [contributing](./docs/contributing.md) and [Code of conduct]
 
 Source code licensed under [Apache 2](./LICENSE).
 
-This project is not affiliated with or sponsored by Google.
+<ins>This project is not affiliated with or sponsored by Google.</ins>
 
-This project is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.
-
-[Privacy policy](./docs/privacy-policy.md) and [Datenschutzerklärung](./docs/privacy-policy-de.md).
+<ins>This project is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.</ins>
 
 ## Assets
 
-Some images and reference materials come from [Apex Legends Wiki](https://apexlegends.fandom.com/wiki).
-
 Images, audio fragments, weapon names and behavior come from Apex Legends game or from websites created and owned by [Electronic Arts Inc.](https://ea.com) or [Respawn Entertainment](https://www.respawn.com/"), who hold the copyright of Apex Legends.
 
-Thus multimedia content from [assets](./assets) **is NOT under Apache 2.0 License** and you get in touch with EA if you want to reuse it.
+Some images and reference materials come from [Apex Legends Wiki](https://apexlegends.fandom.com/wiki).
+
+Thus multimedia content from [assets](./assets) <ins>is NOT under Apache 2.0 License</ins>. Get in touch with EA if you want to use it.
