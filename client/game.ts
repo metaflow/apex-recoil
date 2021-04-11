@@ -221,7 +221,6 @@ export function setupGame() {
     let sound: Howl | null = null;
     let soundPath = '';
     const updateSound = () => {
-        // if (!appInitialized) return;
         if (getAttr('mute') == 'true') return;
         const w = weapons.get(getAttr('weapon'));
         if (w == null) {
@@ -471,9 +470,9 @@ All time best ${s.bestAllTime}`;
         {
             // Start marker.
             const s = new Konva.Circle({
-                radius: 6,
+                radius: 2 + 4 / sens,
                 stroke: new TinyColor('green').desaturate(50).toString(),
-                strokeWidth: 2,
+                strokeWidth: 1 + 1 / sens,
                 position: start.plain(),
             });
             layer.add(s);
@@ -601,7 +600,7 @@ All time best ${s.bestAllTime}`;
                 updated = true;
                 for (let i = hitIndex + 1; i < n; i++) {
                     const d = timePoints[i] - frame.time;
-                    // d / 30 - will be closing over ~450 ms (30 * 15).
+                    // d / 30 - will be closing over ~300 ms (30 * 10).
                     hintCircles[i].radius(Math.max(1, Math.min(10, d / 30) / sens));
                 }               
             }

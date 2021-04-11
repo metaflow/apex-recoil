@@ -46,8 +46,6 @@ let _attrNamespace = '';
 type attrUpdateFn = (name: string, v: string) => void;
 let onAttrUpdates: attrUpdateFn[] = [];
 
-export let appInitialized = false;
-
 export function attrNamespace(v?: string): string {
     if (v != null) _attrNamespace = v;
     return _attrNamespace;
@@ -136,5 +134,4 @@ if (window.location.pathname === '/editor') {
     setupGame();
 }
 pokeAttrs();
-appInitialized = true;
 stage.batchDraw();

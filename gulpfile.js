@@ -120,7 +120,7 @@ gulp.task('js', function () {
         packageCache: {}
     }).plugin(tsify)
         .bundle()
-        .pipe(source('optimized.js'))
+        .pipe(source('bundle.js'))
         .pipe(buffer())
         .pipe(uglify())
         .pipe(gulp.dest('./static'));
@@ -131,8 +131,7 @@ gulp.task('templates', function () {
     return gulp.src('./views/*.jade')
         .pipe(jade({
             locals: {
-                'title': 'Apex Legends Recoils',
-                'script': 'optimized',
+                'title': 'Apex Legends Recoils'
             }
         }))
         .pipe(gulp.dest('./static/'))
