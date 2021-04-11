@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      http://w.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -584,6 +584,10 @@ All time best ${s.bestAllTime}`;
                         text: `${x}`,
                         fontSize: 20,
                         fill: scoreGrad.rgbAt(score / n).toString(),
+                        shadowColor: theme.background,
+                        shadowBlur: 0,
+                        shadowOffset: { x: 1, y: 1 },
+                        shadowOpacity: 1,
                     });
                     txt.position(start.add(new Point(20, -10)).plain());
                     allShapes.push(txt);

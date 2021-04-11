@@ -24,7 +24,7 @@
     @return $map;
 }
 
-$background: map-deep-get($theme, "backgroud");
+$background: map-deep-get($theme, "background");
 $menu: adjust-color($background, $lightness: +2%);
 $foreground: map-deep-get($theme, "foreground");
 $active: map-deep-get($theme, "active");
@@ -103,10 +103,12 @@ h1 {
     font-weight: bold;
     padding: 4px 0;
     color: $active;
+    font-size: 15px;
 }
 
 h2 {
     font-weight: bold;
+    font-size: 15px;
 }
 
 #game {
@@ -127,6 +129,10 @@ h2 {
         display: flex;
         #settings {
             padding: 4px;
+        }
+        .instructions {
+            padding: 4px 12px;
+            text-align: right;
         }
         #score {
             .label {

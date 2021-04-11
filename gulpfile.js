@@ -89,11 +89,13 @@ gulp.task('default', function () { scripts(false); });
 
 gulp.task('watch', gulp.series(
     function () {
-        return gulp.src('public/*', { read: false }).pipe(clean());
+        return gulp
+            .src('public/*', { read: false, allowEmpty: true })
+            .pipe(clean());
     },
     copy_assets,
     theme_sass,
-    compile_sass,    
+    compile_sass,
     function () {
         theme_sass().on('end', function () {
             gutil.log('theme sass completed');
@@ -161,7 +163,7 @@ gulp.task('zip-static', function () {
 });
 
 gulp.task('clean-static', function () {
-    return gulp.src('static', { read: false })
+    return gulp.src('static', { read: false, allowEmpty: true })
         .pipe(clean());
 });
 

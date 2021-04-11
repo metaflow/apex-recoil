@@ -18,7 +18,9 @@ extends layout
 block content
   #game
     #control
-      h1 Apex Legends Interactive Recoil Patterns
+      h1 Practice Apex Legends Recoil Patterns
+      p.instructions
+        a#show-instructions(href="#") Show instructions
       #score
         p#score-stats
       #weapon-select.grid
@@ -85,8 +87,7 @@ block content
             | Volume
           p
             input(type='checkbox' id='mute')
-            | Mute sound
-          p #[a#show-instructions(href="#") Show instructions]
+            | Mute sound          
       #copyright
         div.links
           a(href="https://github.com/metaflow/apex-recoil" target="blank")
@@ -115,16 +116,17 @@ block content
           h2 Instructions
           ul
             li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="blank") Make sure that "Enhance pointer precision" is off].
-            li Update the "in-game sensitivity" to your preference.
-            li Pick a weapon, mag size, and attachments level.
+            li Update the "in-game sensitivity" to your preference.            
+            li Pick a weapon, mag size, and attachments' level.
             li Click anywhere on the area below.
             li Get a high score by compensating a recoil.
+          p Default (6/11) Windows Mouse Sensitivity is assumed.
           p Enable #[i Show path] to see the ideal compensation trajectory.
-          p Enable #[i Show pacer] to see a running dot to follow (works only if "show path" is on).
-          p #[i Auto toggle hint] will switch between hint and no hint modes between sprays.
-          p #[i Middle button] toggles the trace display mode.
-          p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled.
-          p Enable "Real trace" to use one of the real recorded traces instead of a fixed average.
-          p Scores are counted separately for different setups.
+          p Enable #[i Show pacer] to see a running dot to follow (works only if "Show path" is on).
+          p #[i Auto toggle hint] switches "show path" between sprays.
+          p The #[i middle mouse button] toggles the display mode of a trace.
+          p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled to learn the patterns.
+          p Enable #[i Real trace] to use one of the real trace records instead of a fixed average.
+          p Scores are counted separately for different settings.
           p #[a#dismiss-instructions(href="#") Dismiss instructions]
       #stage

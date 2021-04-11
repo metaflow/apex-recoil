@@ -4,19 +4,21 @@ Visualization of recoil patterns from [Apex Legends](https://www.ea.com/games/ap
 
 # Contributing and support
 
-I would appreciate a kind word [here](https://github.com/metaflow/apex-recoil/issues/1) or on [twitter](https://twitter.com/goncharov_m).
+I would appreciate a kind word [here on GitHub](https://github.com/metaflow/apex-recoil/issues/1) or on [Twitter](https://twitter.com/goncharov_m).
 
 You can also help this project by contributing to it. For example, you can [add more recoil patterns](https://github.com/metaflow/apex-recoil/issues/2) for weapons already listed or, especially, missing (like spitfire or re-45).
 
 First of all, check [contributing](./docs/contributing.md) and [Code of conduct](./docs/code-of-conduct.md).
 
-# License and legal disclaimers
+# License and disclaimers
 
 Source code licensed under [Apache 2](./LICENSE).
 
 This project is not affiliated with or sponsored by Google.
 
 This project is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.
+
+[Privacy policy](./docs/privacy-policy.md) and [Datenschutzerklärung](./docs/privacy-policy-de.md).
 
 ## Assets
 
