@@ -25,14 +25,9 @@ export const stage = new Konva.Stage({
     height: window.screen.height,
 });
 
-/* https://konvajs.org/docs/sandbox/Animation_Stress_Test.html#page-title
-* setting the listening property to false will improve
-* drawing performance because the rectangles won't have to be
-* drawn onto the hit graph */
-export const layer = new Konva.Layer({
-    listening: false
-});
+export const layer = new Konva.Layer();
 stage.add(layer);
+
 layer.scaleX(1);
 layer.scaleY(1);
 
@@ -103,7 +98,7 @@ export function attrInput(id: string) {
     const a = document.getElementById(id) as HTMLInputElement;
     if (a != null) {
         a.value = getAttr(id);
-        if (a.type == 'text' || a.type == 'range') {
+        if (a.type == 'text' || a.type == 'textarea' || a.type == 'range') {
             a.onkeyup = a.onchange = () => {
                 setAttr(id, a.value);
             };

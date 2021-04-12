@@ -155,6 +155,11 @@ function addStat(v: number): TrialStats {
 }
 
 export function setupGame() {
+    /* https://konvajs.org/docs/sandbox/Animation_Stress_Test.html#page-title
+    * setting the listening property to false will improve
+    * drawing performance because the rectangles won't have to be
+    * drawn onto the hit graph */
+    layer.listening(false);
     attrNamespace('game:');
     initAttr('sens', '5');
     initAttr('weapon', 'r99');
