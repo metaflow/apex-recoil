@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import { json } from "express";
 import hotkeys from "hotkeys-js";
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
 import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, pokeAttrs, setAttr, stage, watchAttr } from "./main";
-import { Point } from "./point";
+import { PlainPoint, Point } from "./point";
 import specs from './specs.json';
 
 export function setupEditor() {
@@ -30,6 +31,7 @@ export function setupEditor() {
     initAttr('stock', '0');
     initAttr('barrel', '0');
     initAttr('points', '[]');
+    initAttr('anchors', '[]');
     
     attrInput('weapon');
     attrInput('barrel');
@@ -45,7 +47,7 @@ export function setupEditor() {
     const line = new Konva.Line({
         stroke: 'white',
         strokeWidth: 1,
-        points: [],
+        points: [],        
     });
     layer.add(line);
     watchAttr('imagedata', (s: string) => {
@@ -64,12 +66,8 @@ export function setupEditor() {
             // console.log(img.width(), img.height());
             img.scaleX(s);
             img.scaleY(s);
-            img.zIndex(0);
-            points.forEach(p => p.remove());
-            points = [];
-            anchors.clear();
-            updateLine();
-            stage.batchDraw();
+            img.zIndex(0);            
+            stage.batchDraw();            
         });
     });
     watchAttr('comment', (v: string) => {
@@ -86,7 +84,7 @@ export function setupEditor() {
         const file = fileList.item(0);
         if (!file) return;
         setAttr('comment', file.name);
-        const mm = file.name.match(/([^ ]*) (\d+) (\d+) (\d+)/)
+        const mm = file.name.match(/([^ ]*) (\d+) (\d+) ([0-9.]+)/)
         if (mm != null) {
             setAttr('weapon', mm[1]);
             setAttr('barrel', mm[2]);
@@ -95,6 +93,7 @@ export function setupEditor() {
         }
         const reader = new FileReader();
         reader.addEventListener('load', (event) => {
+            clear();
             setAttr('imagedata', (event.target?.result as string) || '')
         });
         reader.readAsDataURL(file);
@@ -111,12 +110,17 @@ export function setupEditor() {
             })
         });        
     });
-    stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
+    const updateLine = () => {
+        points.forEach((c, i) => c.stroke(anchors.has(i) ? 'red' : 'white'));
+        line.points(points.flatMap((p: Konva.Circle) => [p.position().x, p.position().y]));
+        updateSpec();
+    };    
+    const addPoint = (p: PlainPoint) => {
         const c = new Konva.Circle({
             radius: 6,
             stroke: `white`,
             strokeWidth: 1,
-            position: cursor().plain(),
+            position: p,
             draggable: true,
         });
         const idx = points.length;
@@ -128,13 +132,12 @@ export function setupEditor() {
         c.on('mousedown', function (e) {
             if (e.evt.button == 1) {
                 if (anchors.has(idx)) {
-                    anchors.delete(idx);
-                    c.stroke('white');
+                    anchors.delete(idx);                    
                 } else {
                     anchors.add(idx);
-                    c.stroke('red');
                 }
-                updateSpec();
+                updateLine();
+                stage.batchDraw();
             }
             e.cancelBubble = true;
         });
@@ -142,20 +145,20 @@ export function setupEditor() {
         updateLine();
         layer.add(c);
         stage.batchDraw();
+    }    
+    stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
+        addPoint(cursor().plain());
     });
-    const updateLine = () => {
-        line.points(points.flatMap((p: Konva.Circle) => [p.position().x, p.position().y]));
-        updateSpec();
-    };    
-    const updateSpec = (_?: string) => {
-        
+    const updateSpec = (_?: string) => {    
+        setAttr('points', JSON.stringify(points.map(p => p.position())));
+        setAttr('anchors', JSON.stringify(Array.from(anchors.values())));
         let cpi = Number(getAttr('cpi'));
         let sens = Number(getAttr('sens'));
         let distance = Number(getAttr('distance'));
         if (isNaN(cpi) || isNaN(sens) || isNaN(distance)) {
             setText('invalid value of one of the params');
             return;
-        }        
+        }
         const w = weapons.get(getAttr('weapon'));
         if (w == null) {
             setText('unknown weapon');
@@ -170,6 +173,10 @@ export function setupEditor() {
             return;
         }        
         const idx = Array.from(anchors.values());
+        if (idx[0] >= points.length || idx[1] >= points.length) {
+            setText(`wrong anchor indexes ${idx}`);
+            return;
+        }
         const p1 = new Point(points[idx[0]].position());
         const p2 = new Point(points[idx[1]].position());
         let pp = points.map((p: Konva.Circle) => {
@@ -203,6 +210,17 @@ export function setupEditor() {
     };
     hotkeys('ctrl+z', undo);
     (document.getElementById('undo') as HTMLButtonElement)?.addEventListener('click', undo);
+    const clear = () => {
+        console.log('clear');
+        points.forEach(p => p.remove());
+        points = [];
+        anchors.clear();
+        updateLine();
+        stage.batchDraw();
+    };
+    (document.getElementById('clear') as HTMLButtonElement)?.addEventListener('click', clear);
+    JSON.parse(getAttr('anchors')).forEach((x: number) => anchors.add(x));
+    JSON.parse(getAttr('points')).forEach((p: PlainPoint) => addPoint(p));
 }
 
 function setText(t: string) {

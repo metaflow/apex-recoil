@@ -29,7 +29,8 @@ interface Recoil {
     weapon: string;
     barrel: string;
     stock: string;
-    points: PlainPoint[];
+    x: number[];
+    y: number[];
     comment: string;
 }
 
@@ -75,24 +76,25 @@ function distanceScore(distance: number) {
 
 function medianRecoil(rr: Recoil[]): Recoil {
     const f = rr[0];
-    const n = f.points.length;
+    const n = f.x.length;
     const z: Recoil = {
         weapon: f.weapon,
         barrel: f.barrel,
         stock: f.stock,
         comment: "median",
-        points: [{ x: 0, y: 0 }],
+        x: [0],
+        y: [0],
     };
     for (let i = 1; i < n; i++) {
         const dx: number[] = [];
         const dy: number[] = [];
         rr.forEach(r => {
-            const p = new Point(r.points[i]).sub(new Point(r.points[i - 1]));
+            const p = new Point(r.x[i], r.y[i]).sub(new Point(r.x[i-1], r.y[i - 1]));
             dx.push(p.x);
             dy.push(p.y);
         });
-        const p = z.points[i - 1];
-        z.points.push({ x: sl.median(dx) + p.x, y: sl.median(dy) + p.y });
+        z.x.push(sl.median(dx) + z.x[i-1]);
+        z.y.push(sl.median(dy) + z.y[i-1]);
     }
     return z;
 }
@@ -218,7 +220,8 @@ export function setupGame() {
             weapon: s.weapon,
             barrel: s.barrel,
             stock: s.stock,
-            points: s.points,
+            x: s.x,
+            y: s.y,
             comment: s.comment,
         };
         return z;
@@ -263,8 +266,8 @@ export function setupGame() {
             rr = [medianRecoil(rr)];
         }
         rr.forEach((r, i) => {
-            if (r.points.length < n) {
-                console.error('missing points', r.comment, r.points.length);
+            if (r.x.length < n) {
+                console.error('missing points', r.comment, r.x.length);
                 return;
             }
             const start = new Point((150 + 200 * i) / sens, 50);
@@ -276,9 +279,9 @@ export function setupGame() {
             });
             allShapes.push(line);
             layer.add(line);
-            r.points.forEach((raw, i) => {
+            r.x.forEach((x, i) => {
                 if (i >= n) return;
-                const p = new Point(raw).s(1 / sens);
+                const p = new Point(x, r.y[i]).s(1 / sens);
                 const xy = start.clone().sub(p);
                 linePoints.push(xy.x, xy.y);
                 const h = new Konva.Circle({
@@ -490,9 +493,9 @@ All time best ${s.bestAllTime}`;
         const timePoints: number[] = [];
         const hintLinePoints: number[] = [];
         const hintCircles: Konva.Circle[] = [];
-        recoil.points.forEach((raw, i) => {
+        recoil.x.forEach((x, i) => {
             if (i >= n) return;
-            const p = new Point(raw).s(1 / sens);
+            const p = new Point(x, recoil.y[i]).s(1 / sens);
             timePoints.push(i * d);
             const xy = start.clone().sub(p);
             const c = new Konva.Circle({
@@ -527,7 +530,7 @@ All time best ${s.bestAllTime}`;
                 hitIndex++;
                 updated = true;
                 for (let i = 0; i <= hitIndex; i++) hintCircles[i]?.radius(1);
-                const p = new Point(recoil.points[hitIndex]).s(1 / sens);
+                const p = new Point(recoil.x[hitIndex], recoil.y[hitIndex]).s(1 / sens);
                 // Cursor position.
                 let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
                 // Hit relative to start.
