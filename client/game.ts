@@ -33,12 +33,12 @@ interface Recoil {
     comment: string;
 }
 
-interface MagInfo {
+export interface MagInfo {
     size: number;
     audio: string;
 };
 
-interface Weapon {
+export interface Weapon {
     name: string;
     rpm: number;
     mags: MagInfo[];

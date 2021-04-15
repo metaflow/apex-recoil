@@ -1,4 +1,4 @@
-//- 
+//-
 //- Copyright 2021 Mikhail Goncharov
 //-
 //- Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,28 +16,22 @@
 extends layout
 block content
   #editor
-    #tools      
+    #tools
       input(type="file" id="file-selector" multiple)
       p#filename
       p
-        input(type='text' id='sens')
-        | in-game sens
-      p
         input(type='text' id='weapon')
         | weapon
-      p 
+      p
         input(type='text' id='barrel')
         | barrel (0..3)
       p
         input(type='text' id='stock')
         | stock (0..3)
       p
-        input(type='text' id='dx')
-        | dx
-      p
-        input(type='text' id='dy')
-        | dy
-      p comment        
+        input(type='text' id='distance')
+        | raw distance
+      p comment
         textarea#comment(cols="30", rows="2")
       button#undo undo
       p#count

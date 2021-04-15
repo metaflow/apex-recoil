@@ -120,6 +120,7 @@ export function attrInput(id: string) {
     }
 };
 
+// console.log(window.location.pathname);
 if (window.location.pathname === '/editor') {
     setupEditor();
 } else {

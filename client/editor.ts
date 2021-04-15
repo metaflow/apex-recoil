@@ -16,27 +16,26 @@
 
 import hotkeys from "hotkeys-js";
 import Konva from "konva";
+import { MagInfo, Weapon } from "./game";
 import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, pokeAttrs, setAttr, stage, watchAttr } from "./main";
 import { Point } from "./point";
+import specs from './specs.json';
 
 export function setupEditor() {
     console.log('setup editor');
 
     attrNamespace('editor');
-    initAttr('dx', '100');    
-    initAttr('dy', '100');
+    initAttr('distance', '100');
     initAttr('weapon', 'r301');
-    initAttr('sens', '5.0');
     initAttr('stock', '0');
     initAttr('barrel', '0');
+    initAttr('points', '[]');
     
     attrInput('weapon');
     attrInput('barrel');
     attrInput('stock');
     attrInput('comment');
-    attrInput('sens');
-    attrInput('dx');
-    attrInput('dy');
+    attrInput('distance');
 
     layer.add(new Konva.Line({
         stroke: 'white',
@@ -62,7 +61,7 @@ export function setupEditor() {
             });
             layer.add(img);
             const s = 800 / img.height();
-            console.log(img.width(), img.height());
+            // console.log(img.width(), img.height());
             img.scaleX(s);
             img.scaleY(s);
             img.zIndex(0);
@@ -87,10 +86,12 @@ export function setupEditor() {
         const file = fileList.item(0);
         if (!file) return;
         setAttr('comment', file.name);
-        const mm = file.name.match(/(\d+) (\d+)\.png/)
+        const mm = file.name.match(/([^ ]*) (\d+) (\d+) (\d+)/)
         if (mm != null) {
-            setAttr('dx', mm[1]);
-            setAttr('dy', mm[2]);
+            setAttr('weapon', mm[1]);
+            setAttr('barrel', mm[2]);
+            setAttr('stock', mm[3]);
+            setAttr('distance', mm[4]);
         }
         const reader = new FileReader();
         reader.addEventListener('load', (event) => {
@@ -99,6 +100,17 @@ export function setupEditor() {
         reader.readAsDataURL(file);
     });
 
+    const weapons = new Map<string, Weapon>();
+    specs.forEach(s => {
+        weapons.set(s.name, {
+            name: s.name,
+            rpm: s.rpm,
+            mags: s.mags.map(m => {
+                var z: MagInfo = { size: m.size, audio: m.audio };
+                return z;
+            })
+        });        
+    });
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
         const c = new Konva.Circle({
             radius: 6,
@@ -136,23 +148,27 @@ export function setupEditor() {
         updateSpec();
     };    
     const updateSpec = (_?: string) => {
-        const c = document.getElementById("count");
-        if (c) {
-            c.innerText = `${points.length} points`;
-        }
+        
         let cpi = Number(getAttr('cpi'));
         let sens = Number(getAttr('sens'));
-        let dx = Number(getAttr('dx'));
-        let dy = Number(getAttr('dy'));
-        if (isNaN(cpi) || isNaN(sens) || isNaN(dx) || isNaN(dy)) {
+        let distance = Number(getAttr('distance'));
+        if (isNaN(cpi) || isNaN(sens) || isNaN(distance)) {
             setText('invalid value of one of the params');
             return;
+        }        
+        const w = weapons.get(getAttr('weapon'));
+        if (w == null) {
+            setText('unknown weapon');
+            return;
         }
-        const pr = new Point(dx, dy);
+        const c = document.getElementById("count");
+        if (c) {
+            c.innerText = `${points.length} / ${w.mags[3].size}`;
+        }        
         if (anchors.size != 2) {
             setText('mark exactly two anchors');
             return;
-        }
+        }        
         const idx = Array.from(anchors.values());
         const p1 = new Point(points[idx[0]].position());
         const p2 = new Point(points[idx[1]].position());
@@ -160,40 +176,23 @@ export function setupEditor() {
             return new Point(p.position());
         });
         // <A in image pixels> 
-        // * (0.1 from x10 ads) 
-        // * <game sensitivity> 
-        // * <distance in raw pixels> / <distance in image pixels>
+        // <distance in raw pixels> / <distance in image pixels>
         // = <A in raw pixels for 1.0 sensitivity>.
-        const d = 0.1 * sens * pr.length() / p1.distance(p2);
-        if (c) {
-            const s =  Math.round(pr.length() / p1.distance(p2) * 100) / 100;
-            const sx = Math.round(dx / Math.abs(p1.x - p2.x) * 100) / 100;
-            const sy = Math.round(dy / Math.abs(p1.y - p2.y) * 100) / 100;
-            c.innerText = `${points.length} points\nscale ${s} X ${sx} Y ${sy}`;
-        }
+        const d = distance / p1.distance(p2);        
         pp.forEach(p => p.s(d));
+        const ort = pp[0];
+        pp = pp.map(p => p.clone().sub(ort));
         const spec = {
             weapon: getAttr('weapon'),
             barrel: getAttr('barrel'),
             stock: getAttr('stock'),
             comment: getAttr('comment'),
-            points: pp.map(p => {
-                const v = p.clone().sub(pp[0]).plain();
-                v.x = Math.round(v.x * 100) / 100;
-                v.y = Math.round(v.y * 100) / 100;
-                return v;
-            }),
+            x: pp.map(p => Math.round(p.x * 10) / 10),
+            y: pp.map(p => Math.round(p.y * 10) / 10),
         };
         setText(JSON.stringify(spec));
     };
-    watchAttr('cpi', updateSpec);
-    watchAttr('sens', updateSpec);
-    watchAttr('dx', updateSpec);
-    watchAttr('dy', updateSpec);
-    watchAttr('weapon', updateSpec);
-    watchAttr('barrel', updateSpec);
-    watchAttr('stock', updateSpec);
-    watchAttr('comment', updateSpec);
+    watchAttr(['cpi', 'sens', 'distance', 'weapon', 'barrel', 'stock', 'comment'], updateSpec);
     const undo = () => {
         const c = points.pop();
         if (c == null) return
@@ -205,8 +204,6 @@ export function setupEditor() {
     hotkeys('ctrl+z', undo);
     (document.getElementById('undo') as HTMLButtonElement)?.addEventListener('click', undo);
 }
-
-
 
 function setText(t: string) {
     const c = document.getElementById("text");
