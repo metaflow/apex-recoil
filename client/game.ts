@@ -24,6 +24,7 @@ import specs from './specs.json';
 import theme from '../theme.json';
 import sl from "stats-lite";
 import tinygradient from "tinygradient";
+import e from "express";
 
 interface Recoil {
     weapon: string;
@@ -31,7 +32,6 @@ interface Recoil {
     stock: string;
     x: number[];
     y: number[];
-    comment: string;
 }
 
 export interface MagInfo {
@@ -52,12 +52,10 @@ interface TrialSetup {
     stock: string;
     hint: string;
     pacer: string;
-    randomTrace: string;
 }
 
 interface TrialStats {
     setup: TrialSetup;
-    // results: number[];
     bestByDay: number[];
     medianByDay: number[];
     days: number[];
@@ -72,31 +70,6 @@ function distanceScore(distance: number) {
     const a = 1;
     const t = a / (a + 200 / k);
     return Math.max(0, (a / (a + distance / k) - t) / (1 - t));
-}
-
-function medianRecoil(rr: Recoil[]): Recoil {
-    const f = rr[0];
-    const n = f.x.length;
-    const z: Recoil = {
-        weapon: f.weapon,
-        barrel: f.barrel,
-        stock: f.stock,
-        comment: "median",
-        x: [0],
-        y: [0],
-    };
-    for (let i = 1; i < n; i++) {
-        const dx: number[] = [];
-        const dy: number[] = [];
-        rr.forEach(r => {
-            const p = new Point(r.x[i], r.y[i]).sub(new Point(r.x[i-1], r.y[i - 1]));
-            dx.push(p.x);
-            dy.push(p.y);
-        });
-        z.x.push(sl.mean(dx) + z.x[i-1]);
-        z.y.push(sl.mean(dy) + z.y[i-1]);
-    }
-    return z;
 }
 
 let stats: TrialStats[] = [];
@@ -114,13 +87,17 @@ function trialSetup(): TrialSetup {
         stock: getAttr('stock'),
         hint: getAttr('hint'),
         pacer: `${(getAttr('pacer') == 'true') && (getAttr('hint') == 'true')}`,
-        randomTrace: getAttr('random-trace'),
     };
 }
 
 function statsForSetup(c: TrialSetup): TrialStats | undefined {
     return stats.find(x => {
-        return JSON.stringify(x.setup) == JSON.stringify(c);
+        return x.setup.weapon == c.weapon &&
+        x.setup.mag == c.mag &&
+        x.setup.barrel == c.barrel &&
+        x.setup.stock == c.stock &&
+        x.setup.hint == c.hint &&
+        x.setup.pacer == c.pacer;
     });
 }
 
@@ -174,7 +151,6 @@ export function setupGame() {
     initAttr('mute', 'false');
     initAttr('hint', 'true');
     initAttr('pacer', 'true');
-    initAttr('random-trace', 'false');
     initAttr('show-instructions', 'true');
     initAttr('trace-mode', '0');
     initAttr('toggle-modes', 'false');
@@ -211,7 +187,6 @@ export function setupGame() {
     attrInput('hint');
     attrInput('pacer');
     attrInput('volume');
-    attrInput('random-trace');
     attrInput('mute');
     attrInput('toggle-modes');
     let allShapes: Konva.Shape[] = [];
@@ -224,7 +199,6 @@ export function setupGame() {
             stock: s.stock,
             x: s.x,
             y: s.y,
-            comment: s.comment,
         };
         return z;
     });
@@ -259,14 +233,11 @@ export function setupGame() {
     attrInput('sens');
 
     attrInput('fovScale');
-    // TODO: remove.
-    watchAttr(['sens', 'fovScale'], () => { console.log('new scale', scale()); })
+    // TODO: remove fovScale.
 
     const showAllTraces = () => {
         clear();
         const name = getAttr('weapon');
-        const stock = getAttr('stock');
-        const barrel = getAttr('barrel');
         const w = weapons.get(name);
         const sc = scale();
         if (!Number.isFinite(sc) || sc < 0.1) return;
@@ -275,48 +246,42 @@ export function setupGame() {
             return;
         }
         const n = w.mags[Number(getAttr('mag'))].size;
-        let rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
-        if (rr.length == 0) {
-            console.error(`no recoils for ${name} ${stock} ${barrel}`);
+        const color = new TinyColor('white').darken(50);
+        const r = pickRecoil();
+        if (r == null) return;
+        if (r.x.length < n) {
+            console.error('missing points for pattern want', n, 'have', r.x.length);
             return;
         }
-        const color = new TinyColor('white').darken(50);
-        if (getAttr('random-trace') == 'false') {
-            rr = [medianRecoil(rr)];
-        }
-        rr.forEach((r, i) => {
-            if (r.x.length < n) {
-                console.error('missing points', r.comment, r.x.length);
-                return;
-            }
-            const start = new Point((150 + 200 * i) * sc, 50);
-            const linePoints: number[] = [];
-            const line = new Konva.Line({
-                points: [],
-                stroke: color.toString(),
-                strokeWidth: 1,
-            });
-            allShapes.push(line);
-            layer.add(line);
-            r.x.forEach((x, i) => {
-                if (i >= n) return;
-                const p = new Point(x, r.y[i]).s(sc);
-                const xy = start.clone().sub(p);
-                linePoints.push(xy.x, xy.y);
-                const h = new Konva.Circle({
-                    radius: 2,
-                    fill: color.toString(),
-                    position: xy,
-                });
-                allShapes.push(h);
-                layer.add(h);
-            });
-            line.points(linePoints);
+        const start = new Point(150 * sc, 50);
+        const linePoints: number[] = [];
+        const line = new Konva.Line({
+            points: [],
+            stroke: color.toString(),
+            strokeWidth: 1,
         });
+        allShapes.push(line);
+        layer.add(line);
+        r.x.forEach((x, i) => {
+            if (i >= n) return;
+            const p = new Point(x, r.y[i]).s(sc);
+            const xy = start.clone().sub(p);
+            linePoints.push(xy.x, xy.y);
+            const h = new Konva.Circle({
+                radius: 2,
+                fill: color.toString(),
+                position: xy,
+            });
+            allShapes.push(h);
+            layer.add(h);
+        });
+        line.points(linePoints);
         stage.batchDraw();
     };
 
-    watchAttr(['weapon', 'stock', 'barrel', 'barrel', 'random-trace', 'mag',
+
+    // TODO: remove scopeScalar... 
+    watchAttr(['weapon', 'stock', 'barrel', 'barrel', 'mag',
         'sens', 'scopeScalar0', 'scopeScalar1', 'scopeScalar2', 'scopeScalar3', 'scope', 'fovScale'],
         showAllTraces);
 
@@ -394,11 +359,10 @@ export function setupGame() {
             console.error('no recoils for', name, stock, barrel);
             return null;
         }
-        const x = Math.floor(Math.random() * rr.length);
-        if (getAttr('random-trace') == 'true') {
-            return rr[x];
+        if (rr.length > 1) {
+            console.warn('more then 1 recoils for', name, stock, barrel);
         }
-        return medianRecoil(rr);
+        return rr[0];        
     };
 
     const showStats = () => {
@@ -421,7 +385,7 @@ All time best ${s.bestAllTime}`;
             }
         }
     };
-    watchAttr(['stats', 'mag', 'weapon', 'barrel', 'stock', 'hint', 'pacer', 'random-trace'],
+    watchAttr(['stats', 'mag', 'weapon', 'barrel', 'stock', 'hint', 'pacer'],
         showStats);
 
     const clear = () => {
