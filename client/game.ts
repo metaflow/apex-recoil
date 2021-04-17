@@ -83,8 +83,8 @@ function trialSetup(): TrialSetup {
     return {
         weapon: getAttr('weapon'),
         mag: getAttr('mag'),
-        barrel: getAttr('barrel'),
-        stock: getAttr('stock'),
+        barrel: '0',
+        stock: '0',
         hint: getAttr('hint'),
         pacer: `${(getAttr('pacer') == 'true') && (getAttr('hint') == 'true')}`,
     };
@@ -141,10 +141,7 @@ export function setupGame() {
     layer.listening(false);
     attrNamespace('game:');
     initAttr('sens', '5');
-    initAttr('fovScale', '1');
     initAttr('weapon', 'r99');
-    initAttr('stock', '0');
-    initAttr('barrel', '0');
     initAttr('mag', '0');
     initAttr('stats', '[]');
     initAttr('volume', '20');
@@ -183,7 +180,6 @@ export function setupGame() {
 
     stats = JSON.parse(getAttr('stats'));
     attrInput('sens');
-    attrInput('fovScale');
     attrInput('hint');
     attrInput('pacer');
     attrInput('volume');
@@ -218,23 +214,11 @@ export function setupGame() {
         }
     };
     watchAttr(['weapon', 'mag', 'mute'], updateSound);
-
-    const scale = () => {
-        // const scope = Number(getAttr('scope'));
-        const scope = 1;
-        const fov = 1;
-        const sens = Number(getAttr('sens'));
-        // TODO: scope scalar.
-        const r70 = 70 / 360 * Math.PI;
-        // The formula is rather complicated as simple formula of (scope / sens) does not work.
-        // Scope is adjusted to how scope behaves for 70 degrees fov.
-        return Math.tan(fov * r70) / Math.tan(fov * Math.atan(scope * Math.tan(r70))) / sens;
-    };
     attrInput('sens');
-
-    attrInput('fovScale');
-    // TODO: remove fovScale.
-
+    const scale = () => {
+        const sens = Number(getAttr('sens'));
+        return 1 / sens;
+    };
     const showAllTraces = () => {
         clear();
         const name = getAttr('weapon');
@@ -279,10 +263,7 @@ export function setupGame() {
         stage.batchDraw();
     };
 
-
-    // TODO: remove scopeScalar... 
-    watchAttr(['weapon', 'stock', 'barrel', 'barrel', 'mag',
-        'sens', 'scopeScalar0', 'scopeScalar1', 'scopeScalar2', 'scopeScalar3', 'scope', 'fovScale'],
+    watchAttr(['weapon', 'mag', 'sens'],
         showAllTraces);
 
     const weapons = new Map<string, Weapon>();
@@ -329,31 +310,10 @@ export function setupGame() {
         d.classList.add('selected');
     });
 
-    for (let i = 0; i <= 3; i++) {
-        const d = document.querySelector(`#attachment-select .attachment-${i}`) as HTMLDivElement;
-        if (d != null) {
-            d.addEventListener('click', () => {
-                // Stock before barrel as we watch barrel to show selection.
-                setAttr('stock', i + '');
-                setAttr('barrel', i + '');
-            });
-        } else {
-            console.error(`#attachment-select .attachment-${i}`, 'not found');
-        }
-    }
-
-    watchAttr('barrel', (v: string) => {
-        const s = document.querySelector(`#attachment-select .selected`) as HTMLDivElement;
-        if (s != null) s.classList.remove('selected');
-        const d = document.querySelector(`#attachment-select .attachment-${v}`) as HTMLDivElement;
-        if (d == null) return;
-        d.classList.add('selected');
-    });
-
     const pickRecoil = () => {
         const name = getAttr('weapon');
-        const stock = getAttr('stock');
-        const barrel = getAttr('barrel');
+        const stock = '0';
+        const barrel = '0';
         const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
         if (rr.length == 0) {
             console.error('no recoils for', name, stock, barrel);
@@ -385,8 +345,7 @@ All time best ${s.bestAllTime}`;
             }
         }
     };
-    watchAttr(['stats', 'mag', 'weapon', 'barrel', 'stock', 'hint', 'pacer'],
-        showStats);
+    watchAttr(['stats', 'mag', 'weapon', 'hint', 'pacer'], showStats);
 
     const clear = () => {
         allShapes.forEach(c => c.remove());
