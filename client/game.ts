@@ -93,8 +93,8 @@ function medianRecoil(rr: Recoil[]): Recoil {
             dx.push(p.x);
             dy.push(p.y);
         });
-        z.x.push(sl.median(dx) + z.x[i-1]);
-        z.y.push(sl.median(dy) + z.y[i-1]);
+        z.x.push(sl.mean(dx) + z.x[i-1]);
+        z.y.push(sl.mean(dy) + z.y[i-1]);
     }
     return z;
 }
