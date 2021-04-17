@@ -85,6 +85,9 @@ b {
             margin-bottom: 4px;
         }
     }
+    input[type="text"] {
+        width: 8ch;
+    }    
 }
 
 .grid {

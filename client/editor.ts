@@ -84,12 +84,12 @@ export function setupEditor() {
         const file = fileList.item(0);
         if (!file) return;
         setAttr('comment', file.name);
-        const mm = file.name.match(/([^ ]*) (\d+) (\d+) ([0-9.]+)/)
+        const mm = file.name.match(/([^ ]*) (\d+) (\d+) (\S+) ([0-9.]+)\.png/)
         if (mm != null) {
             setAttr('weapon', mm[1]);
             setAttr('barrel', mm[2]);
             setAttr('stock', mm[3]);
-            setAttr('distance', mm[4]);
+            setAttr('distance', mm[5]);
         }
         const reader = new FileReader();
         reader.addEventListener('load', (event) => {

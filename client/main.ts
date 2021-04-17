@@ -25,6 +25,10 @@ export const stage = new Konva.Stage({
     height: window.screen.height,
 });
 
+document.getElementById('stage')?.addEventListener('contextmenu', e => {
+    e.preventDefault();
+});
+
 export const layer = new Konva.Layer();
 stage.add(layer);
 

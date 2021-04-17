@@ -164,6 +164,7 @@ export function setupGame() {
     layer.listening(false);
     attrNamespace('game:');
     initAttr('sens', '5');
+    initAttr('fovScale', '1');
     initAttr('weapon', 'r99');
     initAttr('stock', '0');
     initAttr('barrel', '0');
@@ -206,6 +207,7 @@ export function setupGame() {
 
     stats = JSON.parse(getAttr('stats'));
     attrInput('sens');
+    attrInput('fovScale');
     attrInput('hint');
     attrInput('pacer');
     attrInput('volume');
@@ -243,14 +245,31 @@ export function setupGame() {
     };
     watchAttr(['weapon', 'mag', 'mute'], updateSound);
 
+    const scale = () => {
+        // const scope = Number(getAttr('scope'));
+        const scope = 1;
+        const fov = 1;
+        const sens = Number(getAttr('sens'));
+        // TODO: scope scalar.
+        const r70 = 70 / 360 * Math.PI;
+        // The formula is rather complicated as simple formula of (scope / sens) does not work.
+        // Scope is adjusted to how scope behaves for 70 degrees fov.
+        return Math.tan(fov * r70) / Math.tan(fov * Math.atan(scope * Math.tan(r70))) / sens;
+    };
+    attrInput('sens');
+
+    attrInput('fovScale');
+    // TODO: remove.
+    watchAttr(['sens', 'fovScale'], () => { console.log('new scale', scale()); })
+
     const showAllTraces = () => {
         clear();
         const name = getAttr('weapon');
         const stock = getAttr('stock');
         const barrel = getAttr('barrel');
         const w = weapons.get(name);
-        const sens = Number(getAttr('sens'));
-        if (!Number.isFinite(sens) || sens < 0.1) return;
+        const sc = scale();
+        if (!Number.isFinite(sc) || sc < 0.1) return;
         if (w == null) {
             console.error('weapon', getAttr('weapon'), 'not found');
             return;
@@ -270,7 +289,7 @@ export function setupGame() {
                 console.error('missing points', r.comment, r.x.length);
                 return;
             }
-            const start = new Point((150 + 200 * i) / sens, 50);
+            const start = new Point((150 + 200 * i) * sc, 50);
             const linePoints: number[] = [];
             const line = new Konva.Line({
                 points: [],
@@ -281,7 +300,7 @@ export function setupGame() {
             layer.add(line);
             r.x.forEach((x, i) => {
                 if (i >= n) return;
-                const p = new Point(x, r.y[i]).s(1 / sens);
+                const p = new Point(x, r.y[i]).s(sc);
                 const xy = start.clone().sub(p);
                 linePoints.push(xy.x, xy.y);
                 const h = new Konva.Circle({
@@ -297,7 +316,8 @@ export function setupGame() {
         stage.batchDraw();
     };
 
-    watchAttr(['weapon', 'stock', 'barrel', 'barrel', 'sens', 'random-trace', 'mag'],
+    watchAttr(['weapon', 'stock', 'barrel', 'barrel', 'random-trace', 'mag',
+        'sens', 'scopeScalar0', 'scopeScalar1', 'scopeScalar2', 'scopeScalar3', 'scope', 'fovScale'],
         showAllTraces);
 
     const weapons = new Map<string, Weapon>();
@@ -452,7 +472,7 @@ All time best ${s.bestAllTime}`;
         shooting = true;
         // TODO: global error handler.
         const d = 60 * 1000 / w.rpm; // del ay b/w rounds.
-        const sens = Number(getAttr('sens'));
+        const sc = scale();
         const n = w.mags[Number(getAttr('mag'))]?.size || 1;
         let scores: number[] = [];
         if (getAttr('mute') != 'true') {
@@ -478,9 +498,9 @@ All time best ${s.bestAllTime}`;
         {
             // Start marker.
             const s = new Konva.Circle({
-                radius: 2 + 4 / sens,
+                radius: 2 + 4 * sc,
                 stroke: new TinyColor('green').desaturate(50).toString(),
-                strokeWidth: 1 + 1 / sens,
+                strokeWidth: 1 + 1 * sc,
                 position: start.plain(),
             });
             layer.add(s);
@@ -495,7 +515,7 @@ All time best ${s.bestAllTime}`;
         const hintCircles: Konva.Circle[] = [];
         recoil.x.forEach((x, i) => {
             if (i >= n) return;
-            const p = new Point(x, recoil.y[i]).s(1 / sens);
+            const p = new Point(x, recoil.y[i]).s(sc);
             timePoints.push(i * d);
             const xy = start.clone().sub(p);
             const c = new Konva.Circle({
@@ -530,14 +550,14 @@ All time best ${s.bestAllTime}`;
                 hitIndex++;
                 updated = true;
                 for (let i = 0; i <= hitIndex; i++) hintCircles[i]?.radius(1);
-                const p = new Point(recoil.x[hitIndex], recoil.y[hitIndex]).s(1 / sens);
+                const p = new Point(recoil.x[hitIndex], recoil.y[hitIndex]).s(sc);
                 // Cursor position.
                 let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
                 // Hit relative to start.
                 let hit = cur.clone().add(p);
                 let traceTarget = start.clone().sub(p);                
                 hintTarget.position(traceTarget.plain());
-                const distance = new Point(hit).distance(start) * sens;
+                const distance = new Point(hit).distance(start) / sc;
                 let s = distanceScore(distance);
                 scores.push(s);
                 score += s;
@@ -609,7 +629,7 @@ All time best ${s.bestAllTime}`;
                 for (let i = hitIndex + 1; i < n; i++) {
                     const d = timePoints[i] - frame.time;
                     // d / 30 - will be closing over ~300 ms (30 * 10).
-                    hintCircles[i].radius(Math.max(1, Math.min(10, d / 30) / sens));
+                    hintCircles[i].radius(Math.max(1, Math.min(10, d / 30) * sc));
                 }               
             }
             return updated;
@@ -619,6 +639,7 @@ All time best ${s.bestAllTime}`;
     };
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
         updateSound();
+        e.evt.preventDefault();
         switch (e.evt.button) {
             case 0:
                 fire();
