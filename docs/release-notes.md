@@ -16,6 +16,8 @@
 
 - Disabled right mouse click on the area.
 
+- Improved performance and added FPS display.
+
 # v0.1 Initial version
 
 First version with r99, r301, Flatline, and Volt x 4 possible attachment levels.

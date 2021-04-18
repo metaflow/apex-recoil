@@ -38,7 +38,7 @@ layer.scaleY(1);
 export function cursor(): Point {
     let pos = stage.getPointerPosition();
     if (pos == null) pos = { x: 0, y: 0 };
-    return new Point(layer.getTransform().copy().invert().point(pos));
+   return new Point(pos);
 }
 
 let _attrNamespace = '';

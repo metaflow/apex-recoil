@@ -92,11 +92,11 @@ function trialSetup(): TrialSetup {
 function statsForSetup(c: TrialSetup): TrialStats | undefined {
     return stats.find(x => {
         return x.setup.weapon == c.weapon &&
-        x.setup.mag == c.mag &&
-        x.setup.barrel == c.barrel &&
-        x.setup.stock == c.stock &&
-        x.setup.hint == c.hint &&
-        x.setup.pacer == c.pacer;
+            x.setup.mag == c.mag &&
+            x.setup.barrel == c.barrel &&
+            x.setup.stock == c.stock &&
+            x.setup.hint == c.hint &&
+            x.setup.pacer == c.pacer;
     });
 }
 
@@ -148,7 +148,7 @@ export function setupGame() {
     initAttr('hint', 'true');
     initAttr('pacer', 'true');
     initAttr('show-instructions', 'true');
-    initAttr('trace-mode', '0');
+    initAttr('trace-mode', '1');
     initAttr('toggle-modes', 'false');
 
     watchAttr('show-instructions', (v: string) => {
@@ -223,7 +223,7 @@ export function setupGame() {
     const colorGray = new TinyColor('white').darken(50).toString();
     const colorHintTarget = new TinyColor('red').desaturate(50).toString();
     const colorStartCircle = new TinyColor('green').desaturate(50).toString();
-    const colorHintPath = new TinyColor(theme.foreground).darken(50).toString();    
+    const colorHintPath = new TinyColor(theme.foreground).darken(50).toString();
     const scoreGradient: string[] = [];
     {
         const scoreGrad = tinygradient([
@@ -231,7 +231,7 @@ export function setupGame() {
             'yellow',
             'green',
         ]);
-        for(let i = 0; i <= 10; i++) {
+        for (let i = 0; i <= 10; i++) {
             scoreGradient.push(((scoreGrad.rgbAt(i / 10) as unknown) as TinyColor).desaturate(50).toString());
         }
     }
@@ -239,6 +239,43 @@ export function setupGame() {
         const idx = Math.min(Math.max(Math.round(x * 10), 0), 10);
         return scoreGradient[idx];
     }
+
+    const fpsTxt = new Konva.Text({
+        text: `FPS -`,
+        fontSize: 14,
+        fill: theme.foreground,
+        shadowBlur: 0,
+        shadowOffset: { x: 1, y: 1 },
+        shadowOpacity: 1,
+        x: 10,
+        y: 10,
+    });
+    layer.add(fpsTxt);
+
+    const drawPattern = (pattern: Point[], mag: number, start: Point, sc: number) => {
+        const hintLinePoints: number[] = [];
+        const circles: Konva.Circle[] = [];
+        pattern.forEach((p, i) => {
+            if (i >= mag) return;
+            const xy = start.clone().sub(p);
+            hintLinePoints.push(xy.x, xy.y);
+            if (sc > 0.3) {
+                const c = new Konva.Circle({
+                    radius: 1,
+                    stroke: colorHintPath,
+                    strokeWidth: 1,
+                    position: xy,
+                });
+                circles.push(c);
+            }
+        });
+        const hintLine = new Konva.Line({
+            points: hintLinePoints,
+            stroke: colorHintPath,
+            strokeWidth: 1,
+        });
+        return [hintLine, circles];
+    };
 
     const showAllTraces = () => {
         clear();
@@ -258,28 +295,17 @@ export function setupGame() {
             return;
         }
         const start = new Point(150 * sc, 50);
-        const linePoints: number[] = [];
-        const line = new Konva.Line({
-            points: [],
-            stroke: colorGray,
-            strokeWidth: 1,
+        const pattern = r.x.map((x, idx) => {
+            return new Point(x, r.y[idx]).s(sc);
         });
-        allShapes.push(line);
-        layer.add(line);
-        r.x.forEach((x, i) => {
-            if (i >= n) return;
-            const p = new Point(x, r.y[i]).s(sc);
-            const xy = start.clone().sub(p);
-            linePoints.push(xy.x, xy.y);
-            const h = new Konva.Circle({
-                radius: 2,
-                fill: colorGray,
-                position: xy,
-            });
-            allShapes.push(h);
-            layer.add(h);
+
+        const [line, circles] = drawPattern(pattern, n, start, sc);
+        allShapes.push(line as Konva.Line);
+        layer.add(line as Konva.Line);
+        (circles as Konva.Circle[]).forEach(c => {
+            allShapes.push(c);
+            layer.add(c);
         });
-        line.points(linePoints);
         stage.batchDraw();
     };
 
@@ -342,7 +368,7 @@ export function setupGame() {
         if (rr.length > 1) {
             console.warn('more then 1 recoils for', name, stock, barrel);
         }
-        return rr[0];        
+        return rr[0];
     };
 
     const showStats = () => {
@@ -376,47 +402,41 @@ All time best ${s.bestAllTime}`;
     let shooting = false;
 
     // let traceMode = 0;
+    const traceShapeTypes = 3;
     const displayTace = () => {
-        if (traceShapes.length == 0) return;
-        const d = Number(getAttr('trace-mode')) % traceShapes.length;
+        const d = Number(getAttr('trace-mode')) % traceShapeTypes;
         traceShapes.forEach((sh, i) => sh.forEach(s => s.visible(i == d)));
     };
     watchAttr('trace-mode', () => {
         displayTace();
         stage.batchDraw();
     });
+
     const fire = () => {
         const start_t = Date.now();
-        if (shooting) return;
-        const recoil = pickRecoil();
+        if (shooting) return;   
+        const recoil = pickRecoil(); // TODO: pick recoil in advance.
         if (recoil == null) {
             console.log('no recoil selected');
             return;
         }
+        suspendAttrUpdates();
+        shooting = true;        
         clear();
-        traceShapes.push([]);
-        traceShapes.push([]);
-        traceShapes.push([]);
         const start = cursor();
-        if (start == null) return;
-        const start_screen = new Point(stage.getPointerPosition());
         let score = 0;
         const w = weapons.get(getAttr('weapon'));
         if (w == null) {
             console.log('weapon', getAttr('weapon'), 'not found');
             return;
         }
-        suspendAttrUpdates();
-        shooting = true;
-        // TODO: global error handler.
-        const d = 60 * 1000 / w.rpm; // del ay b/w rounds.
         const sc = scale();
         const n = w.mags[Number(getAttr('mag'))]?.size || 1;
-        let scores: number[] = [];
         if (getAttr('mute') != 'true') {
             sound?.volume(Number(getAttr('volume')) / 100);
             sound?.play();
         }
+        for (let i = 0; i < traceShapeTypes; i++) traceShapes.push([]);
         const showHint = getAttr('hint') == 'true';
         const showPacer = (getAttr('pacer') == 'true') && showHint;
         if (showHint) {
@@ -425,7 +445,7 @@ All time best ${s.bestAllTime}`;
             stage.container().classList.add('no-cursor');
         }
         const hintTarget = new Konva.Circle({
-            radius: 3,
+            radius: 4,
             stroke: colorHintTarget,
             strokeWidth: 2,
             position: start.plain(),
@@ -445,108 +465,71 @@ All time best ${s.bestAllTime}`;
             allShapes.push(s);
         }
         let hitMarker = new Konva.Circle();
-        // const traceHits: Konva.Shape[] = [];
         const hitMarkers: Konva.Shape[] = [];
-        const hits: Point[] = [];
-        const timePoints: number[] = [];
-        const hintLinePoints: number[] = [];
-        const hintCircles: Konva.Circle[] = [];
-        recoil.x.forEach((x, i) => {
-            if (i >= n) return;
-            const p = new Point(x, recoil.y[i]).s(sc);
-            timePoints.push(i * d);
-            const xy = start.clone().sub(p);
-            const c = new Konva.Circle({
-                radius: showPacer ? 10 : 1,
-                stroke: colorHintPath,
-                strokeWidth: 1,
-                position: xy,
-                visible: showHint,
+        
+        const pattern = recoil.x.map((x, idx) => {
+            return new Point(x, recoil.y[idx]).s(sc);
+        });
+
+        {
+            const [ln, circles] = drawPattern(pattern, n, start, sc);
+            const line = ln as Konva.Line;
+            line.visible(showHint);
+            allShapes.push(line);
+            hintShapes.push(line);            
+            layer.add(line);
+            (circles as Konva.Circle[]).forEach(c => {                
+                c.visible(showHint);
+                allShapes.push(c);
+                hintShapes.push(c);
+                layer.add(c);
             });
-            hintLinePoints.push(xy.x, xy.y);
-            hintShapes.push(c);
-            hintCircles.push(c);
-            allShapes.push(c);
-            layer.add(c);
-        });
-        const hintLine = new Konva.Line({
-            points: hintLinePoints,
-            stroke: colorHintPath,
-            strokeWidth: 0.5,
-            visible: showHint,
-        });
-        allShapes.push(hintLine);
-        hintShapes.push(hintLine);
-        layer.add(hintLine);
-        let hitIndex = -1;
-        const fps: number[] = [];
-        let updatedFrames = 0;
+        }
+        const timePoints: number[] = Array.from(Array(n).keys()).map(i => i * (60 * 1000 / w.rpm));        
         let totalFrames = 0;
-        var animation = new Konva.Animation(function (frame: any) {            
+        let hitIndex = -1; // Position in the patter we already passed.
+        let hitScores: number[] = [];
+        let hitCursors: Point[] = [];
+        const frame = (frame?: any) => {
             totalFrames++;
-            fps.push(frame.frameRate);
-            let updated = false;            
+            let updated = false;
+            let cur = cursor();
             // Register next shot.
-            const frame_t = Date.now() - start_t;
+            const frame_t = Date.now() - start_t + 8; // Add half frame.
             if (frame_t > timePoints[hitIndex + 1]) {
                 hitIndex++;
                 updated = true;
-                for (let i = 0; i <= hitIndex; i++) hintCircles[i]?.radius(1);
-                const p = new Point(recoil.x[hitIndex], recoil.y[hitIndex]).s(sc);
-                // Cursor position.
-                let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
-                // Hit relative to start.
+                const p = pattern[hitIndex];
+                // Cursor position.                
+                hitCursors.push(cur);
+                // With recoil applied.
                 let hit = cur.clone().add(p);
-                let traceTarget = start.clone().sub(p);
-                hintTarget.position(traceTarget.plain());
-                const distance = new Point(hit).distance(start) / sc;
-                let s = distanceScore(distance);
-                scores.push(s);
+                const rawDistance = new Point(hit).distance(start) / sc;
+                let s = distanceScore(rawDistance);
+                hitScores.push(s);
                 score += s;
                 const scoreColor = gradientColor(s);
                 {
                     // Hit markers.
                     hitMarker?.radius(2);
                     hitMarker = new Konva.Circle({
-                        radius: 4,
+                        radius: Math.max(5 * sc, 2),
                         fill: scoreColor,
                         position: hit,
                     });
-                    hitMarkers.push(hitMarker);                    
+                    hitMarkers.push(hitMarker);
                     allShapes.push(hitMarker);
                     traceShapes[0].push(hitMarker);
                     layer.add(hitMarker);
-
-                    const b = new Konva.Circle({
-                        radius: 2,
-                        fill: scoreColor,
-                        position: cur.plain(),
-                        visible: false,
-                    });
-                    layer.add(b);
-                    allShapes.push(b);
-                    traceShapes[1].push(b);
-
-                    const c = new Konva.Line({
-                        points: [cur.x, cur.y, traceTarget.x, traceTarget.y],
-                        stroke: scoreColor,
-                        strokeWidth: 1,
-                        visible: false,
-                    });
-                    allShapes.push(c);
-                    traceShapes[2].push(c);
-                    layer.add(c);
                 }
-                hits.push(cur);
                 // Finished.
                 if (hitIndex + 1 >= n) {
                     shooting = false;
                     stage.listening(true);
                     resumeAttrUpdates();
                     animation.stop();
-                    console.log('updated frames', updatedFrames, 'total', totalFrames);
-                    console.log('fps 0.001', sl.percentile(fps, 0.001), '0.01', sl.percentile(fps, 0.01), '0.5', sl.percentile(fps, 0.5));
-                    console.log('mean', 1000 * totalFrames/(Date.now() - start_t));
+                    // console.log('fps 0.001', sl.percentile(fps, 0.001), '0.01', sl.percentile(fps, 0.01), '0.5', sl.percentile(fps, 0.5));
+                    fpsTxt.text(`FPS ${Math.round(1000 * totalFrames / (Date.now() - start_t))}`);
                     const x = Math.round(100 * score / n);
                     addStat(x);
                     hintShapes.forEach(s => s.visible(true));
@@ -561,29 +544,61 @@ All time best ${s.bestAllTime}`;
                         shadowOffset: { x: 1, y: 1 },
                         shadowOpacity: 1,
                     });
-                    txt.position(start.add(new Point(20, -10)).plain());
+                    txt.position(start.clone().add(new Point(20, -10)).plain());
                     allShapes.push(txt);
                     layer.add(txt);
-                    displayTace();
+
+                    {
+                        // Display trail.
+                        hitCursors.forEach((cur, idx) => {
+                            const p = pattern[idx];
+                            let traceTarget = start.clone().sub(p);
+                            const clr = gradientColor(hitScores[idx]);
+                            const b = new Konva.Circle({
+                                radius: 2,
+                                fill: clr,
+                                position: cur.plain(),
+                                visible: false,
+                            });
+                            layer.add(b);
+                            allShapes.push(b);
+                            traceShapes[1].push(b);
+                            const c = new Konva.Line({
+                                points: [cur.x, cur.y, traceTarget.x, traceTarget.y],
+                                stroke: clr,
+                                strokeWidth: 1,
+                                visible: false,
+                            });
+                            allShapes.push(c);
+                            traceShapes[2].push(c);
+                            layer.add(c);
+                        });
+                        displayTace();
+                    }
                     stage.container().classList.remove('no-cursor');
                     if (getAttr('toggle-modes') == 'true') setAttr('hint', `${!showHint}`);
                 }
             }
             if (showPacer) {
-                updated = true;
-                for (let i = hitIndex + 1; i < n; i++) {
-                    const d = timePoints[i] - frame_t;
-                    // d / 30 - will be closing over ~300 ms (30 * 10).
-                    hintCircles[i].radius(Math.max(1, Math.min(10, d / 30) * sc));
-                }               
+                let i = hitIndex;
+                const t = frame_t + 24; // + 1.5 frames.
+                while (i + 1 < n && t > timePoints[i + 1]) i++;
+                if (i > -1 && i + 1 < n) {
+                    updated = true;
+                    const dt = timePoints[i + 1] - timePoints[i];
+                    let progress = 1;
+                    if (dt > 0.001) progress = Math.max(Math.min((t - timePoints[i]) / dt, 1), 0);
+                    const v = pattern[i + 1].clone().sub(pattern[i]);
+                    let traceTarget = start.clone().sub(v.s(progress).add(pattern[i]));
+                    hintTarget.position(traceTarget.plain());
+                }                
             }
-            if (updated) updatedFrames++;
             return updated;
-        }, layer);
+        };
+        var animation = new Konva.Animation(frame, layer);
         stage.listening(false);
-        console.log('stage is silent');
-        animation.start();        
-        // stage.batchDraw();
+        animation.start();
+        frame();
     };
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
         // TODO: disabled: updateSound();
@@ -593,7 +608,7 @@ All time best ${s.bestAllTime}`;
                 fire();
                 break;
             case 1:
-                setAttr('trace-mode', `${Number(getAttr('trace-mode')) + 1}`);
+                setAttr('trace-mode', `${(Number(getAttr('trace-mode')) + 1) % traceShapeTypes}`);
                 break;
             default:
                 break;
