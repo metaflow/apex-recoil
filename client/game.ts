@@ -360,6 +360,7 @@ export function setupGame() {
         const name = getAttr('weapon');
         const stock = '0';
         const barrel = '0';
+        console.log('recoils', recoils);
         const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
         if (rr.length == 0) {
             console.error('no recoils for', name, stock, barrel);
@@ -529,7 +530,7 @@ All time best ${s.bestAllTime}`;
                     resumeAttrUpdates();
                     animation.stop();
                     // console.log('fps 0.001', sl.percentile(fps, 0.001), '0.01', sl.percentile(fps, 0.01), '0.5', sl.percentile(fps, 0.5));
-                    fpsTxt.text(`FPS ${Math.round(1000 * totalFrames / (Date.now() - start_t))}`);
+                    fpsTxt.text(`FPS: ${Math.round(1000 * totalFrames / (Date.now() - start_t))}`);
                     const x = Math.round(100 * score / n);
                     addStat(x);
                     hintShapes.forEach(s => s.visible(true));
