@@ -14,6 +14,8 @@
 
 - Removed attachments level selection. The reason is twofold: 1) It's generally recommended to practice with no attachments. 2) The difference between trails is mostly in minor vertical scale ([r99 diff](./res/r99_diff.png), [flatline diff](./res/faltline_diff.png)). It does not seem to be worth time it takes to record all trails: typically it takes me around 30m to encode 10 trails for one weapon config. On the bright side it means that **new weapon types will be added soon**!
 
+- Disabled right mouse click on the area.
+
 # v0.1 Initial version
 
 First version with r99, r301, Flatline, and Volt x 4 possible attachment levels.

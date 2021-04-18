@@ -18,13 +18,12 @@ import { TinyColor } from "@ctrl/tinycolor";
 import { Howl } from "howler";
 import Konva from "konva";
 import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, resumeAttrUpdates, setAttr, stage, suspendAttrUpdates, watchAttr } from "./main";
-import { PlainPoint, Point } from "./point";
+import { Point } from "./point";
 import rec from './recoils.json';
 import specs from './specs.json';
 import theme from '../theme.json';
 import sl from "stats-lite";
 import tinygradient from "tinygradient";
-import e from "express";
 
 interface Recoil {
     weapon: string;
@@ -219,6 +218,28 @@ export function setupGame() {
         const sens = Number(getAttr('sens'));
         return 1 / sens;
     };
+
+    // TODO: move constants to theme.
+    const colorGray = new TinyColor('white').darken(50).toString();
+    const colorHintTarget = new TinyColor('red').desaturate(50).toString();
+    const colorStartCircle = new TinyColor('green').desaturate(50).toString();
+    const colorHintPath = new TinyColor(theme.foreground).darken(50).toString();    
+    const scoreGradient: string[] = [];
+    {
+        const scoreGrad = tinygradient([
+            'red',
+            'yellow',
+            'green',
+        ]);
+        for(let i = 0; i <= 10; i++) {
+            scoreGradient.push(((scoreGrad.rgbAt(i / 10) as unknown) as TinyColor).desaturate(50).toString());
+        }
+    }
+    const gradientColor = (x: number) => {
+        const idx = Math.min(Math.max(Math.round(x * 10), 0), 10);
+        return scoreGradient[idx];
+    }
+
     const showAllTraces = () => {
         clear();
         const name = getAttr('weapon');
@@ -230,7 +251,6 @@ export function setupGame() {
             return;
         }
         const n = w.mags[Number(getAttr('mag'))].size;
-        const color = new TinyColor('white').darken(50);
         const r = pickRecoil();
         if (r == null) return;
         if (r.x.length < n) {
@@ -241,7 +261,7 @@ export function setupGame() {
         const linePoints: number[] = [];
         const line = new Konva.Line({
             points: [],
-            stroke: color.toString(),
+            stroke: colorGray,
             strokeWidth: 1,
         });
         allShapes.push(line);
@@ -253,7 +273,7 @@ export function setupGame() {
             linePoints.push(xy.x, xy.y);
             const h = new Konva.Circle({
                 radius: 2,
-                fill: color.toString(),
+                fill: colorGray,
                 position: xy,
             });
             allShapes.push(h);
@@ -353,12 +373,6 @@ All time best ${s.bestAllTime}`;
         traceShapes = [];
     };
 
-    const scoreGrad = tinygradient([
-        'red',
-        'yellow',
-        'green',
-    ]);
-
     let shooting = false;
 
     // let traceMode = 0;
@@ -372,6 +386,7 @@ All time best ${s.bestAllTime}`;
         stage.batchDraw();
     });
     const fire = () => {
+        const start_t = Date.now();
         if (shooting) return;
         const recoil = pickRecoil();
         if (recoil == null) {
@@ -411,7 +426,7 @@ All time best ${s.bestAllTime}`;
         }
         const hintTarget = new Konva.Circle({
             radius: 3,
-            stroke: new TinyColor('red').desaturate(50).toString(),
+            stroke: colorHintTarget,
             strokeWidth: 2,
             position: start.plain(),
             visible: showPacer,
@@ -422,7 +437,7 @@ All time best ${s.bestAllTime}`;
             // Start marker.
             const s = new Konva.Circle({
                 radius: 2 + 4 * sc,
-                stroke: new TinyColor('green').desaturate(50).toString(),
+                stroke: colorStartCircle,
                 strokeWidth: 1 + 1 * sc,
                 position: start.plain(),
             });
@@ -443,7 +458,7 @@ All time best ${s.bestAllTime}`;
             const xy = start.clone().sub(p);
             const c = new Konva.Circle({
                 radius: showPacer ? 10 : 1,
-                stroke: new TinyColor(theme.foreground).shade(50).toString(),
+                stroke: colorHintPath,
                 strokeWidth: 1,
                 position: xy,
                 visible: showHint,
@@ -456,7 +471,7 @@ All time best ${s.bestAllTime}`;
         });
         const hintLine = new Konva.Line({
             points: hintLinePoints,
-            stroke: new TinyColor(theme.foreground).darken(50).toString(),
+            stroke: colorHintPath,
             strokeWidth: 0.5,
             visible: showHint,
         });
@@ -465,11 +480,15 @@ All time best ${s.bestAllTime}`;
         layer.add(hintLine);
         let hitIndex = -1;
         const fps: number[] = [];
-        var animation = new Konva.Animation(function (frame: any) {
+        let updatedFrames = 0;
+        let totalFrames = 0;
+        var animation = new Konva.Animation(function (frame: any) {            
+            totalFrames++;
             fps.push(frame.frameRate);
             let updated = false;            
             // Register next shot.
-            if (frame.time > timePoints[hitIndex + 1]) {
+            const frame_t = Date.now() - start_t;
+            if (frame_t > timePoints[hitIndex + 1]) {
                 hitIndex++;
                 updated = true;
                 for (let i = 0; i <= hitIndex; i++) hintCircles[i]?.radius(1);
@@ -478,20 +497,19 @@ All time best ${s.bestAllTime}`;
                 let cur = new Point(stage.getPointerPosition()).sub(start_screen).add(start);
                 // Hit relative to start.
                 let hit = cur.clone().add(p);
-                let traceTarget = start.clone().sub(p);                
+                let traceTarget = start.clone().sub(p);
                 hintTarget.position(traceTarget.plain());
                 const distance = new Point(hit).distance(start) / sc;
                 let s = distanceScore(distance);
                 scores.push(s);
                 score += s;
-                let scoreColor = (scoreGrad.rgbAt(s) as unknown) as TinyColor;
-                scoreColor = scoreColor.desaturate(50);
+                const scoreColor = gradientColor(s);
                 {
                     // Hit markers.
                     hitMarker?.radius(2);
                     hitMarker = new Konva.Circle({
                         radius: 4,
-                        fill: scoreColor.toString(),
+                        fill: scoreColor,
                         position: hit,
                     });
                     hitMarkers.push(hitMarker);                    
@@ -501,7 +519,7 @@ All time best ${s.bestAllTime}`;
 
                     const b = new Konva.Circle({
                         radius: 2,
-                        fill: scoreColor.toString(),
+                        fill: scoreColor,
                         position: cur.plain(),
                         visible: false,
                     });
@@ -511,7 +529,7 @@ All time best ${s.bestAllTime}`;
 
                     const c = new Konva.Line({
                         points: [cur.x, cur.y, traceTarget.x, traceTarget.y],
-                        stroke: scoreColor.toString(),
+                        stroke: scoreColor,
                         strokeWidth: 1,
                         visible: false,
                     });
@@ -523,8 +541,12 @@ All time best ${s.bestAllTime}`;
                 // Finished.
                 if (hitIndex + 1 >= n) {
                     shooting = false;
+                    stage.listening(true);
                     resumeAttrUpdates();
                     animation.stop();
+                    console.log('updated frames', updatedFrames, 'total', totalFrames);
+                    console.log('fps 0.001', sl.percentile(fps, 0.001), '0.01', sl.percentile(fps, 0.01), '0.5', sl.percentile(fps, 0.5));
+                    console.log('mean', 1000 * totalFrames/(Date.now() - start_t));
                     const x = Math.round(100 * score / n);
                     addStat(x);
                     hintShapes.forEach(s => s.visible(true));
@@ -533,7 +555,7 @@ All time best ${s.bestAllTime}`;
                     const txt = new Konva.Text({
                         text: `${x}`,
                         fontSize: 20,
-                        fill: scoreGrad.rgbAt(score / n).toString(),
+                        fill: gradientColor(score / n),
                         shadowColor: theme.background,
                         shadowBlur: 0,
                         shadowOffset: { x: 1, y: 1 },
@@ -550,18 +572,21 @@ All time best ${s.bestAllTime}`;
             if (showPacer) {
                 updated = true;
                 for (let i = hitIndex + 1; i < n; i++) {
-                    const d = timePoints[i] - frame.time;
+                    const d = timePoints[i] - frame_t;
                     // d / 30 - will be closing over ~300 ms (30 * 10).
                     hintCircles[i].radius(Math.max(1, Math.min(10, d / 30) * sc));
                 }               
             }
+            if (updated) updatedFrames++;
             return updated;
         }, layer);
-        animation.start();
-        stage.batchDraw();
+        stage.listening(false);
+        console.log('stage is silent');
+        animation.start();        
+        // stage.batchDraw();
     };
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
-        updateSound();
+        // TODO: disabled: updateSound();
         e.evt.preventDefault();
         switch (e.evt.button) {
             case 0:
