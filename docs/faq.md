@@ -1,4 +1,4 @@
-Frequently asked questions
+# Frequently asked questions
 
 - **How accurate are the patterns?**
 
