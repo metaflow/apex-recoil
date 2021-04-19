@@ -6,7 +6,7 @@ Visualization of recoil patterns from [Apex Legends](https://www.ea.com/games/ap
 
 # Contributing and support
 
-I would appreciate a kind word [here on GitHub](https://github.com/metaflow/apex-recoil/issues/1) or on [Twitter](https://twitter.com/goncharov_m).
+I would appreciate a kind word and up arrow [on Reddit](https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/). Or just tell your friends about it.
 
 You can also help this project by contributing to it. For example, you can [add more recoil patterns](https://github.com/metaflow/apex-recoil/issues/2) for weapons already listed or, especially, missing (like spitfire or re-45).
 
