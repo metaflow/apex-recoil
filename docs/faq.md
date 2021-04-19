@@ -8,7 +8,7 @@ It's assumed that your Windows sensitivity is 6/11 and the "Enhance pointer prec
 
 - **Is there a controller support**
 
-[You can control the cursor with your controller](https://uk.pcmag.com/controllers-accessories/132034/how-to-turn-your-game-controller-into-a-computer-mouse), e.g. Steam launcher supports it without any additional apps. I have no idea yet how to set it up to match in-game.
+[You can control the cursor with your controller](https://uk.pcmag.com/controllers-accessories/132034/how-to-turn-your-game-controller-into-a-computer-mouse), e.g. Steam launcher supports it without any additional apps. I have no idea yet how to set it up to match the game sensitivity.
 
 - **How scoring works**
 
