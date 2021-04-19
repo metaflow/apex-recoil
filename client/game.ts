@@ -64,11 +64,17 @@ interface TrialStats {
     todayResults: number[];
 };
 
-function distanceScore(distance: number) {
-    const k = 20;
-    const a = 1;
-    const t = a / (a + 200 / k);
-    return Math.max(0, (a / (a + distance / k) - t) / (1 - t));
+function distanceScore(x: number) {
+    // Reasoning:
+    // 1. Small errors should not decrease the score a lot.
+    // 2. Real recorded patterns (see raw_recoils.json) should score >0.9.
+    //    As score is symmetrical that would mean that averaged score will
+    //    also score a "good" result for real scores and in-game.
+    // 3. Big errors should decrease the score almost to 0. In game it's
+    //    a binary value that suddenly drops drops "hit" to "no hit" but
+    //    that would not be useful for training.
+    // Graph: https://www.desmos.com/calculator/csaihi8x3j.
+    return Math.exp(-.00002 * Math.pow(x, 2.5));
 }
 
 let stats: TrialStats[] = [];
@@ -213,7 +219,6 @@ export function setupGame() {
         }
     };
     watchAttr(['weapon', 'mag', 'mute'], updateSound);
-    attrInput('sens');
     const scale = () => {
         const sens = Number(getAttr('sens'));
         return 1 / sens;
@@ -235,8 +240,12 @@ export function setupGame() {
             scoreGradient.push(((scoreGrad.rgbAt(i / 10) as unknown) as TinyColor).desaturate(50).toString());
         }
     }
+    
     const gradientColor = (x: number) => {
-        const idx = Math.min(Math.max(Math.round(x * 10), 0), 10);
+        x = Math.min(1, Math.max(0, x));
+        // Make gradient more pronounced around 1..0.9.
+        x = 1 - Math.sqrt(1 - x * x);
+        const idx = Math.round(x * 10);
         return scoreGradient[idx];
     }
 
@@ -360,7 +369,6 @@ export function setupGame() {
         const name = getAttr('weapon');
         const stock = '0';
         const barrel = '0';
-        console.log('recoils', recoils);
         const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
         if (rr.length == 0) {
             console.error('no recoils for', name, stock, barrel);
@@ -415,14 +423,14 @@ All time best ${s.bestAllTime}`;
 
     const fire = () => {
         const start_t = Date.now();
-        if (shooting) return;   
+        if (shooting) return;
         const recoil = pickRecoil(); // TODO: pick recoil in advance.
         if (recoil == null) {
             console.log('no recoil selected');
             return;
         }
         suspendAttrUpdates();
-        shooting = true;        
+        shooting = true;
         clear();
         const start = cursor();
         let score = 0;
@@ -467,7 +475,7 @@ All time best ${s.bestAllTime}`;
         }
         let hitMarker = new Konva.Circle();
         const hitMarkers: Konva.Shape[] = [];
-        
+
         const pattern = recoil.x.map((x, idx) => {
             return new Point(x, recoil.y[idx]).s(sc);
         });
@@ -477,16 +485,16 @@ All time best ${s.bestAllTime}`;
             const line = ln as Konva.Line;
             line.visible(showHint);
             allShapes.push(line);
-            hintShapes.push(line);            
+            hintShapes.push(line);
             layer.add(line);
-            (circles as Konva.Circle[]).forEach(c => {                
+            (circles as Konva.Circle[]).forEach(c => {
                 c.visible(showHint);
                 allShapes.push(c);
                 hintShapes.push(c);
                 layer.add(c);
             });
         }
-        const timePoints: number[] = Array.from(Array(n).keys()).map(i => i * (60 * 1000 / w.rpm));        
+        const timePoints: number[] = Array.from(Array(n).keys()).map(i => i * (60 * 1000 / w.rpm));
         let totalFrames = 0;
         let hitIndex = -1; // Position in the patter we already passed.
         let hitScores: number[] = [];
@@ -531,15 +539,17 @@ All time best ${s.bestAllTime}`;
                     animation.stop();
                     // console.log('fps 0.001', sl.percentile(fps, 0.001), '0.01', sl.percentile(fps, 0.01), '0.5', sl.percentile(fps, 0.5));
                     fpsTxt.text(`FPS: ${Math.round(1000 * totalFrames / (Date.now() - start_t))}`);
-                    const x = Math.round(100 * score / n);
+                    score /= n;
+                    score = Math.max(0, Math.min(1, score));
+                    const x = Math.round(100 * score);
                     addStat(x);
                     hintShapes.forEach(s => s.visible(true));
                     hitMarker.radius(2);
                     hintTarget.visible(false);
                     const txt = new Konva.Text({
                         text: `${x}`,
-                        fontSize: 20,
-                        fill: gradientColor(score / n),
+                        fontSize: 20,                        
+                        fill: gradientColor(score),
                         shadowColor: theme.background,
                         shadowBlur: 0,
                         shadowOffset: { x: 1, y: 1 },
@@ -592,7 +602,7 @@ All time best ${s.bestAllTime}`;
                     const v = pattern[i + 1].clone().sub(pattern[i]);
                     let traceTarget = start.clone().sub(v.s(progress).add(pattern[i]));
                     hintTarget.position(traceTarget.plain());
-                }                
+                }
             }
             return updated;
         };
@@ -602,7 +612,6 @@ All time best ${s.bestAllTime}`;
         frame();
     };
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
-        // TODO: disabled: updateSound();
         e.evt.preventDefault();
         switch (e.evt.button) {
             case 0:
