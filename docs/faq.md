@@ -26,12 +26,11 @@ Steam does not disable mouse movement for non-steam games, your controls might b
 
 Scores are counted separately for different settings (mag, weapon, enabled hints).
 
-[Scoring formula](https://www.desmos.com/calculator/csaihi8x3j) (x = distance to the "ideal" point normalized to the mouse sensitivity).
+[Scoring formula](https://www.desmos.com/calculator/j7vjbzvuly) (x = distance to the "ideal" point normalized to the mouse sensitivity).
 
 The reasoning for the shape and constants selection:
 1. Small errors should not decrease the score a lot.
-2. Real recorded patterns should score 90+ points.
-3. Increasing the error value should gradually decrease the score to almost 0 at a distance of 150px (approximate body size from 20m). In-game "score" a binary value that suddenly drops drops "hit" to "no-hit" but that would not be useful for training.
+2. Increasing the error value should gradually decrease the score to almost 0 at a distance of 100px (approximate body size from 20m). In-game "score" a binary value that suddenly drops drops "hit" to "no-hit" but that would not be useful for training.
 
 ## No registration?
 

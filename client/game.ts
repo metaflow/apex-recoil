@@ -67,14 +67,11 @@ interface TrialStats {
 function distanceScore(x: number) {
     // Reasoning:
     // 1. Small errors should not decrease the score a lot.
-    // 2. Real recorded patterns (see raw_recoils.json) should score >0.9.
-    //    As score is symmetrical that would mean that averaged score will
-    //    also score a "good" result for real scores and in-game.
-    // 3. Big errors should decrease the score almost to 0. In game it's
+    // 2. Big errors should decrease the score almost to 0. In game it's
     //    a binary value that suddenly drops drops "hit" to "no hit" but
     //    that would not be useful for training.
-    // Graph: https://www.desmos.com/calculator/csaihi8x3j.
-    return Math.exp(-.00002 * Math.pow(x, 2.5));
+    // Graph: https://www.desmos.com/calculator/j7vjbzvuly.
+    return Math.exp(-.0004 * Math.pow(x, 2));
 }
 
 let stats: TrialStats[] = [];
