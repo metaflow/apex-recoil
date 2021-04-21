@@ -16,9 +16,11 @@ According to my experiments, these mouse sensitivity values should be close to i
 |------------------|-------|-------|-------|-------|-------|------|-------|------|
 | Steam controller | 0.123 | 0.198 | 0.388 | 0.594 | 0.939 | 1.12 | 1.222 | 1.24 |
 
-Pick the response curve [this post might help](https://www.reddit.com/r/apexlegends/comments/bpkzn4/advanced_look_controls_response_curve_guide/).
+Pick the response curve, [this post might help](https://www.reddit.com/r/apexlegends/comments/bpkzn4/advanced_look_controls_response_curve_guide/).
 
-*Disclaimer*: I play on the keyboard and mouse and have not tested with a controller. Sensitivity numbers above were computed with [xbox controller emulator]((https://github.com/dmadison/ArduinoXInput) and having a linear response pattern. Trying to emulate the recoil movement of a gamepad seems to be non-trivial.
+Steam does not disable mouse movement for non-steam games, your controls might be funky.
+
+*Disclaimer*: I play on the keyboard and mouse and have not tested with a controller. Sensitivity numbers above were computed with [xbox controller emulator](https://github.com/dmadison/ArduinoXInput) and having a linear response pattern. Trying to emulate the recoil movement of a gamepad seems to be non-trivial.
 
 ## How scoring works
 
