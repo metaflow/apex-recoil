@@ -159,8 +159,12 @@ export function setupGame() {
 
     watchAttr('show-instructions', (v: string) => {
         const e = document.getElementById('instructions');
-        if (!e) return
-        e.style.display = (v == 'true') ? 'block' : 'none';
+        if (!e) return;
+        if (v == 'false') {
+            e.classList.add('hidden');
+        } else {
+            e.classList.remove('hidden');
+        }
     });
 
     {

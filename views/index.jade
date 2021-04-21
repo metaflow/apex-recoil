@@ -18,9 +18,9 @@ extends layout
 block content
   #game
     #control
-      h1 Practice Apex Legends Recoil Patterns
+      h1 Apex Legends Recoil Patterns
       #top-links
-        a#show-instructions(href="#")
+        P#show-instructions.action
           | Show instructions
         a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md" target="_blank")
           | FAQ
@@ -108,10 +108,12 @@ block content
             | Some images and reference materials come from 
             | #[a(href="https://apexlegends.fandom.com/wiki/" target="blank") Apex Legends Wiki].
         #version
-          a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md#v02-accurate-pattern-scale-first-feedback")
-            | version 0.2
+          p
+            | version 0.2&nbsp;
+            a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md#v02-accurate-pattern-scale-first-feedback")
+              | what's new
     #workspace
-      #instructions
+      #instructions.hidden
           h2 Instructions
           ul
             li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="blank") Make sure that "Enhance pointer precision" is off].
@@ -124,5 +126,5 @@ block content
           p #[i Auto toggle hint] switches "show path" between sprays.
           p The #[i middle mouse button] toggles the display mode of a trace.
           p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled to learn the patterns.          
-          p #[a#dismiss-instructions(href="#") Dismiss instructions]
+          p.action#dismiss-instructions Dismiss instructions
       #stage

@@ -104,7 +104,7 @@ ul {
 h1 {
     text-align: center;
     font-weight: bold;
-    padding: 4px 0;
+    padding: 6px 0;
     color: $active;
     font-size: 15px;
 }
@@ -134,11 +134,9 @@ h2 {
             padding: 4px;
         }
         #top-links {
-            padding: 4px 12px;
-            text-align: right;
-            a {
-                padding-right: 4px;
-            }
+            display: flex;
+            justify-content: space-around;
+            padding: 4px 12px;            
         }
         #score {
             .label {
@@ -333,4 +331,9 @@ h2 {
 input[type="text"] {
     width: 6ch;
     margin-right: 4px;
+}
+
+.action {
+    text-decoration: underline;
+    cursor: pointer;
 }
