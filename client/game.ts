@@ -94,12 +94,16 @@ function trialSetup(): TrialSetup {
 
 function statsForSetup(c: TrialSetup): TrialStats | undefined {
     return stats.find(x => {
-        return x.setup.weapon == c.weapon &&
+        try {
+            return x.setup.weapon == c.weapon &&
             x.setup.mag == c.mag &&
             x.setup.barrel == c.barrel &&
             x.setup.stock == c.stock &&
             x.setup.hint == c.hint &&
             x.setup.pacer == c.pacer;
+        } catch {
+            return false;
+        }
     });
 }
 
