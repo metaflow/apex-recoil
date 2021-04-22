@@ -284,33 +284,6 @@ h2 {
             margin-top: auto;
             padding: 4px 4px 8px;
         }
-        #copyright {
-            .links {
-                font-size: 9px;
-                flex-direction: row;
-                display: flex;
-                .vertical {
-                    flex-direction: column;
-                    display: flex;
-                    align-items: flex-end;
-                    flex-grow: 1;
-                }
-            }
-            a {
-                margin: 2px;
-                img {
-                    border: 1px solid transparent;
-                    &:hover {
-                        border: 1px solid $foreground;
-                    }
-                }
-            }           
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-        #version {
-            text-align: right;
-        }
     }
 
     .slider {
@@ -345,4 +318,49 @@ input[type="text"] {
 .action {
     text-decoration: underline;
     cursor: pointer;
+}
+
+#copyright {
+    .links {
+        font-size: 9px;
+        flex-direction: row;
+        display: flex;
+        .vertical {
+            flex-direction: column;
+            display: flex;
+            align-items: flex-end;
+            flex-grow: 1;
+        }
+    }
+    a {
+        margin: 2px;
+        img {
+            border: 1px solid transparent;
+            &:hover {
+                border: 1px solid $foreground;
+            }
+        }
+    }           
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+#version {
+    text-align: right;
+}
+
+#mobile-info {
+    text-align: center;
+}
+
+@media (min-device-width:901px) {
+    #mobile-info {
+        display: none;
+    }
+}
+
+@media (max-device-width:900px) {
+    #game {
+        display: none;
+    }
 }

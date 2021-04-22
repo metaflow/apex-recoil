@@ -28,10 +28,10 @@ block content
         p#score-stats
       #weapon-select.grid
         div.r99
-          img(src="/images/r99.png", alt="r99")
+          img(src="/images/r99.png", alt="r-99")
           p.name R-99
         div.r301
-          img(src="/images/r301.png", alt="r301")
+          img(src="/images/r301.png", alt="r-301")
           p.name R-301
         div.volt
           img(src="/images/volt.png", alt="volt")
@@ -57,13 +57,13 @@ block content
         //-   img(src="/images/spitfire.png", alt="spitfire")
       #mag-select.grid
         div.mag-0
-          img(src="/images/magi.png")
+          img(src="/images/magi.png" alt="no magazine")
         div.mag-1
-          img(src="/images/magi.png")
+          img(src="/images/magi.png" alt="magazine level 1")
         div.mag-2
-          img(src="/images/magi.png")
+          img(src="/images/magi.png" alt="magazine level 2")
         div.mag-3
-          img(src="/images/magi.png")
+          img(src="/images/magi.png" alt="magazine level 3")
       #settings
           p
             input(type='text' id='sens')
@@ -79,11 +79,11 @@ block content
             | Auto toggle hint          
           #sound-control
             #toggle-mute
-              img(src="/volume_up_white_24dp.svg")#unmuted
-              img(src="/volume_off_white_24dp.svg")#muted.hidden
+              img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
+              img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
             input.slider#volume(type='range' min="0" max="100")
           div     
-            img(src="/speed_white_24dp.svg")      
+            img(src="/speed_white_24dp.svg" alt="speed control")
             input.slider#speed(type='range' min="10" max="100" step="10")
             span#speed-value
       #controls-bottom
@@ -113,7 +113,7 @@ block content
         #version
           p
             | version 0.3&nbsp;
-            a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md#v02-accurate-pattern-scale-first-feedback")
+            a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md#v03-slow-mode")
               | what's new
     #workspace
       #instructions.hidden
@@ -127,9 +127,22 @@ block content
           p #[i Show path] displays the ideal compensation trajectory.
           p #[i Show pacer] adds to the path a running dot to follow.
           p #[i Auto toggle hint] switches "show path" between sprays.
-          p Set slower #[i ы peed] if you like; stats are not recorded for slow-mode.
+          p Set a slower #[i speed] if you like; stats are not recorded for slow-mode.
           p The #[i middle mouse button] toggles the display mode of a trace.
           p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled to learn the patterns.          
           p #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.]
           p.action#dismiss-instructions Dismiss instructions
       #stage
+  #mobile-info 
+    h1 Apex Legends Recoil Patterns
+    img(src="/images/r99.png", alt="r-99")
+    p Hi! Thanks for checking out this little app to practice recoil patterns. It's meant to be used on the desktop browser with a mouse or controller.
+    p The screen width of your device width must be greater than 900 pixels.
+    p
+      | Meanwhile, please check this&nbsp;
+      | #[a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/") post on Reddita(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/") post on Reddit]&nbsp;
+      | and #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md") FAQ].
+    p Cheers!
+    #copyright
+      p 2021 equanimity_rulez
+      p This app is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.

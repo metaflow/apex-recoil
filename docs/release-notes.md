@@ -1,6 +1,8 @@
 # v0.3 Slow-mode
 
-- Added a "slow-mode". Statistics are not recorded for "slow-mode".
+- Added a "slow-mode": o. Statistics are not recorded for "slow-mode".
+
+- Minor visual improvements and simple page for devices with width less than 900px.
 
 # v0.2 Accurate pattern scale, scoring, performance, and more
 
