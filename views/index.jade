@@ -77,12 +77,15 @@ block content
           p
             input(type='checkbox' id='toggle-modes')
             | Auto toggle hint          
-          p
+          #sound-control
+            #toggle-mute
+              img(src="/volume_up_white_24dp.svg")#unmuted
+              img(src="/volume_off_white_24dp.svg")#muted.hidden
             input.slider#volume(type='range' min="0" max="100")
-            | Volume
-          p
-            input(type='checkbox' id='mute')
-            | Mute sound
+          div     
+            img(src="/speed_white_24dp.svg")      
+            input.slider#speed(type='range' min="10" max="100" step="10")
+            span#speed-value
       #controls-bottom
         #copyright
           div.links
@@ -100,16 +103,16 @@ block content
           p
             | 2021 by Mikhail equanimity_rulez Goncharov.
           p
-            b This app is not affiliated with or sponsored by Electronic Arts Inc. or its licensors. 
-            | Images, audio fragments, weapon names and behavior come from the "Apex Legends" game or 
-            | from websites created and owned by #[a(href="https://ea.com" target="blank") Electronic Arts Inc.] 
-            | or #[a(href="https://www.respawn.com/" target="blank") Respawn Entertainment], who hold the 
-            | copyright of Apex Legends. 
-            | Some images and reference materials come from 
+            b This app is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.&nbps;
+            | Images, audio fragments, weapon names and behavior come from the "Apex Legends" game or&nbps;
+            | from websites created and owned by #[a(href="https://ea.com" target="blank") Electronic Arts Inc.]&nbps;
+            | or #[a(href="https://www.respawn.com/" target="blank") Respawn Entertainment], who hold the&nbps;
+            | copyright of Apex Legends.&nbps;
+            | Some images and reference materials come from&nbps;
             | #[a(href="https://apexlegends.fandom.com/wiki/" target="blank") Apex Legends Wiki].
         #version
           p
-            | version 0.2&nbsp;
+            | version 0.3&nbsp;
             a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md#v02-accurate-pattern-scale-first-feedback")
               | what's new
     #workspace
@@ -124,6 +127,7 @@ block content
           p #[i Show path] displays the ideal compensation trajectory.
           p #[i Show pacer] adds to the path a running dot to follow.
           p #[i Auto toggle hint] switches "show path" between sprays.
+          p Set slower #[i ы peed] if you like; stats are not recorded for slow-mode.
           p The #[i middle mouse button] toggles the display mode of a trace.
           p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled to learn the patterns.          
           p #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.]

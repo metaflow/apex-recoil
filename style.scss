@@ -132,6 +132,15 @@ h2 {
         display: flex;
         #settings {
             padding: 4px;
+            #sound-control {
+                #toggle-mute {
+                    cursor: pointer;
+                }
+            }
+            div {
+                display: flex;
+                align-items: center;
+            }
         }
         #top-links {
             display: flex;

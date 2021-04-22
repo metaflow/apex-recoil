@@ -96,11 +96,11 @@ function statsForSetup(c: TrialSetup): TrialStats | undefined {
     return stats.find(x => {
         try {
             return x.setup.weapon == c.weapon &&
-            x.setup.mag == c.mag &&
-            x.setup.barrel == c.barrel &&
-            x.setup.stock == c.stock &&
-            x.setup.hint == c.hint &&
-            x.setup.pacer == c.pacer;
+                x.setup.mag == c.mag &&
+                x.setup.barrel == c.barrel &&
+                x.setup.stock == c.stock &&
+                x.setup.hint == c.hint &&
+                x.setup.pacer == c.pacer;
         } catch {
             return false;
         }
@@ -157,6 +157,7 @@ export function setupGame() {
     initAttr('show-instructions', 'true');
     initAttr('trace-mode', '1');
     initAttr('toggle-modes', 'false');
+    initAttr('speed', '100');
 
     watchAttr('show-instructions', (v: string) => {
         const e = document.getElementById('instructions');
@@ -188,12 +189,33 @@ export function setupGame() {
         });
     }
 
-    stats = JSON.parse(getAttr('stats'));
+    JSON.parse(getAttr('stats')).forEach((t: any) => {
+        const s = t['setup'];
+        if (s === undefined) return;
+        const setup: TrialSetup = {
+            weapon: s['weapon'] || '',
+            mag: s['mag'] || '0',
+            barrel: s['barrel'] || '0',
+            stock: s['stock'] || '0',
+            hint: s['hint'] || 'true',
+            pacer: s['pacer'] || 'true',
+        };
+        stats.push({
+            setup,
+            bestByDay: t.bestByDay,
+            medianByDay: t.medianByDay,
+            days: t.days,
+            bestAllTime: t.bestAllTime,
+            last: t.last,
+            today: t.today,
+            todayResults: t.todayResults,
+        });
+    });
     attrInput('sens');
     attrInput('hint');
     attrInput('pacer');
     attrInput('volume');
-    attrInput('mute');
+    attrInput('speed');
     attrInput('toggle-modes');
     let allShapes: Konva.Shape[] = [];
     let hintShapes: Konva.Shape[] = [];
@@ -224,6 +246,23 @@ export function setupGame() {
         }
     };
     watchAttr(['weapon', 'mag', 'mute'], updateSound);
+    {
+        const mute = (document.getElementById('muted') as HTMLImageElement);
+        const unmute = (document.getElementById('unmuted') as HTMLImageElement);
+        if (mute != null || unmute != null) {
+            watchAttr(['mute'], (v: string) => {
+                if (v == 'true') {
+                    unmute.classList.add('hidden');
+                    mute.classList.remove('hidden');
+                } else {
+                    unmute.classList.remove('hidden');
+                    mute.classList.add('hidden');
+                }
+            });
+            unmute.addEventListener('click', () => setAttr('mute', 'true'));
+            mute.addEventListener('click', () => setAttr('mute', 'false'));
+        }
+    }
     const scale = () => {
         const sens = Number(getAttr('sens'));
         return 1 / sens;
@@ -245,7 +284,7 @@ export function setupGame() {
             scoreGradient.push(((scoreGrad.rgbAt(i / 10) as unknown) as TinyColor).desaturate(50).toString());
         }
     }
-    
+
     const gradientColor = (x: number) => {
         x = Math.min(1, Math.max(0, x));
         // Make gradient more pronounced around 1..0.9.
@@ -407,6 +446,12 @@ All time best ${s.bestAllTime}`;
     };
     watchAttr(['stats', 'mag', 'weapon', 'hint', 'pacer'], showStats);
 
+    watchAttr(['speed'], (v: string) => {
+        const b = document.getElementById('speed-value');
+        if (!b) return;
+        const s = Number(v);
+        b.innerText = s == 100 ? 'normal' : `x ${s / 100}`;
+    });
     const clear = () => {
         allShapes.forEach(c => c.remove());
         allShapes = [];
@@ -445,10 +490,12 @@ All time best ${s.bestAllTime}`;
             return;
         }
         const sc = scale();
+        const speed = Math.min(1, Math.max(0.1, Number(getAttr('speed')) / 100));
         const n = w.mags[Number(getAttr('mag'))]?.size || 1;
-        if (getAttr('mute') != 'true') {
-            sound?.volume(Number(getAttr('volume')) / 100);
-            sound?.play();
+        if (getAttr('mute') != 'true' && sound != null) {
+            sound.volume(Number(getAttr('volume')) / 100);
+            sound.rate(speed);
+            sound.play();
         }
         for (let i = 0; i < traceShapeTypes; i++) traceShapes.push([]);
         const showHint = getAttr('hint') == 'true';
@@ -499,7 +546,9 @@ All time best ${s.bestAllTime}`;
                 layer.add(c);
             });
         }
-        const timePoints: number[] = Array.from(Array(n).keys()).map(i => i * (60 * 1000 / w.rpm));
+        const timePoints: number[] = Array
+            .from(Array(n).keys())
+            .map(i => i * (60 * 1000 / w.rpm));
         let totalFrames = 0;
         let hitIndex = -1; // Position in the patter we already passed.
         let hitScores: number[] = [];
@@ -508,8 +557,8 @@ All time best ${s.bestAllTime}`;
             totalFrames++;
             let updated = false;
             let cur = cursor();
+            const frame_t = (Date.now() - start_t) * speed + 8; // Add half frame.
             // Register next shot.
-            const frame_t = Date.now() - start_t + 8; // Add half frame.
             if (frame_t > timePoints[hitIndex + 1]) {
                 hitIndex++;
                 updated = true;
@@ -547,13 +596,13 @@ All time best ${s.bestAllTime}`;
                     score /= n;
                     score = Math.max(0, Math.min(1, score));
                     const x = Math.round(100 * score);
-                    addStat(x);
+                    if (speed == 1) addStat(x);
                     hintShapes.forEach(s => s.visible(true));
                     hitMarker.radius(2);
                     hintTarget.visible(false);
                     const txt = new Konva.Text({
                         text: `${x}`,
-                        fontSize: 20,                        
+                        fontSize: 20,
                         fill: gradientColor(score),
                         shadowColor: theme.background,
                         shadowBlur: 0,
@@ -601,7 +650,7 @@ All time best ${s.bestAllTime}`;
                 while (i + 1 < n && t > timePoints[i + 1]) i++;
                 if (i > -1 && i + 1 < n) {
                     updated = true;
-                    const dt = timePoints[i + 1] - timePoints[i];
+                    const dt = (timePoints[i + 1] - timePoints[i]);
                     let progress = 1;
                     if (dt > 0.001) progress = Math.max(Math.min((t - timePoints[i]) / dt, 1), 0);
                     const v = pattern[i + 1].clone().sub(pattern[i]);

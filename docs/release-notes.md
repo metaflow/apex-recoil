@@ -1,3 +1,7 @@
+# v0.3 Slow-mode
+
+- Added a "slow-mode". Statistics are not recorded for "slow-mode".
+
 # v0.2 Accurate pattern scale, scoring, performance, and more
 
 [v.01 announce on reddit](https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils) got some attention to the app and users pointed out multiple improvement points.
