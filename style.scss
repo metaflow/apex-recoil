@@ -123,6 +123,10 @@ h2 {
         padding: 12px 20px;
     }
     #control {
+        .description {
+            padding: 0 4px;
+            text-align: center;
+        }
         max-width: 300px;
         min-width: 300px;
         // border-right: 1px white solid;
@@ -335,9 +339,10 @@ input[type="text"] {
     a {
         margin: 2px;
         img {
-            border: 1px solid transparent;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 2px;
             &:hover {
-                border: 1px solid $foreground;
+                border-bottom: 1px solid $foreground;
             }
         }
     }           
@@ -347,6 +352,7 @@ input[type="text"] {
 
 #version {
     text-align: right;
+    font-size: 12px;
 }
 
 #mobile-info {
