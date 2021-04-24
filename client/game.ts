@@ -64,11 +64,11 @@ function readStats() {
     JSON.parse(getAttr('stats')).forEach((t: any) => {
         const s = t['setup'];
         if (s === undefined) return;
-        if (s['barrel'] != '0') return;
-        if (s['stock'] != '0') return;
         const version = t['v'];
         if (version == null) {
             // Initial unversioned storage.
+            if (s['barrel'] != null && s['barrel'] != '0') return;
+            if (s['stock'] != null && s['stock'] != '0') return;
             const setup: TrialSetup = {
                 weapon: s['weapon'] || '',
                 mag: s['mag'] || '0',
