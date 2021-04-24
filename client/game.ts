@@ -455,6 +455,8 @@ export function setupGame() {
                 if (s.todayResults.length > 0) {
                     b.innerText = `Today's tries ${s.todayResults.length}, median ${Math.round(sl.median(s.todayResults))}, best ${sl.percentile(s.todayResults, 1)}
 All time best ${s.bestAllTime}`;
+                } else {
+                    b.innerText = `Today's tries -, median -, best -\nAll time best ${s.bestAllTime}`;
                 }
             }
         }
