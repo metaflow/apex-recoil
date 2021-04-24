@@ -4,6 +4,8 @@
 
 - Added counter of "today tries" to the interface.
 
+- Added Alternator (not verified in-game yet but should be very close).
+
 # v0.3 Slow-mode
 
 - Added a "slow-mode": o. Statistics are not recorded for "slow-mode".
