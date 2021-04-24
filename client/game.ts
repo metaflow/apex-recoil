@@ -19,19 +19,12 @@ import { Howl } from "howler";
 import Konva from "konva";
 import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, resumeAttrUpdates, setAttr, stage, suspendAttrUpdates, watchAttr } from "./main";
 import { Point } from "./point";
-import rec from './recoils.json';
+// import rec from './recoils.json';
 import specs from './specs.json';
 import theme from '../theme.json';
 import sl from "stats-lite";
 import tinygradient from "tinygradient";
 
-interface Recoil {
-    weapon: string;
-    barrel: string;
-    stock: string;
-    x: number[];
-    y: number[];
-}
 
 export interface MagInfo {
     size: number;
@@ -40,8 +33,10 @@ export interface MagInfo {
 
 export interface Weapon {
     name: string;
-    rpm: number;
     mags: MagInfo[];
+    timePoints: number[];
+    x: number[];
+    y: number[];
 }
 
 const statsDataVersion = 1;
@@ -242,16 +237,6 @@ export function setupGame() {
     let allShapes: Konva.Shape[] = [];
     let hintShapes: Konva.Shape[] = [];
     let traceShapes: Konva.Shape[][] = [];
-    const recoils = rec.map(s => {
-        var z: Recoil = {
-            weapon: s.weapon,
-            barrel: s.barrel,
-            stock: s.stock,
-            x: s.x,
-            y: s.y,
-        };
-        return z;
-    });
     let sound: Howl | null = null;
     let soundPath = '';
     const updateSound = () => {
@@ -363,17 +348,10 @@ export function setupGame() {
             return;
         }
         const n = w.mags[Number(getAttr('mag'))].size;
-        const r = pickRecoil();
-        if (r == null) return;
-        if (r.x.length < n) {
-            console.error('missing points for pattern want', n, 'have', r.x.length);
-            return;
-        }
         const start = new Point(150 * sc, 50);
-        const pattern = r.x.map((x, idx) => {
-            return new Point(x, r.y[idx]).s(sc);
+        const pattern = w.x.map((x, idx) => {
+            return new Point(x, w.y[idx]).s(sc);
         });
-
         const [line, circles] = drawPattern(pattern, n, start, sc);
         allShapes.push(line as Konva.Line);
         layer.add(line as Konva.Line);
@@ -391,11 +369,13 @@ export function setupGame() {
     specs.forEach(s => {
         weapons.set(s.name, {
             name: s.name,
-            rpm: s.rpm,
             mags: s.mags.map(m => {
                 var z: MagInfo = { size: m.size, audio: m.audio };
                 return z;
-            })
+            }),
+            timePoints: s.time_points,
+            x: s.x,
+            y: s.y,
         });
 
         const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
@@ -430,21 +410,6 @@ export function setupGame() {
         if (d == null) return;
         d.classList.add('selected');
     });
-
-    const pickRecoil = () => {
-        const name = getAttr('weapon');
-        const stock = '0';
-        const barrel = '0';
-        const rr = recoils.filter(r => r.weapon == name && r.barrel == barrel && r.stock == stock);
-        if (rr.length == 0) {
-            console.error('no recoils for', name, stock, barrel);
-            return null;
-        }
-        if (rr.length > 1) {
-            console.warn('more then 1 recoils for', name, stock, barrel);
-        }
-        return rr[0];
-    };
 
     const showStats = () => {
         const s = statsForSetup(trialSetup());
@@ -491,11 +456,6 @@ All time best ${s.bestAllTime}`;
     const fire = () => {
         const start_t = Date.now();
         if (shooting) return;
-        const recoil = pickRecoil(); // TODO: pick recoil in advance.
-        if (recoil == null) {
-            console.log('no recoil selected');
-            return;
-        }
         suspendAttrUpdates();
         shooting = true;
         clear();
@@ -545,8 +505,8 @@ All time best ${s.bestAllTime}`;
         let hitMarker = new Konva.Circle();
         const hitMarkers: Konva.Shape[] = [];
 
-        const pattern = recoil.x.map((x, idx) => {
-            return new Point(x, recoil.y[idx]).s(sc);
+        const pattern = w.x.map((x, idx) => {
+            return new Point(x, w.y[idx]).s(sc);
         });
 
         {
@@ -563,9 +523,7 @@ All time best ${s.bestAllTime}`;
                 layer.add(c);
             });
         }
-        const timePoints: number[] = Array
-            .from(Array(n).keys())
-            .map(i => i * (60 * 1000 / w.rpm));
+        const timePoints = w.timePoints;
         let totalFrames = 0;
         let hitIndex = -1; // Position in the patter we already passed.
         let hitScores: number[] = [];

@@ -103,11 +103,13 @@ export function setupEditor() {
     specs.forEach(s => {
         weapons.set(s.name, {
             name: s.name,
-            rpm: s.rpm,
             mags: s.mags.map(m => {
                 var z: MagInfo = { size: m.size, audio: m.audio };
                 return z;
-            })
+            }),
+            timePoints: s.time_points,
+            x: s.x,
+            y: s.y,
         });        
     });
     const updateLine = () => {
