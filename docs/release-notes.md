@@ -1,3 +1,7 @@
+# v0.4 Fixed stats collection
+
+- Fixed few issues with statistics storage
+
 # v0.3 Slow-mode
 
 - Added a "slow-mode": o. Statistics are not recorded for "slow-mode".

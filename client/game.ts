@@ -44,25 +44,83 @@ export interface Weapon {
     mags: MagInfo[];
 }
 
+const statsDataVersion = 1;
+
 interface TrialSetup {
     weapon: string;
     mag: string;
-    barrel: string;
-    stock: string;
     hint: string;
     pacer: string;
 }
 
+// Day, count, median, best.
+type DayResults = [number, number, number, number];
+
 interface TrialStats {
+    v: number;
     setup: TrialSetup;
-    bestByDay: number[];
-    medianByDay: number[];
-    days: number[];
+    dayResults: DayResults[];
     bestAllTime: number;
-    last: number;
     today: number;
     todayResults: number[];
 };
+
+function readStats() {
+    console.log('stats: ', getAttr('stats'));
+    JSON.parse(getAttr('stats')).forEach((t: any) => {
+        const s = t['setup'];
+        if (s === undefined) return;
+        if (s['barrel'] != '0') return;
+        if (s['stock'] != '0') return;
+        const version = t['v'];
+        if (version == null) {
+            // Initial unversioned storage.
+            const setup: TrialSetup = {
+                weapon: s['weapon'] || '',
+                mag: s['mag'] || '0',
+                hint: s['hint'] || 'true',
+                pacer: s['pacer'] || 'true',
+            };            
+            const st: TrialStats = {
+                v: statsDataVersion,
+                setup,
+                today: 20210423, 
+                dayResults: t['days'].map((d: number, i: number) => {
+                    const z: DayResults = [
+                        (Math.floor(d / 100) + 1) * 100 + d % 100 + 1,
+                        0,
+                        t['medianByDay'][i],
+                        t['bestByDay'][i],
+                    ];
+                    return z;
+                }),
+                todayResults: t['todayResults'] || [],
+                bestAllTime: t.bestAllTime,
+            }
+            stats.push(st);
+        } else {
+            stats.push(t);
+        }
+    });
+    stats.forEach(s => touchStat(s));
+}
+
+function touchStat(s: TrialStats) {
+    const t = today();
+    console.log(s.today, t);
+    if (s.today == t) return;
+    if (s.todayResults.length > 0) {
+        const r: DayResults = [
+            s.today,
+            s.todayResults.length,
+            sl.median(s.todayResults),
+            sl.percentile(s.todayResults, 1)
+        ];
+        s.dayResults.push(r);   
+    }
+    s.todayResults = [];
+    s.today = t;
+}
 
 function distanceScore(x: number) {
     // Reasoning:
@@ -76,17 +134,16 @@ function distanceScore(x: number) {
 
 let stats: TrialStats[] = [];
 
+// Returns current date as a number. E.g. 2015-04-28 => 20150428.
 function today(): number {
     var d = new Date();
-    return (d.getFullYear() * 100 + d.getMonth()) * 100 + d.getDay();
+    return (d.getFullYear() * 100 + d.getMonth() + 1) * 100 + d.getDate();
 }
 
 function trialSetup(): TrialSetup {
     return {
         weapon: getAttr('weapon'),
         mag: getAttr('mag'),
-        barrel: '0',
-        stock: '0',
         hint: getAttr('hint'),
         pacer: `${(getAttr('pacer') == 'true') && (getAttr('hint') == 'true')}`,
     };
@@ -97,8 +154,6 @@ function statsForSetup(c: TrialSetup): TrialStats | undefined {
         try {
             return x.setup.weapon == c.weapon &&
                 x.setup.mag == c.mag &&
-                x.setup.barrel == c.barrel &&
-                x.setup.stock == c.stock &&
                 x.setup.hint == c.hint &&
                 x.setup.pacer == c.pacer;
         } catch {
@@ -112,28 +167,18 @@ function addStat(v: number): TrialStats {
     const t = today();
     if (s === undefined) {
         s = {
+            v: statsDataVersion,
             setup: trialSetup(),
             bestAllTime: 0,
-            days: [],
-            bestByDay: [],
-            medianByDay: [],
-            last: 0,
             today: t,
             todayResults: [],
+            dayResults: [],
         };
         stats.push(s);
     }
-    if (s.today != t) {
-        if (s.todayResults.length > 0) {
-            s.days.push(s.today);
-            s.bestByDay.push(sl.percentile(s.todayResults, 1));
-            s.medianByDay.push(sl.median(s.todayResults));
-        }
-        s.today = t;
-        s.todayResults = [];
-    }
+    if (s === undefined) throw new Error('no stat');
+    touchStat(s);
     s.todayResults.push(v);
-    s.last = v;
     s.bestAllTime = Math.max(s.bestAllTime, v);
     setAttr('stats', JSON.stringify(stats));
     return s;
@@ -188,29 +233,8 @@ export function setupGame() {
             return false;
         });
     }
+    readStats();
 
-    JSON.parse(getAttr('stats')).forEach((t: any) => {
-        const s = t['setup'];
-        if (s === undefined) return;
-        const setup: TrialSetup = {
-            weapon: s['weapon'] || '',
-            mag: s['mag'] || '0',
-            barrel: s['barrel'] || '0',
-            stock: s['stock'] || '0',
-            hint: s['hint'] || 'true',
-            pacer: s['pacer'] || 'true',
-        };
-        stats.push({
-            setup,
-            bestByDay: t.bestByDay,
-            medianByDay: t.medianByDay,
-            days: t.days,
-            bestAllTime: t.bestAllTime,
-            last: t.last,
-            today: t.today,
-            todayResults: t.todayResults,
-        });
-    });
     attrInput('sens');
     attrInput('hint');
     attrInput('pacer');
@@ -426,21 +450,14 @@ export function setupGame() {
 
     const showStats = () => {
         const s = statsForSetup(trialSetup());
-        const p = document.getElementById('current-score');
-        if (p) {
-            if (s) {
-                p.innerText = `${s.last}`;
-            } else {
-                p.innerText = '-';
-            }
-        }
         const b = document.getElementById('score-stats');
         if (b) {
+            b.innerText = "Today's tries - median -, best -\nAll time best -";
             if (s) {
-                b.innerText = `Today's median ${Math.round(sl.median(s.todayResults))}, best ${sl.percentile(s.todayResults, 1)}
+                if (s.todayResults.length > 0) {
+                    b.innerText = `Today's tries ${s.todayResults.length} median ${Math.round(sl.median(s.todayResults))}, best ${sl.percentile(s.todayResults, 1)}
 All time best ${s.bestAllTime}`;
-            } else {
-                b.innerText = "Today's median -, best -\nAll time best -";
+                }
             }
         }
     };
