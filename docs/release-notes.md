@@ -1,6 +1,8 @@
-# v0.4 Fixed stats collection
+# v0.4 stats updates
 
-- Fixed few issues with statistics storage
+- Fixed few issues with statistics storage.
+
+- Added counter of "today tries" to the interface.
 
 # v0.3 Slow-mode
 

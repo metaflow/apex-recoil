@@ -66,7 +66,6 @@ interface TrialStats {
 };
 
 function readStats() {
-    console.log('stats: ', getAttr('stats'));
     JSON.parse(getAttr('stats')).forEach((t: any) => {
         const s = t['setup'];
         if (s === undefined) return;
@@ -107,7 +106,6 @@ function readStats() {
 
 function touchStat(s: TrialStats) {
     const t = today();
-    console.log(s.today, t);
     if (s.today == t) return;
     if (s.todayResults.length > 0) {
         const r: DayResults = [
@@ -452,10 +450,10 @@ export function setupGame() {
         const s = statsForSetup(trialSetup());
         const b = document.getElementById('score-stats');
         if (b) {
-            b.innerText = "Today's tries - median -, best -\nAll time best -";
+            b.innerText = "Today's tries -, median -, best -\nAll time best -";
             if (s) {
                 if (s.todayResults.length > 0) {
-                    b.innerText = `Today's tries ${s.todayResults.length} median ${Math.round(sl.median(s.todayResults))}, best ${sl.percentile(s.todayResults, 1)}
+                    b.innerText = `Today's tries ${s.todayResults.length}, median ${Math.round(sl.median(s.todayResults))}, best ${sl.percentile(s.todayResults, 1)}
 All time best ${s.bestAllTime}`;
                 }
             }
