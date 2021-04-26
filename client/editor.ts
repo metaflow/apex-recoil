@@ -35,6 +35,7 @@ export function setupEditor() {
     initAttr('anchors', '[]');
     initAttr('threshold', '0');
     initAttr('enable-threshold', 'true');
+    initAttr('auto-targets', 'true');
     
     attrInput('weapon');
     attrInput('barrel');
@@ -43,6 +44,7 @@ export function setupEditor() {
     attrInput('distance');
     attrInput('threshold');
     attrInput('enable-threshold');
+    attrInput('auto-targets');
 
     layer.add(new Konva.Line({
         stroke: 'white',
@@ -57,11 +59,12 @@ export function setupEditor() {
     layer.add(line);
 
    
-    watchAttr(['threshold', 'enable-threshold'], (v: string) => {        
+    watchAttr(['threshold', 'enable-threshold', 'auto-targets'], (v: string) => {        
         // layer.batchDraw();
         console.log('updated', v);
         img?.cache();
         img?.draw();
+        stage.batchDraw();
     });
 
     {
@@ -253,6 +256,11 @@ export function setupEditor() {
             }
         }
 
+        if (getAttr('auto-targets') == 'false') {
+            // stage.batchDraw();
+            return;
+        }
+
         const fill = (x: number, y: number): [number, number, number] => {
             if (x < 0 || x >= w || y < 0 || y >= h || g[x][y] > 255) return [x, y, 1000];
             let best: [number, number, number] = [x, y, g[x][y]];
@@ -298,7 +306,7 @@ export function setupEditor() {
             layer.add(c);
             return c;
         });
-        stage.batchDraw();
+        // stage.batchDraw();
     };
 
     watchAttr('imagedata', (s: string) => {
