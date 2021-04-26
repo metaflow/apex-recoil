@@ -286,33 +286,35 @@ h2 {
         }
     }
 
-    .slider {
-        -webkit-appearance: none;
-        width: 100px;
-        height: 2px;
-        background: $foreground;
-        outline: none;
-        &::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: $active;
-        }
-
-        &::-moz-range-thumb {
-            // box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: $active;
-        }
-    }
+    
 }
 
 input[type="text"] {
     width: 6ch;
     margin-right: 4px;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100px;
+    height: 2px;
+    background: $foreground;
+    outline: none;
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: $active;
+    }
+
+    &::-moz-range-thumb {
+        // box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: $active;
+    }
 }
 
 .action {

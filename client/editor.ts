@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { json } from "express";
+import { TinyColor } from "@ctrl/tinycolor";
+import e, { json } from "express";
 import hotkeys from "hotkeys-js";
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
@@ -32,12 +33,16 @@ export function setupEditor() {
     initAttr('barrel', '0');
     initAttr('points', '[]');
     initAttr('anchors', '[]');
+    initAttr('threshold', '0');
+    initAttr('enable-threshold', 'true');
     
     attrInput('weapon');
     attrInput('barrel');
     attrInput('stock');
     attrInput('comment');
     attrInput('distance');
+    attrInput('threshold');
+    attrInput('enable-threshold');
 
     layer.add(new Konva.Line({
         stroke: 'white',
@@ -50,31 +55,35 @@ export function setupEditor() {
         points: [],        
     });
     layer.add(line);
-    watchAttr('imagedata', (s: string) => {
-        if (s === '') return;
-        Konva.Image.fromURL(s, function (x: Konva.Image) {
-            if (img != null) {
-                img.remove();
-            }
-            img = x;
-            img.setAttrs({
-                x: 50,
-                y: 50,
-            });
-            layer.add(img);
-            const s = 800 / img.height();
-            // console.log(img.width(), img.height());
-            img.scaleX(s);
-            img.scaleY(s);
-            img.zIndex(0);            
-            stage.batchDraw();            
-        });
+
+   
+    watchAttr(['threshold', 'enable-threshold'], (v: string) => {        
+        // layer.batchDraw();
+        console.log('updated', v);
+        img?.cache();
+        img?.draw();
     });
+
+    {
+        const i = document.getElementById('threshold') as HTMLInputElement;
+        if (i) {
+            i.addEventListener('keydown', (e) => {
+                if (e.key == 'ArrowDown') {
+                    setAttr('threshold', Math.max(0, Number(getAttr('threshold')) - 1).toString());
+                }
+                if (e.key == 'ArrowUp') {
+                    setAttr('threshold', Math.min(255, Number(getAttr('threshold')) + 1).toString());
+                }
+                console.log(e);
+            });
+        }
+    }
     watchAttr('comment', (v: string) => {
         const comment = document.getElementById('comment');
         if (comment != null) (comment as HTMLTextAreaElement).value = v;
     });
     let points: Konva.Circle[] = [];
+    
     const anchors = new Set<number>();
     let img: Konva.Image | null = null;
     const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
@@ -210,6 +219,112 @@ export function setupEditor() {
         updateLine();
         stage.batchDraw();
     };
+
+    let auto_points: Konva.Circle[] = [];
+
+    var autoFilter = function (imageData: ImageData) {        
+        auto_points.forEach(p => p.remove());
+        auto_points = [];
+        const showThreshold = getAttr('enable-threshold') == 'true';        
+        const th = Number(getAttr('threshold'));
+        const h = imageData.height;
+        const w = imageData.width;
+        const g = new Array<Array<number>>(w);
+        for (let i = 0; i < w; i++) {
+            g[i] = new Array<number>(h);
+            for (let j = 0; j < h; j++) {
+                const p = (j * w + i) * 4;
+                let c = new TinyColor({
+                    r: imageData.data[p+0],
+                    g: imageData.data[p+1],
+                    b: imageData.data[p+1],
+                });
+                const v = c.greyscale().r;
+                if (v < th) {
+                    g[i][j] = v;
+                    if (showThreshold) {
+                        imageData.data[p+0] = 255;
+                        imageData.data[p+1] = 0;
+                        imageData.data[p+2] = 0;
+                    }                    
+                } else {
+                    g[i][j] = 1000;
+                }
+            }
+        }
+
+        const fill = (x: number, y: number): [number, number, number] => {
+            if (x < 0 || x >= w || y < 0 || y >= h || g[x][y] > 255) return [x, y, 1000];
+            let best: [number, number, number] = [x, y, g[x][y]];
+            g[x][y] = 1000;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const t = fill(x + i, y + j);
+                    if (t[2] < best[2]) best = t;
+                }
+            }
+            return best;
+        }
+
+        let detected = new Array<Point>();
+
+        for (let i = 0; i < w; i++) {
+            for (let j = 0; j < h; j++) {
+                if (g[i][j] > 255) continue;
+                const b = fill(i, j);
+                // const p = (b[1] * w + b[0]) * 4;
+                detected.push(new Point(b[0], b[1]));
+                // imageData.data[p] = 255;
+            }
+        }
+        if (detected.length > 100) {
+            setText(`too many points detected: ${detected.length}`);
+            return;
+        }
+        console.log('detected', detected.length, 'points');
+        auto_points = detected.map(p => {
+            const ip = p.clone().s(img?.scaleX() || 1).add(new Point(50, 50)).plain();
+            const c = new Konva.Circle({
+                radius: 10,
+                stroke: 'blue',
+                strokeWidth: 1,
+                position: ip,
+            });
+            c.on('mousedown', function (e) {
+                e.cancelBubble = true;
+                addPoint(ip);
+                c.hide();                
+            });
+            layer.add(c);
+            return c;
+        });
+        stage.batchDraw();
+    };
+
+    watchAttr('imagedata', (s: string) => {
+        if (s === '') return;
+        Konva.Image.fromURL(s, function (x: Konva.Image) {
+            if (img != null) {
+                img.remove();
+            }
+            img = x;
+            img.setAttrs({
+                x: 50,
+                y: 50,
+            });
+            layer.add(img);
+            const s = 800 / img.height();
+            // console.log(img.width(), img.height());
+            img.scaleX(s);
+            img.scaleY(s);
+            img.zIndex(0);
+            img.cache();
+            img.filters([autoFilter]);
+            stage.batchDraw();            
+        });
+    });
+
+
     hotkeys('ctrl+z', undo);
     (document.getElementById('undo') as HTMLButtonElement)?.addEventListener('click', undo);
     const clear = () => {
