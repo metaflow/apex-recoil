@@ -38,7 +38,7 @@ const colorHintTarget = new TinyColor('red').desaturate(50).toString();
 const colorStartCircle = new TinyColor('green').desaturate(50).toString();
 const colorHintPath = new TinyColor(theme.foreground).darken(50).toString();
 const scoreGradient: string[] = [];
-let shooting: Shooting|null = null;
+let shooting: Shooting | null = null;
 const traceShapeTypes = 3;
 const fpsTxt = new Konva.Text({
     text: `FPS -`,
@@ -413,27 +413,26 @@ class Shooting {
     hitIndex = -1; // Position in the patter we already passed.
     hitMarkers: Konva.Shape[] = [];
     showPacer = true;
-    hintTarget = new Konva.Circle({
-        radius: 4,
-        stroke: colorHintTarget,
-        strokeWidth: 2,
-        visible: this.showPacer,
-    });
+    pacer: Konva.Circle;
 
     constructor() {
         this.center = new Point();
         this.weapon = weapons.get(getAttr('weapon'))!;
         if (this.weapon == null) throw Error("weapon not found");
-        layer.add(this.hintTarget);
-        allShapes.push(this.hintTarget);
+        this.pacer = new Konva.Circle({
+            radius: 4,
+            stroke: colorHintTarget,
+            strokeWidth: 2,
+        });
+        layer.add(this.pacer);
+        allShapes.push(this.pacer);
     }
 
     start() {
         this.start_t = Date.now();
         this.center = cursor();
-        this.hintTarget.position(this.center.plain());
+        this.pacer.position(this.center.plain());
         suspendAttrUpdates();
-        clear();        
         this.weapon = weapons.get(getAttr('weapon'))!;
         if (this.weapon == null) throw Error("weapon not found");
         const sc = scale();
@@ -447,11 +446,12 @@ class Shooting {
         for (let i = 0; i < traceShapeTypes; i++) traceShapes.push([]);
         this.showHint = getAttr('hint') == 'true';
         this.showPacer = (getAttr('pacer') == 'true') && this.showHint;
+        this.pacer.visible(this.showPacer);
         if (this.showHint) {
             stage.container().classList.remove('no-cursor');
         } else {
             stage.container().classList.add('no-cursor');
-        }        
+        }
         {
             // Start marker.
             const s = new Konva.Circle({
@@ -463,11 +463,11 @@ class Shooting {
             layer.add(s);
             allShapes.push(s);
         }
-    
+
         this.pattern = this.weapon.x.map((x, idx) => {
             return new Point(x, this.weapon.y[idx]).s(sc);
         });
-    
+
         {
             const [ln, circles] = drawPattern(this.pattern, this.mag, this.center, sc);
             const line = ln as Konva.Line;
@@ -482,10 +482,13 @@ class Shooting {
                 layer.add(c);
             });
         }
-        this.animation = new Konva.Animation(() => this.frame(), layer);
-        stage.listening(false);        
+        this.animation = new Konva.Animation(() => {
+            return this.frame();
+        }, layer);
+        stage.listening(false);
         this.animation.start();
         this.frame();
+        stage.batchDraw();
     }
 
     frame() {
@@ -521,10 +524,7 @@ class Shooting {
                 traceShapes[0].push(this.hitMarker);
                 layer.add(this.hitMarker);
             }
-            // Finished.
-            if (this.hitIndex + 1 >= this.mag) {
-                this.finish();                
-            }
+            if (this.hitIndex + 1 >= this.mag) this.finish();
         }
         if (this.showPacer) {
             let i = this.hitIndex;
@@ -537,12 +537,12 @@ class Shooting {
                 if (dt > 0.001) progress = Math.max(Math.min((t - this.weapon.timePoints[i]) / dt, 1), 0);
                 const v = this.pattern[i + 1].clone().sub(this.pattern[i]);
                 let traceTarget = this.center.clone().sub(v.s(progress).add(this.pattern[i]));
-                this.hintTarget.position(traceTarget.plain());
+                this.pacer.position(traceTarget.plain());
             }
         }
         return updated;
     }
-    
+
     finish() {
         shooting = null;
         stage.listening(true);
@@ -555,7 +555,7 @@ class Shooting {
         const x = Math.round(100 * this.score);
         if (this.speed == 1) addStat(x);
         hintShapes.forEach(s => s.visible(true));
-        this.hitMarker.visible(false);
+        this.hitMarker.radius(2);
         const txt = new Konva.Text({
             text: `${x}`,
             fontSize: 20,
@@ -668,9 +668,10 @@ export function setupGame() {
         switch (e.evt.button) {
             case 0:
                 if (shooting == null) {
+                    clear();
                     shooting = new Shooting();
                     shooting.start();
-                }                
+                }
                 break;
             case 1:
                 setAttr('trace-mode', `${(Number(getAttr('trace-mode')) + 1) % traceShapeTypes}`);
