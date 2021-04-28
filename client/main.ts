@@ -100,29 +100,49 @@ export function pokeAttrs() {
 
 export function attrInput(id: string) {
     const a = document.getElementById(id) as HTMLInputElement;
-    if (a != null) {
-        a.value = getAttr(id);
-        if (a.type == 'text' || a.type == 'textarea' || a.type == 'range') {
-            a.onkeyup = a.onchange = () => {
-                setAttr(id, a.value);
-            };
-            watchAttr(id, (v: string) => {
-                a.value = v;
-            });
-            return;
-        }
-        if (a.type == 'checkbox') {
-            a.onchange = () => {
-                setAttr(id, a.checked + '');
-            };
-            watchAttr(id, (v: string) => {
-                a.checked = v == (true + '');
-            });
-            return;
-        }
-        console.error('unknown input type', a.type);
+    if (a == null) {
+        console.error('input',id, 'not found');
+        return;
     }
-};
+    a.value = getAttr(id);
+    if (a.type == 'text' || a.type == 'textarea' || a.type == 'range') {
+        a.onkeyup = a.onchange = () => {
+            setAttr(id, a.value);
+        };
+        watchAttr(id, (v: string) => {
+            a.value = v;
+        });
+        return;
+    }
+    if (a.type == 'checkbox') {
+        a.onchange = () => {
+            setAttr(id, a.checked + '');
+        };
+        watchAttr(id, (v: string) => {
+            a.checked = v == (true + '');
+        });
+        return;
+    }
+    console.error('unknown input type', a.type);
+}
+
+export function attrNumericInput(id: string) {
+    attrInput(id);
+    const a = document.getElementById(id) as HTMLInputElement;
+    if (a == null) {
+        console.error('input',id, 'not found');
+        return;
+    }
+    a.addEventListener('keydown', (e) => {
+        if (e.key == 'ArrowDown') {
+            setAttr('threshold', Math.max(0, Number(getAttr('threshold')) - 1).toString());
+        }
+        if (e.key == 'ArrowUp') {
+            setAttr('threshold', Math.min(255, Number(getAttr('threshold')) + 1).toString());
+        }
+        console.log(e);
+    });
+}
 
 // console.log(window.location.pathname);
 if (window.location.pathname === '/editor') {

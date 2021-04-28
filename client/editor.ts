@@ -1,24 +1,24 @@
- /**
- * Copyright 2021 Mikhail Goncharov
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/**
+* Copyright 2021 Mikhail Goncharov
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 import { TinyColor } from "@ctrl/tinycolor";
 import hotkeys from "hotkeys-js";
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
-import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, pokeAttrs, setAttr, stage, watchAttr } from "./main";
+import { attrInput, attrNamespace, attrNumericInput, cursor, getAttr, initAttr, layer, pokeAttrs, setAttr, stage, watchAttr } from "./main";
 import { PlainPoint, Point } from "./point";
 import specs from './specs.json';
 
@@ -44,6 +44,8 @@ export function setupEditor() {
     initAttr('points', '[]');
     initAttr('anchors', '[]');
     initAttr('threshold', '0');
+    initAttr('target-from', '10');
+    initAttr('target-to', '100');
     initAttr('enable-threshold', 'true');
     initAttr('auto-targets', 'true');
 
@@ -52,7 +54,7 @@ export function setupEditor() {
     loadSpecs();
 
     layer.add(line);
-    
+
     watchAttr('comment', (v: string) => {
         const comment = document.getElementById('comment');
         if (comment != null) (comment as HTMLTextAreaElement).value = v;
@@ -71,12 +73,19 @@ export function setupEditor() {
 }
 
 function initImage() {
-    watchAttr(['threshold', 'enable-threshold', 'auto-targets'], (v: string) => {
-        console.log('updated', v);
-        img?.cache();
-        img?.draw();
-        stage.batchDraw();
-    });
+    watchAttr([
+        'threshold',
+        'enable-threshold',
+        'auto-targets',
+        'target-from',
+        'target-to'],
+        (v: string) => {
+            console.log('updated', v);
+            // TODO: all of that is needed?
+            img?.cache();
+            img?.draw();
+            stage.batchDraw();
+        });
     watchAttr('imagedata', (s: string) => {
         if (s === '') return;
         Konva.Image.fromURL(s, function (x: Konva.Image) {
@@ -95,13 +104,18 @@ function initImage() {
             img.zIndex(0);
             img.cache();
             img.filters([autoFilter]);
+            imageMask = new Array<Array<number>>(img.width());
+            for (let i = 0; i < img.width(); i++) {
+                imageMask[i] = new Array<number>(img.height());
+                for (let j = 0; j < img.height(); j++) imageMask[i][j] = 0;
+            }
             stage.batchDraw();
         });
     });
 
 }
 
-function clear () {
+function clear() {
     console.log('clear');
     points.forEach(p => p.remove());
     points = [];
@@ -116,23 +130,12 @@ function setupControls() {
     attrInput('stock');
     attrInput('comment');
     attrInput('distance');
-    attrInput('threshold');
+    attrNumericInput('threshold');
+    attrNumericInput('target-from');
+    attrNumericInput('target-to');
     attrInput('enable-threshold');
     attrInput('auto-targets');
-    {
-        const i = document.getElementById('threshold') as HTMLInputElement;
-        if (i) {
-            i.addEventListener('keydown', (e) => {
-                if (e.key == 'ArrowDown') {
-                    setAttr('threshold', Math.max(0, Number(getAttr('threshold')) - 1).toString());
-                }
-                if (e.key == 'ArrowUp') {
-                    setAttr('threshold', Math.min(255, Number(getAttr('threshold')) + 1).toString());
-                }
-                console.log(e);
-            });
-        }
-    }
+
 
     const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
     fileSelector?.addEventListener('change', () => {
@@ -262,7 +265,7 @@ function loadSpecs() {
     });
 }
 
-    
+
 function undo() {
     const c = points.pop();
     if (c == null) return
@@ -272,6 +275,8 @@ function undo() {
     stage.batchDraw();
 };
 
+let imageMask = new Array<Array<number>>();
+
 function autoFilter(imageData: ImageData) {
     auto_points.forEach(p => p.remove());
     auto_points = [];
@@ -279,9 +284,9 @@ function autoFilter(imageData: ImageData) {
     const th = Number(getAttr('threshold'));
     const h = imageData.height;
     const w = imageData.width;
-    const g = new Array<Array<number>>(w);
+
+    // const g = new Array<Array<number>>(w);
     for (let i = 0; i < w; i++) {
-        g[i] = new Array<number>(h);
         for (let j = 0; j < h; j++) {
             const p = (j * w + i) * 4;
             let c = new TinyColor({
@@ -291,32 +296,33 @@ function autoFilter(imageData: ImageData) {
             });
             const v = c.greyscale().r;
             if (v < th) {
-                g[i][j] = v;
+                imageMask[i][j] = v;
                 if (showThreshold) {
                     imageData.data[p + 0] = 255;
                     imageData.data[p + 1] = 0;
                     imageData.data[p + 2] = 0;
                 }
             } else {
-                g[i][j] = 1000;
+                imageMask[i][j] = 1000;
             }
         }
     }
-
-    if (getAttr('auto-targets') == 'false') {
-        return;
-    }
-
-    const fill = (x: number, y: number): [number, number, number] => {
-        if (x < 0 || x >= w || y < 0 || y >= h || g[x][y] > 255) return [x, y, 1000];
-        let best: [number, number, number] = [x, y, g[x][y]];
-        g[x][y] = 1000;
+    if (getAttr('auto-targets') == 'false') return;
+    const targetFrom = Number(getAttr('target-from'));
+    const targetTo = Number(getAttr('target-to'));
+    const fill = (x: number, y: number): [number, number, number, number] => {
+        if (x < 0 || x >= w || y < 0 || y >= h || imageMask[x][y] > 255) return [x, y, 1000, 0];
+        let best: [number, number, number, number] = [x, y, imageMask[x][y], 1];
+        imageMask[x][y] = 1000;
+        let size = 1;
         for (let i = -1; i <= 1; i++) {
             for (let j = -1; j <= 1; j++) {
                 const t = fill(x + i, y + j);
+                size += t[3];
                 if (t[2] < best[2]) best = t;
             }
         }
+        best[3] = size;
         return best;
     }
 
@@ -324,8 +330,9 @@ function autoFilter(imageData: ImageData) {
 
     for (let i = 0; i < w; i++) {
         for (let j = 0; j < h; j++) {
-            if (g[i][j] > 255) continue;
+            if (imageMask[i][j] > 255) continue;
             const b = fill(i, j);
+            if (b[3] < targetFrom || b[3] > targetTo) continue;
             detected.push(new Point(b[0], b[1]));
         }
     }
