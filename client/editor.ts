@@ -72,7 +72,7 @@ export function setupEditor() {
         updateSpec);
 
     // hotkeys('ctrl+z', undo); TODO: delete current edge start
-    // (document.getElementById('undo') as HTMLButtonElement)?.addEventListener('click', undo);
+    (document.getElementById('accept-auto') as HTMLButtonElement)?.addEventListener('click', acceptAuto);
     (document.getElementById('clear') as HTMLButtonElement)?.addEventListener('click', clear);
     const attAnchors = JSON.parse(getAttr('anchors'));
     const attPoints = JSON.parse(getAttr('points'));
@@ -80,6 +80,16 @@ export function setupEditor() {
     attAnchors.forEach((x: string) => anchors.add(x));
     attPoints.forEach((p: [string, number, number]) => addPoint({ x: p[1], y: p[2] }, p[0]));
     attEdges.forEach((v: [string, string]) => addEdge(v[0], v[1]));
+    updateShapes();
+    stage.batchDraw();
+}
+
+function acceptAuto() {
+    auto_points.forEach(p => {
+        addPoint(p.position(), `${idxCounter}`);
+        p.remove();
+    });  
+    auto_points = [];
     updateShapes();
     stage.batchDraw();
 }
@@ -195,7 +205,7 @@ function updateShapes() {
 function addPoint(p: PlainPoint, name: string) {        
     idxCounter = Math.max(idxCounter, Number(name) + 1);
     const c = new Konva.Circle({
-        radius: 6,
+        radius: 8,
         stroke: `white`,
         strokeWidth: 1,
         position: p,
@@ -308,13 +318,25 @@ function updateSpec(_?: string) {
     const c2 = points.get(idx[1])!;
     const p1 = new Point(c1.position());
     const p2 = new Point(c2.position());
-    let pp = Array.from(points.values())
-        .map((p: Konva.Circle) => new Point(p.position()));
-    // <A in image pixels> 
+    let x = edgeStartName;
+    let pp: Point[] = [];
+    const visited = new Set<string>();
+    while(true) {
+        const p = points.get(x);
+        if (p == null) break;
+        pp.push(new Point(p.position()));
+        visited.add(x);
+        const e = edges.find(e => {
+            return (e.from == x && !visited.has(e.to)) ||
+            (e.to == x && !visited.has(e.from));
+        });
+        if (e == null) break;
+        x = (x == e.from) ? e.to : e.from;
+    }
     // <distance in raw pixels> / <distance in image pixels>
     // = <A in raw pixels for 1.0 sensitivity>.
-    const d = distance / p1.distance(p2);
-    pp.forEach(p => p.s(d));
+    const sc = distance / p1.distance(p2);
+    pp.forEach(p => p.s(sc));
     const ort = pp[0];
     pp = pp.map(p => p.clone().sub(ort));
     const spec = {
