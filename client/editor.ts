@@ -15,6 +15,7 @@
 */
 
 import { TinyColor } from "@ctrl/tinycolor";
+import e from "express";
 import hotkeys from "hotkeys-js";
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
@@ -22,16 +23,20 @@ import { attrInput, attrNamespace, attrNumericInput, cursor, getAttr, initAttr, 
 import { PlainPoint, Point } from "./point";
 import specs from './specs.json';
 
-let points: Konva.Circle[] = [];
-const anchors = new Set<number>();
+interface Edge {
+    from: string;
+    to: string;
+    line: Konva.Line;
+};
+let points = new Map<string, Konva.Circle>();
+let edges: Edge[] = [];
+const anchors = new Set<string>();
 let img: Konva.Image | null = null;
-let line = new Konva.Line({
-    stroke: 'white',
-    strokeWidth: 1,
-    points: [],
-});
 const weapons = new Map<string, Weapon>();
 let auto_points: Konva.Circle[] = [];
+let edgeStartName = '';
+let idxCounter = 0;
+let imageMask = new Array<Array<number>>();
 
 export function setupEditor() {
     console.log('setup editor');
@@ -42,6 +47,7 @@ export function setupEditor() {
     initAttr('stock', '0');
     initAttr('barrel', '0');
     initAttr('points', '[]');
+    initAttr('edges', '[]');
     initAttr('anchors', '[]');
     initAttr('threshold', '0');
     initAttr('target-from', '10');
@@ -53,23 +59,29 @@ export function setupEditor() {
     initImage();
     loadSpecs();
 
-    layer.add(line);
+    // layer.add(line);
 
     watchAttr('comment', (v: string) => {
         const comment = document.getElementById('comment');
         if (comment != null) (comment as HTMLTextAreaElement).value = v;
     });
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
-        addPoint(cursor().plain());
+        addPoint(cursor().plain(), `${idxCounter}`);
     });
     watchAttr(['cpi', 'sens', 'distance', 'weapon', 'barrel', 'stock', 'comment'],
         updateSpec);
 
-    hotkeys('ctrl+z', undo);
-    (document.getElementById('undo') as HTMLButtonElement)?.addEventListener('click', undo);
+    // hotkeys('ctrl+z', undo); TODO: delete current edge start
+    // (document.getElementById('undo') as HTMLButtonElement)?.addEventListener('click', undo);
     (document.getElementById('clear') as HTMLButtonElement)?.addEventListener('click', clear);
-    JSON.parse(getAttr('anchors')).forEach((x: number) => anchors.add(x));
-    JSON.parse(getAttr('points')).forEach((p: PlainPoint) => addPoint(p));
+    const attAnchors = JSON.parse(getAttr('anchors'));
+    const attPoints = JSON.parse(getAttr('points'));
+    const attEdges = JSON.parse(getAttr('edges'));
+    attAnchors.forEach((x: string) => anchors.add(x));
+    attPoints.forEach((p: [string, number, number]) => addPoint({ x: p[1], y: p[2] }, p[0]));
+    attEdges.forEach((v: [string, string]) => addEdge(v[0], v[1]));
+    updateShapes();
+    stage.batchDraw();
 }
 
 function initImage() {
@@ -117,10 +129,12 @@ function initImage() {
 
 function clear() {
     console.log('clear');
-    points.forEach(p => p.remove());
-    points = [];
+    // points.forEach(p => p.remove());
+    points.clear();
+    edges = [];
     anchors.clear();
-    updateLine();
+    layer.destroyChildren();
+    updateShapes();
     stage.batchDraw();
 };
 
@@ -160,47 +174,111 @@ function setupControls() {
     });
 }
 
-function updateLine() {
-    points.forEach((c, i) => c.stroke(anchors.has(i) ? 'red' : 'white'));
-    line.points(points.flatMap((p: Konva.Circle) => [p.position().x, p.position().y]));
+function updateShapes() {
+    points.forEach((c, i) => {
+        c.stroke(anchors.has(c.name()) ? 'red' : 'white');
+        c.strokeWidth(c.name() == edgeStartName ? 3 : 1);
+    });
+    edges = edges.filter(e => {
+        const z = points.has(e.from) && points.has(e.to);
+        if (!z) e.line.remove();
+        return z;
+    });
+    edges.forEach(e => {
+        const a = points.get(e.from)!;
+        const b = points.get(e.to)!;
+        e.line.points([a.x(), a.y(), b.x(), b.y()]);
+    });
     updateSpec();
 }
 
-function addPoint(p: PlainPoint) {
+function addPoint(p: PlainPoint, name: string) {        
+    idxCounter = Math.max(idxCounter, Number(name) + 1);
     const c = new Konva.Circle({
         radius: 6,
         stroke: `white`,
         strokeWidth: 1,
         position: p,
         draggable: true,
+        name,
     });
-    const idx = points.length;
-    // c.setAttr('index', points.length);
     c.on('dragend', function () {
-        updateLine();
+        updateShapes();
         stage.batchDraw();
     });
     c.on('mousedown', function (e) {
-        if (e.evt.button == 1) {
-            if (anchors.has(idx)) {
-                anchors.delete(idx);
-            } else {
-                anchors.add(idx);
-            }
-            updateLine();
-            stage.batchDraw();
-        }
         e.cancelBubble = true;
+        window.setTimeout(() => {
+            console.log('edges', edgeStartName, edges);
+            updateShapes();
+            stage.batchDraw();
+        }, 0);
+        if (e.evt.button == 0) {
+            if (edgeStartName == c.name()) {
+                edgeStartName = '';
+                return;
+            }
+            if (edgeStartName == '') {
+                edgeStartName = c.name();
+                return;
+            }
+            const a = points.get(edgeStartName);
+            if (a == null) {
+                edgeStartName = c.name();
+                return;
+            }
+            let b = c.name();
+            addEdge(c.name(), edgeStartName);
+            edgeStartName = c.name();
+            return;
+        }
+        if (e.evt.button == 1) {
+            if (anchors.has(name)) {
+                anchors.delete(name);
+            } else {
+                anchors.add(name);
+            }
+            return;
+        }
+        if (e.evt.button == 2) {
+            points.delete(c.name());
+            c.remove();
+            return;
+        }
     });
-    points.push(c);
-    updateLine();
+    points.set(name, c);
+    updateShapes();
     layer.add(c);
     stage.batchDraw();
 }
 
+function addEdge(a: string, b: string) {
+    if (b < a) [b, a] = [a, b];
+    const e: Edge = {
+        from: a,
+        to: b,
+        line: new Konva.Line({
+            stroke: 'white',
+            strokeWidth: 1,
+            points: [],
+        })
+    };
+    const ex = edges.find((t: Edge) => t.from == e.from && t.to == e.to);
+    if (ex) {
+        ex.line.remove();
+        edges = edges.filter((t: Edge) => t.from != e.from || t.to != e.to);
+    } else {
+        edges.push(e);
+        layer.add(e.line);
+    }
+}
+
 function updateSpec(_?: string) {
-    setAttr('points', JSON.stringify(points.map(p => p.position())));
+    setAttr('points', JSON.stringify(Array.from(points.entries())
+        .map((v: [string, Konva.Circle]) => [v[0], v[1].x(), v[1].y()])));
     setAttr('anchors', JSON.stringify(Array.from(anchors.values())));
+    setAttr('edges', JSON.stringify(edges.map(e => [e.from, e.to])));
+    console.log('store', getAttr('edges'), getAttr('points'), getAttr('anchors'));
     let cpi = Number(getAttr('cpi'));
     let sens = Number(getAttr('sens'));
     let distance = Number(getAttr('distance'));
@@ -215,22 +293,23 @@ function updateSpec(_?: string) {
     }
     const c = document.getElementById("count");
     if (c) {
-        c.innerText = `${points.length} / ${w.mags[3].size}`;
+        c.innerText = `${points.size} / ${w.mags[3].size}`;
     }
-    if (anchors.size != 2) {
+    let idx = Array.from(anchors.values());
+    idx.forEach(x => {
+        if (!points.has(x)) anchors.delete(x);
+    });
+    idx = Array.from(anchors.values())
+    if (idx.length != 2) {
         setText('mark exactly two anchors');
         return;
     }
-    const idx = Array.from(anchors.values());
-    if (idx[0] >= points.length || idx[1] >= points.length) {
-        setText(`wrong anchor indexes ${idx}`);
-        return;
-    }
-    const p1 = new Point(points[idx[0]].position());
-    const p2 = new Point(points[idx[1]].position());
-    let pp = points.map((p: Konva.Circle) => {
-        return new Point(p.position());
-    });
+    const c1 = points.get(idx[0])!;
+    const c2 = points.get(idx[1])!;
+    const p1 = new Point(c1.position());
+    const p2 = new Point(c2.position());
+    let pp = Array.from(points.values())
+        .map((p: Konva.Circle) => new Point(p.position()));
     // <A in image pixels> 
     // <distance in raw pixels> / <distance in image pixels>
     // = <A in raw pixels for 1.0 sensitivity>.
@@ -264,18 +343,6 @@ function loadSpecs() {
         });
     });
 }
-
-
-function undo() {
-    const c = points.pop();
-    if (c == null) return
-    c.remove();
-    anchors.delete(points.length);
-    updateLine();
-    stage.batchDraw();
-};
-
-let imageMask = new Array<Array<number>>();
 
 function autoFilter(imageData: ImageData) {
     auto_points.forEach(p => p.remove());
@@ -351,7 +418,7 @@ function autoFilter(imageData: ImageData) {
         });
         c.on('mousedown', function (e) {
             e.cancelBubble = true;
-            addPoint(ip);
+            addPoint(ip, `${idxCounter}`);
             c.hide();
         });
         layer.add(c);
