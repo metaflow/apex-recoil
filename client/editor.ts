@@ -15,8 +15,6 @@
 */
 
 import { TinyColor } from "@ctrl/tinycolor";
-import e from "express";
-import hotkeys from "hotkeys-js";
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
 import { attrInput, attrNamespace, attrNumericInput, cursor, getAttr, initAttr, layer, pokeAttrs, setAttr, stage, watchAttr } from "./main";
@@ -35,12 +33,12 @@ let img: Konva.Image | null = null;
 const weapons = new Map<string, Weapon>();
 let auto_points: Konva.Circle[] = [];
 let edgeStartName = '';
+let patternStartName = '';
 let idxCounter = 0;
 let imageMask = new Array<Array<number>>();
+const attrConnectHover = 'connect-hover';
 
 export function setupEditor() {
-    console.log('setup editor');
-
     attrNamespace('editor');
     initAttr('distance', '100');
     initAttr('weapon', 'r301');
@@ -54,6 +52,7 @@ export function setupEditor() {
     initAttr('target-to', '100');
     initAttr('enable-threshold', 'true');
     initAttr('auto-targets', 'true');
+    initAttr(attrConnectHover, 'true');
 
     setupControls();
     initImage();
@@ -102,7 +101,6 @@ function initImage() {
         'target-from',
         'target-to'],
         (v: string) => {
-            console.log('updated', v);
             // TODO: all of that is needed?
             img?.cache();
             img?.draw();
@@ -138,12 +136,11 @@ function initImage() {
 }
 
 function clear() {
-    console.log('clear');
-    // points.forEach(p => p.remove());
     points.clear();
     edges = [];
     anchors.clear();
     layer.destroyChildren();
+    setAttr('imagedata', getAttr('imagedata'));
     updateShapes();
     stage.batchDraw();
 };
@@ -159,7 +156,7 @@ function setupControls() {
     attrNumericInput('target-to');
     attrInput('enable-threshold');
     attrInput('auto-targets');
-
+    attrInput(attrConnectHover);
 
     const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
     fileSelector?.addEventListener('change', () => {
@@ -168,12 +165,10 @@ function setupControls() {
         const file = fileList.item(0);
         if (!file) return;
         setAttr('comment', file.name);
-        const mm = file.name.match(/([^ ]*) (\d+) (\d+) (\S+) ([0-9.]+)\.png/)
+        const mm = file.name.match(/(?:.* )?([0-9.]+)\.png/)
         if (mm != null) {
-            setAttr('weapon', mm[1]);
-            setAttr('barrel', mm[2]);
-            setAttr('stock', mm[3]);
-            setAttr('distance', mm[5]);
+            console.log(mm);
+            setAttr('distance', mm[1]);
         }
         const reader = new FileReader();
         reader.addEventListener('load', (event) => {
@@ -213,13 +208,22 @@ function addPoint(p: PlainPoint, name: string) {
         name,
     });
     c.on('dragend', function () {
+        edgeStartName = '';
+        updateShapes();        
+        stage.batchDraw();
+    });
+    c.on('mouseover', function(e) {
+        if (getAttr(attrConnectHover) === 'false') return;
+        if (edgeStartName == '') return;
+        if (edges.find(e => e.from == c.name() || e.to == c.name())) return;
+        addEdge(edgeStartName, c.name());
+        edgeStartName = c.name();
         updateShapes();
         stage.batchDraw();
     });
     c.on('mousedown', function (e) {
         e.cancelBubble = true;
         window.setTimeout(() => {
-            console.log('edges', edgeStartName, edges);
             updateShapes();
             stage.batchDraw();
         }, 0);
@@ -237,8 +241,7 @@ function addPoint(p: PlainPoint, name: string) {
                 edgeStartName = c.name();
                 return;
             }
-            let b = c.name();
-            addEdge(c.name(), edgeStartName);
+            addEdge(edgeStartName, c.name());
             edgeStartName = c.name();
             return;
         }
@@ -288,7 +291,6 @@ function updateSpec(_?: string) {
         .map((v: [string, Konva.Circle]) => [v[0], v[1].x(), v[1].y()])));
     setAttr('anchors', JSON.stringify(Array.from(anchors.values())));
     setAttr('edges', JSON.stringify(edges.map(e => [e.from, e.to])));
-    console.log('store', getAttr('edges'), getAttr('points'), getAttr('anchors'));
     let cpi = Number(getAttr('cpi'));
     let sens = Number(getAttr('sens'));
     let distance = Number(getAttr('distance'));
@@ -301,23 +303,11 @@ function updateSpec(_?: string) {
         setText('unknown weapon');
         return;
     }
-    const c = document.getElementById("count");
-    if (c) {
-        c.innerText = `${points.size} / ${w.mags[3].size}`;
-    }
+
     let idx = Array.from(anchors.values());
     idx.forEach(x => {
         if (!points.has(x)) anchors.delete(x);
     });
-    idx = Array.from(anchors.values())
-    if (idx.length != 2) {
-        setText('mark exactly two anchors');
-        return;
-    }
-    const c1 = points.get(idx[0])!;
-    const c2 = points.get(idx[1])!;
-    const p1 = new Point(c1.position());
-    const p2 = new Point(c2.position());
     let x = edgeStartName;
     let pp: Point[] = [];
     const visited = new Set<string>();
@@ -333,8 +323,21 @@ function updateSpec(_?: string) {
         if (e == null) break;
         x = (x == e.from) ? e.to : e.from;
     }
+    const c = document.getElementById("count");
+    if (c) {
+        c.innerText = `${points.size} / ${pp.length} / ${w.mags[3].size}`;
+    }
     // <distance in raw pixels> / <distance in image pixels>
     // = <A in raw pixels for 1.0 sensitivity>.
+    idx = Array.from(anchors.values())
+    if (idx.length != 2) {
+        setText('mark exactly two anchors');
+        return;
+    }
+    const c1 = points.get(idx[0])!;
+    const c2 = points.get(idx[1])!;
+    const p1 = new Point(c1.position());
+    const p2 = new Point(c2.position());
     const sc = distance / p1.distance(p2);
     pp.forEach(p => p.s(sc));
     const ort = pp[0];
@@ -429,7 +432,6 @@ function autoFilter(imageData: ImageData) {
         setText(`too many points detected: ${detected.length}`);
         return;
     }
-    console.log('detected', detected.length, 'points');
     auto_points = detected.map(p => {
         const ip = p.clone().s(img?.scaleX() || 1).add(new Point(50, 50)).plain();
         const c = new Konva.Circle({

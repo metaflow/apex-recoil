@@ -134,13 +134,15 @@ export function attrNumericInput(id: string) {
         return;
     }
     a.addEventListener('keydown', (e) => {
+        let v = Number(getAttr(id));
         if (e.key == 'ArrowDown') {
-            setAttr('threshold', Math.max(0, Number(getAttr('threshold')) - 1).toString());
+            v--;
         }
         if (e.key == 'ArrowUp') {
-            setAttr('threshold', Math.min(255, Number(getAttr('threshold')) + 1).toString());
+            v++;
+            setAttr(id, Math.min(255, Number(getAttr(id)) + 1).toString());
         }
-        console.log(e);
+        setAttr(id, Math.min(255, Math.max(0, v)).toString());
     });
 }
 
