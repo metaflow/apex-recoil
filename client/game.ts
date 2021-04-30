@@ -350,7 +350,7 @@ function weaponControls() {
         if (d != null) {
             d.addEventListener('click', () => {
                 setAttr('weapon', s.name);
-            })
+            });
         }
     });
 
