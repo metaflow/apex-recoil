@@ -1,8 +1,8 @@
 # v0.5 all weapons
 
-- All weapons are here! Havoc and Devotion are with Turbocharger as it does not affect the recoil.
+- All weapons are here! Havoc and Devotion have a Turbocharger. It does not affect their recoils, only makes them brrr faster.
 
-- Rearranged weapons to match in-game (AR, SMG, LMG, Pistols).
+- Rearranged weapons to match in-game order (AR, SMG, LMG, Pistols).
 
 - Small style and performance improvements.
 
@@ -14,7 +14,7 @@
 
 - Added Alternator (not verified in-game yet but should be very close).
 
-# v0.3 Slow-mode
+# v0.3 slow-mode
 
 - Added a "slow-mode": o. Statistics are not recorded for "slow-mode".
 
