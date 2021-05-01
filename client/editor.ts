@@ -14,7 +14,6 @@
 * limitations under the License.
 */
 
-import { TinyColor } from "@ctrl/tinycolor";
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
 import { attrInput, attrNamespace, attrNumericInput, cursor, getAttr, initAttr, layer, pokeAttrs, setAttr, stage, watchAttr } from "./main";

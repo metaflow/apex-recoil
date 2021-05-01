@@ -11,7 +11,6 @@
     "static": "gulp static"
   },
   "dependencies": {
-    "@ctrl/tinycolor": "^3.4.0",
     "@types/express": "^4.17.6",
     "@types/howler": "^2.2.1",
     "@types/json-diff": "^0.5.0",
@@ -23,7 +22,6 @@
     "gulp-clean-css": "^4.3.0",
     "gulp-concat": "^2.6.1",
     "gulp-jade": "^1.1.0",
-    "gulp-minify-css": "^1.2.4",
     "gulp-uglify": "^3.0.2",
     "hotkeys-js": "^3.8.1",
     "howler": "^2.2.1",
@@ -35,7 +33,6 @@
     "morgan": "^1.10.0",
     "node-compass": "0.2.3",
     "stats-lite": "^2.2.0",
-    "tinygradient": "^1.1.4",
     "tslib": "^2.1.0",
     "vinyl-buffer": "^1.0.1"
   },

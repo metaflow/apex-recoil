@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import { TinyColor } from "@ctrl/tinycolor";
 import { Howl } from "howler";
 import Konva from "konva";
 import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, resumeAttrUpdates, setAttr, stage, suspendAttrUpdates, watchAttr } from "./main";
 import { Point } from "./point";
-// import rec from './recoils.json';
 import specs from './specs.json';
 import theme from '../theme.json';
-import sl from "stats-lite";
-import tinygradient from "tinygradient";
+import { percentile } from "./stats";
 
 const statsDataVersion = 1;
 let allShapes: Konva.Shape[] = [];
@@ -33,11 +30,13 @@ let sound: Howl | null = null;
 let stats: TrialStats[] = [];
 let soundPath = '';
 const weapons = new Map<string, Weapon>();
-const colorGray = new TinyColor('white').darken(50).toString();
-const colorHintTarget = new TinyColor('red').desaturate(50).toString();
-const colorStartCircle = new TinyColor('green').desaturate(50).toString();
-const colorHintPath = new TinyColor(theme.foreground).darken(50).toString();
-const scoreGradient: string[] = [];
+const colorHintTarget = theme.colorHintTarget;// new TinyColor('red').desaturate(50).toString();
+const colorStartCircle = theme.colorStartCircle;// new TinyColor('green').desaturate(50).toString();
+const colorHintPath = theme.colorHintPath;// new TinyColor(theme.foreground).darken(50).toString();
+// console.log('colorHintTarget', colorHintTarget);
+// console.log('colorStartCircle', colorStartCircle);
+// console.log('colorHintPath', colorHintPath);
+const scoreGradient = theme.scoreGradient;
 let shooting: Shooting | null = null;
 const traceShapeTypes = 3;
 const fpsTxt = new Konva.Text({
@@ -129,8 +128,8 @@ function touchStat(s: TrialStats) {
         const r: DayResults = [
             s.today,
             s.todayResults.length,
-            sl.median(s.todayResults),
-            sl.percentile(s.todayResults, 1)
+            percentile(s.todayResults, 0.5),
+            percentile(s.todayResults, 1)
         ];
         s.dayResults.push(r);
     }
@@ -332,7 +331,6 @@ function showAllTraces() {
         return new Point(x, w.y[idx]).s(sc);
     });
     const b = box(pattern);
-    console.log('box', b);
     const [line, circles] = drawPattern(pattern, n, b[1].add(new Point(50, 50)), sc);
     allShapes.push(line as Konva.Line);
     layer.add(line as Konva.Line);
@@ -403,7 +401,7 @@ function showStats() {
         b.innerText = "Today's tries -, median -, best -\nAll time best -";
         if (s) {
             if (s.todayResults.length > 0) {
-                b.innerText = `Today's tries ${s.todayResults.length}, median ${Math.round(sl.median(s.todayResults))}, best ${sl.percentile(s.todayResults, 1)}
+                b.innerText = `Today's tries ${s.todayResults.length}, median ${Math.round(percentile(s.todayResults, 0.5))}, best ${percentile(s.todayResults, 1)}
 All time best ${s.bestAllTime}`;
             } else {
                 b.innerText = `Today's tries -, median -, best -\nAll time best ${s.bestAllTime}`;
@@ -629,7 +627,7 @@ export function setupGame() {
     layer.listening(false);
     attrNamespace('game:');
     initAttr('sens', '5');
-    initAttr('weapon', 'r99');
+    initAttr('weapon', 'r99');1
     initAttr('mag', '0');
     initAttr('stats', '[]');
     initAttr('volume', '20');
@@ -655,14 +653,15 @@ export function setupGame() {
     weaponControls();
 
     {
-        const scoreGrad = tinygradient([
-            'red',
-            'yellow',
-            'green',
-        ]);
-        for (let i = 0; i <= 10; i++) {
-            scoreGradient.push(((scoreGrad.rgbAt(i / 10) as unknown) as TinyColor).desaturate(50).toString());
-        }
+        // const scoreGrad = tinygradient([
+        //     'red',
+        //     'yellow',
+        //     'green',
+        // ]);
+        // for (let i = 0; i <= 10; i++) {
+        //     scoreGradient.push(((scoreGrad.rgbAt(i / 10) as unknown) as TinyColor).desaturate(50).toString());
+        // }
+        // console.log('scoreGradient', scoreGradient);
     }
 
     layer.add(fpsTxt);

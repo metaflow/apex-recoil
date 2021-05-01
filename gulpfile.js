@@ -29,7 +29,7 @@ var gulp = require('gulp'),
     fs = require('fs'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
-    minify = require('gulp-minify-css'),
+    cleanCSS = require('gulp-clean-css'),
     buffer = require('vinyl-buffer'),
     zip = require('gulp-zip'),
     clean = require('gulp-clean');
@@ -169,8 +169,8 @@ gulp.task('clean-static', function () {
 gulp.task('css-static', function () {
     return gulp.src('./style.scss')
         .pipe(sass().on('error', sass.logError))
-        .pipe(gulp.dest('static'))
-        .pipe(livereload());
+        .pipe(cleanCSS())
+        .pipe(gulp.dest('static'));
 });
 
 gulp.task('static', gulp.series('clean-static', 'css-static', 'js', 'templates', 'assets-static', 'etc-static'));
