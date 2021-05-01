@@ -280,6 +280,18 @@ function gradientColor(x: number) {
     return scoreGradient[idx];
 }
 
+function box(pattern: Point[]): [Point, Point] {
+    const a = pattern[0].clone();
+    const b = a.clone();
+    pattern.forEach(p => {
+        a.x = Math.min(a.x, p.x);
+        a.y = Math.min(a.y, p.y);
+        b.x = Math.max(b.x, p.x);
+        b.y = Math.max(b.y, p.y);
+    });
+    return [a, b];
+}
+
 function drawPattern(pattern: Point[], mag: number, start: Point, sc: number) {
     const hintLinePoints: number[] = [];
     const circles: Konva.Circle[] = [];
@@ -315,12 +327,13 @@ function showAllTraces() {
         console.error('weapon', getAttr('weapon'), 'not found');
         return;
     }
-    const n = w.mags[Number(getAttr('mag'))].size;
-    const start = new Point(150 * sc, 50);
+    const n = w.mags[Number(getAttr('mag'))].size;  
     const pattern = w.x.map((x, idx) => {
         return new Point(x, w.y[idx]).s(sc);
     });
-    const [line, circles] = drawPattern(pattern, n, start, sc);
+    const b = box(pattern);
+    console.log('box', b);
+    const [line, circles] = drawPattern(pattern, n, b[1].add(new Point(50, 50)), sc);
     allShapes.push(line as Konva.Line);
     layer.add(line as Konva.Line);
     (circles as Konva.Circle[]).forEach(c => {
