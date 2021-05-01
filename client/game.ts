@@ -155,9 +155,12 @@ function today(): number {
 }
 
 function trialSetup(): TrialSetup {
+    const weapon = getAttr('weapon');
+    let mag = getAttr('mag');
+    if (weapon == 'prowler') mag = '0';
     return {
-        weapon: getAttr('weapon'),
-        mag: getAttr('mag'),
+        weapon,
+        mag,
         hint: getAttr('hint'),
         pacer: `${(getAttr('pacer') == 'true') && (getAttr('hint') == 'true')}`,
     };
