@@ -1,3 +1,11 @@
+# v0.5 all weapons
+
+- All weapons are here! Havoc and Devotion are with Turbocharger as it does not affect the recoil.
+
+- Rearranged weapons to match in-game (AR, SMG, LMG, Pistols).
+
+- Small style and performance improvements.
+
 # v0.4 stats updates
 
 - Fixed few issues with statistics storage.
