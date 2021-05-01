@@ -113,12 +113,8 @@ function initImage() {
                 img.remove();
             }
             img = x;
-            img.setAttrs({
-                x: 50,
-                y: 50,
-            });
             layer.add(img);
-            const s = 800 / img.height();
+            const s = window.innerHeight / img.height();
             img.scaleX(s);
             img.scaleY(s);
             img.zIndex(0);
@@ -381,6 +377,7 @@ function autoFilter(imageData: ImageData) {
     for (let i = 0; i < w; i++) {
         for (let j = 0; j < h; j++) {
             const p = (j * w + i) * 4;
+            // const v = (imageData.data[p + 0] + imageData.data[p + 1] + imageData.data[p + 2]) / 3;
             const v = imageData.data[p + 0];
             if (v < th) {
                 imageMask[i][j] = v;
@@ -428,7 +425,7 @@ function autoFilter(imageData: ImageData) {
         return;
     }
     auto_points = detected.map(p => {
-        const ip = p.clone().s(img?.scaleX() || 1).add(new Point(50, 50)).plain();
+        const ip = p.clone().s(img?.scaleX() || 1).plain();
         const c = new Konva.Circle({
             radius: 10,
             stroke: 'blue',
