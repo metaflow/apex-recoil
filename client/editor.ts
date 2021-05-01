@@ -381,12 +381,7 @@ function autoFilter(imageData: ImageData) {
     for (let i = 0; i < w; i++) {
         for (let j = 0; j < h; j++) {
             const p = (j * w + i) * 4;
-            let c = new TinyColor({
-                r: imageData.data[p + 0],
-                g: imageData.data[p + 1],
-                b: imageData.data[p + 1],
-            });
-            const v = c.greyscale().r;
+            const v = imageData.data[p + 0];
             if (v < th) {
                 imageMask[i][j] = v;
                 if (showThreshold) {
