@@ -146,8 +146,7 @@ export function attrNumericInput(id: string) {
     });
 }
 
-// console.log(window.location.pathname);
-if (window.location.pathname === '/editor') {
+if (window.location.pathname.startsWith('/editor')) {
     setupEditor();
 } else {
     setupGame();
