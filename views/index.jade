@@ -70,7 +70,11 @@ block content
       #settings
           p
             input(type='text' id='sens')
-            | in-game sensitivity
+            span.tooltip.underlined
+              | Sensitivity
+              span.tooltiptext
+                | Example: for mouse sensitivity 3 and ADS multiplier 1.2 
+                | set "sensitivity" to 3 * 1.2 = 3.6
           p
             input(type='checkbox' id='hint')
             | Show path
@@ -122,7 +126,13 @@ block content
           h2 Instructions
           ul
             li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="_blank") Make sure that "Enhance pointer precision" is off].
-            li Update the #[i in-game sensitivity] to your preference.
+            li Set the #[i sensitivity]&nbsp;
+              .tooltip.underlined your preference
+                .tooltiptext
+                  | Example: for mouse sensitivity 3 and ADS multiplier 1.2 
+                  | set "sensitivity" to 3 * 1.2 = 3.6
+              | . 
+              a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.
             li Pick a weapon and magazine size.
             li Click anywhere on the area below.
             li Get a high score by compensating a recoil. Maximal score is 100.
@@ -132,7 +142,6 @@ block content
           p Set a slower #[i speed] if you like; stats are not recorded for slow-mode.
           p The #[i middle mouse button] toggles the display mode of a trace.
           p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled to learn the patterns.          
-          p #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.]
           p.action#dismiss-instructions Dismiss instructions
       #stage
   #mobile-info 
