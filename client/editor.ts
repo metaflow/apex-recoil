@@ -32,19 +32,9 @@ let img: Konva.Image | null = null;
 const weapons = new Map<string, Weapon>();
 let auto_points: Konva.Circle[] = [];
 let edgeStartName = '';
-let patternStartName = '';
 let idxCounter = 0;
 let imageMask = new Array<Array<number>>();
 const attrConnectHover = 'connect-hover';
-
-function getData() {
-    var arr = [];
-    for (let i=0; i<10; i++) {
-      arr.push(Array(10).fill(0).map(()=>Math.random()));
-    }
-    return arr;
-  }
-
 
 export function setupEditor() {
     attrNamespace('editor');
@@ -144,6 +134,7 @@ function clear() {
     edges = [];
     anchors.clear();
     layer.destroyChildren();
+    edgeStartName = '';
     setAttr('imagedata', getAttr('imagedata'));
     updateShapes();
     stage.batchDraw();
