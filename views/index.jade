@@ -21,12 +21,13 @@ block content
       h1 Apex Legends Recoil Patterns
       p.description Learn and practice spray/recoil patterns
       #top-links
-        P#show-instructions.action
+        p#show-instructions.action
           | Show instructions
         a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md" target="_blank")
           | FAQ
       #score
         p#score-stats
+        p#show-detailed-stats.action show details
       #weapon-select.grid
         div.havoc_tc
           img(src="/images/havoc.png", alt="havoc")
@@ -122,6 +123,9 @@ block content
             a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md#v06-updated-spitfire-and-havoc-patterns" target="_blank")
               | what's new
     #workspace
+      #detailed-stats.hidden
+        p detailed stats
+        #plotly_area
       #instructions.hidden
           h2 Instructions
           ul

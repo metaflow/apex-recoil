@@ -16,7 +16,8 @@
 
 import { Howl } from "howler";
 import Konva from "konva";
-import { attrInput, attrNamespace, cursor, getAttr, initAttr, layer, resumeAttrUpdates, setAttr, stage, suspendAttrUpdates, watchAttr } from "./main";
+import { cursor, layer, stage } from "./main";
+import { resumeAttrUpdates, setAttr, getAttr, initAttr, attrInput, attrNamespace, createAttrFunc, suspendAttrUpdates, watchAttr } from './storage';
 import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
@@ -30,12 +31,9 @@ let sound: Howl | null = null;
 let stats: TrialStats[] = [];
 let soundPath = '';
 const weapons = new Map<string, Weapon>();
-const colorHintTarget = theme.colorHintTarget;// new TinyColor('red').desaturate(50).toString();
-const colorStartCircle = theme.colorStartCircle;// new TinyColor('green').desaturate(50).toString();
-const colorHintPath = theme.colorHintPath;// new TinyColor(theme.foreground).darken(50).toString();
-// console.log('colorHintTarget', colorHintTarget);
-// console.log('colorStartCircle', colorStartCircle);
-// console.log('colorHintPath', colorHintPath);
+const colorHintTarget = theme.colorHintTarget;
+const colorStartCircle = theme.colorStartCircle;
+const colorHintPath = theme.colorHintPath;
 const scoreGradient = theme.scoreGradient;
 let shooting: Shooting | null = null;
 const traceShapeTypes = 3;
@@ -49,6 +47,7 @@ const fpsTxt = new Konva.Text({
     x: 10,
     y: 10,
 });
+const aShowDetailedStats = createAttrFunc('show-detailed-stats', 'true');
 
 export interface MagInfo {
     size: number;
@@ -230,6 +229,16 @@ function instructionsControls() {
             return false;
         });
     }
+
+    {
+        const e = document.getElementById('show-detailed-stats');
+        e?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            aShowDetailedStats((aShowDetailedStats() == 'false').toString());
+            return false;
+        });
+    }
 }
 
 function updateSound() {
@@ -391,6 +400,18 @@ function weaponControls() {
         const d = document.querySelector(`#mag-select .mag-${v}`) as HTMLDivElement;
         if (d == null) return;
         d.classList.add('selected');
+    });
+}
+
+function statControls() {
+    watchAttr('show-detailed-stats', (v: string) => {
+        const e = document.getElementById('detailed-stats');
+        if (!e) return;
+        if (v == 'true') {
+            e.classList.remove('hidden');
+        } else {
+            e.classList.add('hidden');
+        }
     });
 }
 
@@ -651,6 +672,7 @@ export function setupGame() {
     soundControls();
     instructionsControls();
     weaponControls();
+    statControls();
 
     {
         // const scoreGrad = tinygradient([

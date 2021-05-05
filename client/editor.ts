@@ -16,7 +16,8 @@
 
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
-import { attrInput, attrNamespace, attrNumericInput, cursor, getAttr, initAttr, layer, pokeAttrs, setAttr, stage, watchAttr } from "./main";
+import { cursor, layer, stage } from "./main";
+import { watchAttr, setAttr, getAttr, initAttr, attrInput, attrNamespace, attrNumericInput } from './storage';
 import { PlainPoint, Point } from "./point";
 import specs from './specs.json';
 
@@ -85,7 +86,7 @@ function acceptAuto() {
     auto_points.forEach(p => {
         addPoint(p.position(), `${idxCounter}`);
         p.remove();
-    });  
+    });
     auto_points = [];
     updateShapes();
     stage.batchDraw();
@@ -192,7 +193,7 @@ function updateShapes() {
     updateSpec();
 }
 
-function addPoint(p: PlainPoint, name: string) {        
+function addPoint(p: PlainPoint, name: string) {
     idxCounter = Math.max(idxCounter, Number(name) + 1);
     const c = new Konva.Circle({
         radius: 8,
@@ -204,10 +205,10 @@ function addPoint(p: PlainPoint, name: string) {
     });
     c.on('dragend', function () {
         edgeStartName = '';
-        updateShapes();        
+        updateShapes();
         stage.batchDraw();
     });
-    c.on('mouseover', function(e) {
+    c.on('mouseover', function (e) {
         if (getAttr(attrConnectHover) === 'false') return;
         if (edgeStartName == '') return;
         if (edges.find(e => e.from == c.name() || e.to == c.name())) return;
@@ -306,14 +307,14 @@ function updateSpec(_?: string) {
     let x = edgeStartName;
     let pp: Point[] = [];
     const visited = new Set<string>();
-    while(true) {
+    while (true) {
         const p = points.get(x);
         if (p == null) break;
         pp.push(new Point(p.position()));
         visited.add(x);
         const e = edges.find(e => {
             return (e.from == x && !visited.has(e.to)) ||
-            (e.to == x && !visited.has(e.from));
+                (e.to == x && !visited.has(e.from));
         });
         if (e == null) break;
         x = (x == e.from) ? e.to : e.from;
