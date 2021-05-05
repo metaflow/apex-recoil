@@ -1,3 +1,7 @@
+# v0.6 updated spitfire and havoc patterns
+
+- Updated spitfire and havoc patterns after the season 9 patch has landed. Difference in mean recoils is quite small.
+
 # v0.5 all weapons
 
 - All weapons are here! Havoc and Devotion have a Turbocharger. It does not affect their recoils, only makes them brrr faster.
