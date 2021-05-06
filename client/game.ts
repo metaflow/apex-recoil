@@ -409,14 +409,74 @@ function statControls() {
         if (!e) return;
         if (v == 'true') {
             e.classList.remove('hidden');
+            showStats();
         } else {
             e.classList.add('hidden');
         }
     });
 }
 
+function dateToNumber(d: Date) {
+    return (d.getFullYear() * 100 + d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function numberToDate(n: number): Date {
+    const d = n % 100;
+    n /= 100;
+    const m = n % 100;
+    n /= 100;
+    return new Date(n, m - 1, d);
+}
+
 function showStats() {
     const s = statsForSetup(trialSetup());
+    if (aShowDetailedStats() == 'true' && s) {
+        /*
+        let td = today();
+        let ts = new Date().getTime() - 200 * 1000 * 24 * 3600;
+        let s = dateToNumber(new Date());
+        const dayResults: DayResults[] = [];
+        
+        let d = dateToNumber(new Date(ts));
+        let top = 0;
+        while (d < td) {
+            let c = Math.round(100 * Math.random());
+            if (c > 0) {
+                dayResults.push(
+                    [d, c, Math.min(100, Math.round(top * Math.random())), Math.min(100, Math.round(top * Math.random()))]
+                );
+            }
+            top++;
+            while (d == dateToNumber(new Date(ts))) ts += 1000 * 3600;
+            d = dateToNumber(new Date(ts));
+        }
+        const todayResults: number[] = [];
+        const t: TrialStats = {
+            v: 1,
+            setup: trialSetup(),
+            dayResults,
+            bestAllTime: 99,
+            today: td,
+            todayResults,
+        };
+        */
+        const x: string[] = [];
+        const median: number[] = [];
+        const best: number[] = [];
+        const count: number[] = [];
+        // ts = new Date().getTime();
+        let i = 0;
+        //[day, count, median, best].
+        s.dayResults.forEach(dayResults => {
+            x.push(new Intl.DateTimeFormat('fr-ca').format(numberToDate(dayResults[0])));
+            median.push(dayResults[2]);
+            best.push(dayResults[3]);
+            count.push(dayResults[1]);
+        });
+        console.log('x', x);
+        console.log('y', );
+        (window as any).updateGraph(x, median, best, count);
+    }
     const b = document.getElementById('score-stats');
     if (b) {
         b.innerText = "Today's tries -, median -, best -\nAll time best -";

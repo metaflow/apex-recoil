@@ -285,6 +285,17 @@ h2 {
             padding: 4px 4px 8px;
         }
     }
+    #workspace {
+        flex-grow: 1;
+        overflow: hidden;
+    }
+    #detailed-stats {
+        background-color: $menu;
+        padding: 4px;
+        #plotly_area {
+            height: 400px;
+        }
+    }
 }
 
 input[type="text"] {
