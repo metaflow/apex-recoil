@@ -207,6 +207,7 @@ function instructionsControls() {
             e.classList.add('hidden');
         } else {
             e.classList.remove('hidden');
+            aShowDetailedStats('false');
         }
     });
 
@@ -226,16 +227,6 @@ function instructionsControls() {
             e.preventDefault();
             e.stopPropagation();
             setAttr('show-instructions', 'true');
-            return false;
-        });
-    }
-
-    {
-        const e = document.getElementById('show-detailed-stats');
-        e?.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            aShowDetailedStats((aShowDetailedStats() == 'false').toString());
             return false;
         });
     }
@@ -409,15 +400,28 @@ function statControls() {
         if (!e) return;
         if (v == 'true') {
             e.classList.remove('hidden');
+            setAttr('show-instructions', 'false');
             showStats();
         } else {
             e.classList.add('hidden');
         }
     });
+    document.getElementById('hide-stats')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        aShowDetailedStats('false');
+        return false;
+    });
+    document.getElementById('show-detailed-stats')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        aShowDetailedStats((aShowDetailedStats() == 'false').toString());
+        return false;
+    });
 }
 
 function dateToNumber(d: Date) {
-    return (d.getFullYear() * 100 + d.getMonth() + 1) * 100 + d.getDate();
+    return (d.getFullYear() * 100 + d.getMont () + 1) * 100 + d.getDate();
 }
 
 function numberToDate(n: number): Date {
