@@ -26,8 +26,10 @@ block content
         a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md" target="_blank")
           | FAQ
       #score
-        p#score-stats
-        p#show-detailed-stats.action show details
+        div#show-detailed-stats
+          img(src="/outline_insert_chart_white_48dp.png"  alt="show graph")
+        div#stats
+          p#score-stats
       #weapon-select.grid
         div.havoc_tc
           img(src="/images/havoc.png", alt="havoc")

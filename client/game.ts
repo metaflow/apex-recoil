@@ -69,7 +69,7 @@ interface TrialSetup {
     pacer: string;
 }
 
-// [day, count, median, best].
+// [day (2021-04-30 is represented as 20210430), count, median, best].
 type DayResults = [number, number, number, number];
 
 interface TrialStats {
@@ -81,7 +81,7 @@ interface TrialStats {
     todayResults: number[];
 };
 
-function readStats() {
+function loadStats() {
     JSON.parse(getAttr('stats')).forEach((t: any) => {
         const s = t['setup'];
         if (s === undefined) return;
@@ -148,8 +148,21 @@ function distanceScore(x: number) {
 
 // Returns current date as a number. E.g. 2015-04-28 => 20150428.
 function today(): number {
-    var d = new Date();
+    return dateToNumber(new Date());
+}
+
+function dateToNumber(d: Date) {
     return (d.getFullYear() * 100 + d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function zeroPad(num: number, places: number) {
+    return String(num).padStart(places, '0');
+}
+
+function numberToDate(n: number): string {
+    const m = Math.floor(n / 100);
+    const y = Math.floor(m / 100);
+    return `${y}-${zeroPad(m % 100, 2)}-${zeroPad(n % 100, 2)}`;
 }
 
 function trialSetup(): TrialSetup {
@@ -180,6 +193,7 @@ function statsForSetup(c: TrialSetup): TrialStats | undefined {
 function addStat(v: number): TrialStats {
     let s = statsForSetup(trialSetup());
     const t = today();
+    console.log('today', t);
     if (s === undefined) {
         s = {
             v: statsDataVersion,
@@ -326,7 +340,7 @@ function showAllTraces() {
         console.error('weapon', getAttr('weapon'), 'not found');
         return;
     }
-    const n = w.mags[Number(getAttr('mag'))].size;  
+    const n = w.mags[Number(getAttr('mag'))].size;
     const pattern = w.x.map((x, idx) => {
         return new Point(x, w.y[idx]).s(sc);
     });
@@ -420,65 +434,27 @@ function statControls() {
     });
 }
 
-function dateToNumber(d: Date) {
-    return (d.getFullYear() * 100 + d.getMont () + 1) * 100 + d.getDate();
-}
-
-function numberToDate(n: number): Date {
-    const d = n % 100;
-    n /= 100;
-    const m = n % 100;
-    n /= 100;
-    return new Date(n, m - 1, d);
-}
-
 function showStats() {
     const s = statsForSetup(trialSetup());
-    if (aShowDetailedStats() == 'true' && s) {
-        /*
-        let td = today();
-        let ts = new Date().getTime() - 200 * 1000 * 24 * 3600;
-        let s = dateToNumber(new Date());
-        const dayResults: DayResults[] = [];
-        
-        let d = dateToNumber(new Date(ts));
-        let top = 0;
-        while (d < td) {
-            let c = Math.round(100 * Math.random());
-            if (c > 0) {
-                dayResults.push(
-                    [d, c, Math.min(100, Math.round(top * Math.random())), Math.min(100, Math.round(top * Math.random()))]
-                );
-            }
-            top++;
-            while (d == dateToNumber(new Date(ts))) ts += 1000 * 3600;
-            d = dateToNumber(new Date(ts));
-        }
-        const todayResults: number[] = [];
-        const t: TrialStats = {
-            v: 1,
-            setup: trialSetup(),
-            dayResults,
-            bestAllTime: 99,
-            today: td,
-            todayResults,
-        };
-        */
+    if (aShowDetailedStats() == 'true') {
         const x: string[] = [];
-        const median: number[] = [];
-        const best: number[] = [];
-        const count: number[] = [];
-        // ts = new Date().getTime();
-        let i = 0;
-        //[day, count, median, best].
-        s.dayResults.forEach(dayResults => {
-            x.push(new Intl.DateTimeFormat('fr-ca').format(numberToDate(dayResults[0])));
-            median.push(dayResults[2]);
-            best.push(dayResults[3]);
-            count.push(dayResults[1]);
-        });
-        console.log('x', x);
-        console.log('y', );
+            const median: number[] = [];
+            const best: number[] = [];
+            const count: number[] = [];
+        if (s) {            
+            s.dayResults.forEach(dayResults => {
+                x.push(numberToDate(dayResults[0]));
+                median.push(dayResults[2]);
+                best.push(dayResults[3]);
+                count.push(dayResults[1]);
+            });
+            if (s.todayResults.length > 0) {
+                x.push(numberToDate(today()));
+                median.push(percentile(s.todayResults, 0.5));
+                best.push(percentile(s.todayResults, 1));
+                count.push(s.todayResults.length);
+            }
+        }
         (window as any).updateGraph(x, median, best, count);
     }
     const b = document.getElementById('score-stats');
@@ -712,7 +688,7 @@ export function setupGame() {
     layer.listening(false);
     attrNamespace('game:');
     initAttr('sens', '5');
-    initAttr('weapon', 'r99');1
+    initAttr('weapon', 'r99'); 1
     initAttr('mag', '0');
     initAttr('stats', '[]');
     initAttr('volume', '20');
@@ -724,7 +700,7 @@ export function setupGame() {
     initAttr('toggle-modes', 'false');
     initAttr('speed', '100');
 
-    readStats();
+    loadStats();
 
     attrInput('sens');
     attrInput('hint');

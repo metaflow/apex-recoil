@@ -152,13 +152,21 @@ h2 {
             padding: 4px 12px;
         }
         #score {
+            display: flex;
+            flex-direction: row;
+            #show-detailed-stats {
+                cursor: pointer;
+            }
+            #stats {
+                text-align: right;
+                margin: auto;
+            }
             .label {
                 line-height: 50px;
                 vertical-align: bottom;
                 padding-right: 8px;
             }
             padding: 4px 12px;
-            text-align: right;
         }
         #weapon-select {
             div {

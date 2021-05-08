@@ -1,3 +1,9 @@
+# v0.7 scores graph
+
+- Graph of best / median scores by day.
+
+- Minor layout fixes.
+
 # v0.6 updated spitfire and havoc patterns
 
 - Updated spitfire and havoc patterns after the season 9 patch has landed. Difference in mean recoils is quite small. See https://www.reddit.com/r/apexlegends/comments/n50ps9/oc_changes_in_spitfire_and_havoc_recoils_in/.

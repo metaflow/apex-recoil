@@ -56,6 +56,8 @@ function updateGraph(x, median, best, count) {
             overlaying: 'y',
             side: 'right',
             title: 'tries',
+            rangemode: 'tozero',
+            zeroline: false,
         }
     };
     const config = { responsive: true };
