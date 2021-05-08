@@ -193,7 +193,6 @@ function statsForSetup(c: TrialSetup): TrialStats | undefined {
 function addStat(v: number): TrialStats {
     let s = statsForSetup(trialSetup());
     const t = today();
-    console.log('today', t);
     if (s === undefined) {
         s = {
             v: statsDataVersion,
@@ -713,21 +712,7 @@ export function setupGame() {
     instructionsControls();
     weaponControls();
     statControls();
-
-    {
-        // const scoreGrad = tinygradient([
-        //     'red',
-        //     'yellow',
-        //     'green',
-        // ]);
-        // for (let i = 0; i <= 10; i++) {
-        //     scoreGradient.push(((scoreGrad.rgbAt(i / 10) as unknown) as TinyColor).desaturate(50).toString());
-        // }
-        // console.log('scoreGradient', scoreGradient);
-    }
-
     layer.add(fpsTxt);
-
     watchAttr(['weapon', 'mag', 'sens'], showAllTraces);
     watchAttr(['stats', 'mag', 'weapon', 'hint', 'pacer'], showStats);
     watchAttr(['speed'], (v: string) => {

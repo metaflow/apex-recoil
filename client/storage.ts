@@ -36,7 +36,6 @@ export function createAttrFunc(id: string, def: string) {
     let firstCall = true;
     return function(v?: string): string {
         if (firstCall) {
-            console.log('initAttr');
             initAttr(id, def);
             firstCall = false;
         }
