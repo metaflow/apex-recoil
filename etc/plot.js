@@ -10,7 +10,7 @@ function updateGraph(x, median, best, count) {
         x: x,
         y: best.map(v => 101 - v),
         name: 'best',
-        text: median,
+        text: best,
         hovertemplate: '%{text}',
         mode: 'lines',
     },
