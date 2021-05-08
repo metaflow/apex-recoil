@@ -1,3 +1,7 @@
+# v0.8 L-STAR patterns
+
+- added L-STAR patterns. That completes the list!
+
 # v0.7 scores graph
 
 - Graph of best / median scores by day.
