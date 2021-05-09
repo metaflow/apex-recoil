@@ -60,6 +60,6 @@
 
 - Added FAQ page, including controller settings.
 
-# v0.1 Initial version
+# [v0.1 Initial version](#v01)
 
 First version with r99, r301, Flatline, and Volt x 4 possible attachment levels.
