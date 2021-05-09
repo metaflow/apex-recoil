@@ -33,9 +33,6 @@ document.getElementById('stage')?.addEventListener('contextmenu', e => {
 export const layer = new Konva.Layer();
 stage.add(layer);
 
-layer.scaleX(1);
-layer.scaleY(1);
-
 export function cursor(): Point {
     let pos = stage.getPointerPosition();
     if (pos == null) pos = { x: 0, y: 0 };

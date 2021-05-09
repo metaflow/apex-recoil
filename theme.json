@@ -12,7 +12,6 @@
 	"attachment_1": "#a8a8a8",
 	"attachment_2": "#51a8d6",
 	"attachment_3": "#b237c8",
-	"colorHintTarget": "hsl(0, 50%, 50%)",
 	"colorStartCircle": "hsl(120, 50%, 25%)",
 	"colorHintPath": "hsl(0, 0%, 48%)",
 	"scoreGradient": ["rgb(191, 64, 64)", "rgb(191, 89, 64)", "rgb(191, 115, 64)", "rgb(191, 140, 64)", "rgb(191, 166, 64)", "rgb(191, 191, 64)", "rgb(159, 172, 57)", "rgb(128, 153, 51)", "rgb(96, 134, 45)", "rgb(64, 115, 38)", "rgb(32, 96, 32)"]

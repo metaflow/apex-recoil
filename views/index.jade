@@ -84,13 +84,11 @@ block content
                 | set "sensitivity" to 3 * 1.2 = 3.6
           p
             input(type='checkbox' id='hint')
-            | Show path
-          p
-            input(type='checkbox' id='pacer')
-            | Show pacer
-          p
+            | Show path&nbsp;
             input(type='checkbox' id='toggle-modes')
-            | Auto toggle hint
+            label.tooltip.underlined Auto toggle
+              span.tooltiptext.small
+                | Toggles "show path" after a spray.
           #sound-control
             #toggle-mute
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
@@ -146,18 +144,16 @@ block content
               | . 
               a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.
             li Pick a weapon and magazine size.
-            li Click anywhere on the area below.
-            li Get a high score by compensating a recoil. Maximal score is 100.
+            li Click on the area below and try to compensate for the recoils.
+            li The better you compensate the more points you will get. The maximal score is 100.
           p #[i Show path] displays the ideal compensation trajectory.
-          p #[i Show pacer] adds to the path a running dot to follow.
-          p #[i Auto toggle hint] switches "show path" between sprays.
+          p #[i Auto toggle] switches "show path" between sprays. I recommend enabling it for learning.
           p Set a slower #[i speed] if you like; stats are not recorded for slow-mode.
           p The #[i middle mouse button] toggles the display mode of a trace.
-          p I recommend "Show path", "Show pacer" and "Auto toggle hint" enabled to learn the patterns.          
           p.action#dismiss-instructions Dismiss instructions
       #stage
   #mobile-info 
-    h1 Apex Legends Recoil Patterns    
+    h1 Apex Legends Recoil Patterns
     p Hi! Thanks for checking out this little app to practice recoil patterns. It's meant to be used on the desktop browser with a mouse or controller. 
       | The screen width of your device must be greater than 900 pixels. 
       | Meanwhile, please check this 

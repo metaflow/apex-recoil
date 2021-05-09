@@ -136,6 +136,12 @@ h2 {
         display: flex;
         #settings {
             padding: 4px;
+            p {
+                padding-top: 4px;
+            }
+            #toggle-modes {
+                padding-left: 4px;
+            }
             #sound-control {
                 #toggle-mute {
                     cursor: pointer;
