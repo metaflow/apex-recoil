@@ -1,4 +1,4 @@
-# v0.9 Reworked simulation
+# [v0.9 Reworked simulation](#v09)
 
 - Now crosshair is always pinned to the initial position and the target with hit markers are moving. That experience should feel closer to the game. Thank you [u/Fartikus](https://www.reddit.com/user/Fartikus) for the suggestion!
 
