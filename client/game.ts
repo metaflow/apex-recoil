@@ -469,7 +469,7 @@ class Shooting {
     start_t = 0;
     weapon: Weapon;
     hitIndex = -1; // Position in the patter we already passed.
-    hitMarkers: Konva.Shape[] = [];
+    hitMarkers: Konva.Circle[] = [];
     crossHair?: Konva.Circle;
     hintGroup: Konva.Group;
     wallGroup: Konva.Group;
@@ -573,7 +573,7 @@ class Shooting {
             let s = distanceScore(rawDistance);
             this.hitScores.push(s);
             this.score += s;
-            this.hitMarker.radius(2);
+            this.hitMarker.radius(1);
             this.hitMarker = new Konva.Circle({
                 radius: Math.max(4 * sc, 2),
                 fill: gradientColor(this.hitScores[this.hitScores.length - 1]),
@@ -598,7 +598,7 @@ class Shooting {
         const x = Math.round(100 * this.score);
         if (this.speed == 1) addStat(x);
         this.hintGroup.visible(true);
-        this.hitMarker.radius(2);
+        this.hitMarkers.forEach(m => m.radius(2));
         const txt = new Konva.Text({
             text: `${x}`,
             fontSize: 20,
