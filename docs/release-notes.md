@@ -1,6 +1,6 @@
 # v0.9 Reworked simulation
 
-- Now crosshair is always pinned to the initial position and the target with hit markers are moving. That experience should feel closer to the game. Thank you [u/Fartikus](https://www.reddit.com/user/Fartikus) for the suggestion!
+- Now crosshair is always pinned to the initial position, the target and hit markers are moving. That experience should feel closer to the game. Thank you [u/Fartikus](https://www.reddit.com/user/Fartikus) for the suggestion!
 
 - Removed the "show pacer" option as "target" fulfills its purpose naturally. Statistic records with "hints" on and "pacer" off are dropped.
 
