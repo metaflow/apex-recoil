@@ -1,3 +1,9 @@
+# v0.9 Reworked simulation
+
+- Now crosshair is always pinned to the initial position and the target with hit markers are moving. That experience should feel closer to the game. Thank you [u/Fartikus](https://www.reddit.com/user/Fartikus) for the suggestion!
+
+- Removed the "show pacer" option as "target" fulfills its purpose naturally. Statistic records with "hints" on and "pacer" off are dropped.
+
 # v0.8 L-STAR patterns
 
 - added L-STAR patterns. That completes the list!
