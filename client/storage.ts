@@ -23,12 +23,14 @@ export function attrNamespace(v?: string): string {
     return _attrNamespace;
 }
 
-export function getAttr(name: string): string {
-    return localStorage.getItem(attrNamespace() + ':' + name) || '';
+export function getAttr(name: string, ns?: string): string {
+    ns = ns || _attrNamespace;
+    return localStorage.getItem(ns + ':' + name) || '';
 }
 
-export function initAttr(name: string, def: string) {
-    const s = attrNamespace() + ':' + name;
+export function initAttr(name: string, def: string, ns?: string) {
+    ns = ns || _attrNamespace;
+    const s = ns + ':' + name;
     if (localStorage.getItem(s) == null) localStorage.setItem(s, def);
 }
 
@@ -56,10 +58,11 @@ export function resumeAttrUpdates() {
     attrUpdatesActive = true;    
 }
 
-export function setAttr(name: string, value: string) {
-    localStorage.setItem(attrNamespace() + ':' + name, value);
+export function setAttr(name: string, value: string, ns?: string) {
+    ns = ns || _attrNamespace;
+    localStorage.setItem(ns + ':' + name, value);
     if (attrUpdatesActive) {
-        onAttrUpdates.forEach(f => f(attrNamespace() + ':' + name, value));
+        onAttrUpdates.forEach(f => f(ns + ':' + name, value));
     }
 }
 
@@ -88,10 +91,7 @@ export function pokeAttrs() {
 
 export function attrInput(id: string) {
     const a = document.getElementById(id) as HTMLInputElement;
-    if (a == null) {
-        console.error('input',id, 'not found');
-        return;
-    }
+    if (a == null) return;
     a.value = getAttr(id);
     if (a.type == 'text' || a.type == 'textarea' || a.type == 'range') {
         a.onkeyup = a.onchange = () => {
@@ -132,4 +132,35 @@ export function attrNumericInput(id: string) {
         }
         setAttr(id, Math.min(255, Math.max(0, v)).toString());
     });
+}
+
+class Attribute {
+    name: string;
+    namespace: string;
+    def: string;
+    constructor(name: string, namespace: string, def: string) {
+        this.name = name;
+        this.namespace = namespace;
+        this.def = def;
+        initAttr(this.name, this.def, this.namespace);
+        attrInput(this.name);
+    }
+    getRaw(): string {
+        return getAttr(this.name, this.namespace);
+    }
+    setRaw(v: string) {
+        setAttr(this.name, v, this.namespace);
+    }
+}
+
+export class BooleanAttribute extends Attribute {
+    constructor(name: string, namespace: string, def: boolean) {
+        super(name, namespace, def.toString());
+    }
+    get(): boolean {
+        return this.getRaw() == 'true';
+    }
+    set(value: boolean) {
+        this.setRaw(value.toString());
+    }
 }

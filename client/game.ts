@@ -17,7 +17,7 @@
 import { Howl } from "howler";
 import Konva from "konva";
 import { cursor, layer, stage } from "./main";
-import { resumeAttrUpdates, setAttr, getAttr, initAttr, attrInput, attrNamespace, createAttrFunc, suspendAttrUpdates, watchAttr } from './storage';
+import { resumeAttrUpdates, setAttr, getAttr, initAttr, attrInput, attrNamespace, createAttrFunc, suspendAttrUpdates, watchAttr, BooleanAttribute } from './storage';
 import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
@@ -473,7 +473,9 @@ class Shooting {
     crossHair?: Konva.Circle;
     hintGroup: Konva.Group;
     wallGroup: Konva.Group;
+    recoilGroup: Konva.Group;
     fpsText: Konva.Text;
+    recoilTarget: boolean;
 
     constructor() {
         this.center = new Point();
@@ -483,6 +485,8 @@ class Shooting {
         layer.add(this.hintGroup);
         this.wallGroup = new Konva.Group();
         layer.add(this.wallGroup);
+        this.recoilGroup = new Konva.Group();
+        layer.add(this.recoilGroup);
         this.fpsText = new Konva.Text({
             text: `FPS: -`,
             fontSize: 14,
@@ -494,6 +498,7 @@ class Shooting {
             y: 10,
         });
         layer.add(this.fpsText);
+        this.recoilTarget = !aStationaryTarget.get();
     }
 
     start() {
@@ -514,12 +519,21 @@ class Shooting {
         this.showHint = getAttr('hint') == 'true';
         this.hintGroup.visible(this.showHint);
         // Target.
-        this.wallGroup.add(new Konva.Circle({
+        const target = new Konva.Circle({
             radius: 2 + 4 * sc,
             stroke: colorStartCircle,
             strokeWidth: 1 + 1 * sc,
             position: this.center.plain(),
-        }));
+        });
+        if (this.recoilTarget) {
+            this.wallGroup.add(target);
+        } else {
+            if (this.showHint) {
+                this.recoilGroup.add(target);
+            } else {
+                layer.add(target);
+            }
+        }
         this.pattern = this.weapon.x.map((x, idx) => {
             return new Point(x, this.weapon.y[idx]).s(sc);
         });
@@ -529,18 +543,33 @@ class Shooting {
             (circles as Konva.Circle[]).forEach(c => this.hintGroup.add(c));
         }
         // Replace cursor with a fixed point.
-        this.crossHair = new Konva.Circle({
-            radius: 2,
-            fill: 'red',
-            position: this.center.plain(),
-        });
-        layer.add(this.crossHair);
-        stage.container().classList.add('no-cursor');
+        if (this.recoilTarget) {
+            this.crossHair = new Konva.Circle({
+                radius: 2,
+                fill: 'red',
+                position: this.center.plain(),
+            });
+            layer.add(this.crossHair);
+        }
+        if (this.recoilTarget || !this.showHint) {
+            console.log('no-cursor');
+            stage.container().classList.add('no-cursor');
+        }
         this.animation = new Konva.Animation(() => {return this.frame()}, layer);
         this.frame();
         this.animation.start();
         stage.batchDraw();
         stage.listening(false);
+    }
+
+    recoilVector(t: number, i: number): [Point, number] {
+        while (i + 1 < this.mag && t > this.weapon.timePoints[i + 1]) i++;
+        if (i == -1) return [new Point(), i];
+        if (i + 1 >= this.mag) return [this.pattern[this.mag - 1].clone(), i];
+        const dt = (this.weapon.timePoints[i + 1] - this.weapon.timePoints[i]);
+        let progress = Math.max(Math.min((t - this.weapon.timePoints[i]) / dt, 1), 0);
+        const p = this.pattern[i];
+        return [this.pattern[i + 1].clone().sub(p).s(progress).add(p), i];
     }
 
     frame() {
@@ -549,20 +578,12 @@ class Shooting {
         const sc = scale();
         const cur = cursor();
         const dCur = cur.clone().sub(this.center);
-        this.hintGroup.offset(dCur);        
+        if (this.recoilTarget) this.hintGroup.offset(dCur);
         const frame_t = (Date.now() - this.start_t) * this.speed + 8; // Add half frame.
-        let i = this.hitIndex;
-        while (i + 1 < this.mag && frame_t > this.weapon.timePoints[i + 1]) i++;
-        if (i > -1 && i + 1 < this.mag) {
-            const dt = (this.weapon.timePoints[i + 1] - this.weapon.timePoints[i]);
-            let progress = 1;
-            if (dt > 0.001) progress = Math.max(Math.min((frame_t - this.weapon.timePoints[i]) / dt, 1), 0);
-            const p = this.pattern[i];
-            const v = this.pattern[i + 1].clone().sub(p);
-            this.wallGroup.offset(v.s(progress).add(p).add(dCur));
-        } else if (i + 1 >= this.mag) {
-            this.wallGroup.offset(this.pattern[i].clone().add(dCur));
-        }
+        let [rv, i] = this.recoilVector(frame_t, this.hitIndex);
+        let [rvFwd, _] = this.recoilVector(frame_t + 24, i);
+        this.recoilGroup.offset(rvFwd);
+        this.wallGroup.offset(rv.clone().add(dCur));
         // Register new shots.
         while (this.hitIndex < i) {
             this.hitIndex++;
@@ -573,14 +594,24 @@ class Shooting {
             let s = distanceScore(rawDistance);
             this.hitScores.push(s);
             this.score += s;
-            this.hitMarker.radius(1);
+            this.hitMarker.radius(this.recoilTarget ? 1 : 2);
+            var hitP: Point;
+            if (this.recoilTarget) {
+                hitP = this.center.clone().add(new Point(this.wallGroup.offset()));
+            } else {
+                hitP = cur.clone().add(p);
+            }
             this.hitMarker = new Konva.Circle({
                 radius: Math.max(4 * sc, 2),
                 fill: gradientColor(this.hitScores[this.hitScores.length - 1]),
-                position: this.center.clone().add(new Point(this.wallGroup.offset())),
+                position: hitP,
             });
             this.hitMarkers.push(this.hitMarker);
-            this.wallGroup.add(this.hitMarker);
+            if (this.recoilTarget) {
+                this.wallGroup.add(this.hitMarker);
+            } else {
+                layer.add(this.hitMarker);
+            }
             traceShapes[0].push(this.hitMarker);
             this.hitMarker.zIndex(0); // To put behind the scope.
         }
@@ -637,6 +668,7 @@ class Shooting {
         }
         this.hintGroup.offset(new Point(0, 0));
         this.wallGroup.offset(new Point(0, 0));
+        this.recoilGroup.offset(new Point(0, 0));
         this.crossHair?.visible(false);
         stage.container().classList.remove('no-cursor');
         if (getAttr('toggle-modes') == 'true') setAttr('hint', `${!this.showHint}`);
@@ -647,6 +679,9 @@ function displayTace() {
     const d = Number(getAttr('trace-mode')) % traceShapeTypes;
     traceShapes.forEach((sh, i) => sh.forEach(s => s.visible(i == d)));
 }
+
+const gameNamespace = 'game:';
+const aStationaryTarget = new BooleanAttribute('stationary-target', gameNamespace, true);
 
 export function setupGame() {
     /* https://konvajs.org/docs/sandbox/Animation_Stress_Test.html#page-title

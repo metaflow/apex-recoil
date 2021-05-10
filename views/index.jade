@@ -89,6 +89,11 @@ block content
             label.tooltip.underlined Auto toggle
               span.tooltiptext.small
                 | Toggles "show path" after a spray.
+          p
+            input(type='checkbox' id='stationary-target')
+            label.tooltip.underlined Stationary target
+              span.tooltiptext
+                | Keep the target in place. Otherwise, the target will recoil as in the game.
           #sound-control
             #toggle-mute
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
@@ -148,6 +153,7 @@ block content
             li The better you compensate the more points you will get. The maximal score is 100.
           p #[i Show path] displays the ideal compensation trajectory.
           p #[i Auto toggle] switches "show path" between sprays. I recommend enabling it for learning.
+          p Uncheck #[i Stationary target] to make the crosshair stationary and recoil the target - it's closer to in-game.
           p Set a slower #[i speed] if you like; stats are not recorded for slow-mode.
           p The #[i middle mouse button] toggles the display mode of a trace.
           p.action#dismiss-instructions Dismiss instructions
