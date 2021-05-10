@@ -552,7 +552,6 @@ class Shooting {
             layer.add(this.crossHair);
         }
         if (this.recoilTarget || !this.showHint) {
-            console.log('no-cursor');
             stage.container().classList.add('no-cursor');
         }
         this.animation = new Konva.Animation(() => {return this.frame()}, layer);
