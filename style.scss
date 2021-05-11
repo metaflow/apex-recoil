@@ -122,6 +122,11 @@ h2 {
         background-color: $menu;
         padding: 12px 20px;
     }
+    #sensitivity-warning {
+        color: $error;
+        padding: 8px;
+        text-align: center;
+    }
     #control {
         .description {
             padding: 0 4px;
@@ -160,7 +165,7 @@ h2 {
         #score {
             display: flex;
             flex-direction: row;
-            #show-detailed-stats {
+            #stats-graph-btn {
                 cursor: pointer;
             }
             #stats {

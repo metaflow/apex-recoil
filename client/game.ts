@@ -34,7 +34,18 @@ const scoreGradient = theme.scoreGradient;
 let shooting: Shooting | null = null;
 const traceShapeTypes = 3;
 let traceShapes: Konva.Shape[][] = [];
-const aShowDetailedStats = createAttrFunc('show-detailed-stats', 'true');
+
+let startRectangle = new Konva.Rect({
+    stroke: theme.foreground,
+    strokeWidth: 0.5,
+    dash: [1, 9],
+});
+let pattern: Point[] = [];
+let patternBox: [Point, Point];
+const NS = 'game:';
+const aStationaryTarget = new BooleanAttribute('stationary-target', NS, true);
+const aShowDetailedStats = new BooleanAttribute('show-detailed-stats', NS, false);
+const aShowSensitivityWarn = new BooleanAttribute('show-sensitivity-warn', NS, false);
 
 export interface MagInfo {
     size: number;
@@ -209,7 +220,7 @@ function instructionsControls() {
             e.classList.add('hidden');
         } else {
             e.classList.remove('hidden');
-            aShowDetailedStats('false');
+            aShowDetailedStats.set(false);
         }
     });
 
@@ -246,7 +257,7 @@ function updateSound() {
         soundPath = newPath;
         sound = new Howl({ src: soundPath });
     }
-};
+}
 
 function soundControls() {
     watchAttr(['weapon', 'mag', 'mute'], updateSound);
@@ -282,13 +293,14 @@ function gradientColor(x: number) {
 }
 
 function box(pattern: Point[]): [Point, Point] {
-    const a = pattern[0].clone();
-    const b = a.clone();
+    const a = new Point();
+    const b = new Point();
     pattern.forEach(p => {
-        a.x = Math.min(a.x, p.x);
-        a.y = Math.min(a.y, p.y);
-        b.x = Math.max(b.x, p.x);
-        b.y = Math.max(b.y, p.y);
+        const d = pattern[0].clone().sub(p);
+        a.x = Math.min(a.x, d.x);
+        a.y = Math.min(a.y, d.y);
+        b.x = Math.max(b.x, d.x);
+        b.y = Math.max(b.y, d.y);
     });
     return [a, b];
 }
@@ -318,7 +330,7 @@ function drawPattern(pattern: Point[], mag: number, start: Point, sc: number) {
     return [hintLine, circles];
 }
 
-function showAllTraces() {
+function showSelectedTrace() {
     clear();
     const name = getAttr('weapon');
     const w = weapons.get(name);
@@ -329,18 +341,45 @@ function showAllTraces() {
         return;
     }
     const n = w.mags[Number(getAttr('mag'))].size;
-    const pattern = w.x.map((x, idx) => {
-        return new Point(x, w.y[idx]).s(sc);
-    });
-    const b = box(pattern);
-    const [line, circles] = drawPattern(pattern, n, b[1].add(new Point(50, 50)), sc);
+    pattern = [];
+    for (let i = 0; i < n; i++) pattern.push(new Point(w.x[i], w.y[i]).s(sc));
+    patternBox = box(pattern);
+    const [line, circles] = drawPattern(pattern, n, patternBox[0].clone().s(-1).add(new Point(50, 50)), sc);
     layer.add(line as Konva.Line);
     (circles as Konva.Circle[]).forEach(c => layer.add(c));
-    stage.batchDraw();
+    redrawStartRectangle();
+    redraw();
+}
+
+let redrawTimeout: number | null;
+function redraw() {
+    if (redrawTimeout) return;
+    redrawTimeout = window.setTimeout(() => {
+        stage.batchDraw();
+        redrawTimeout = null;
+    }, 0);
+}
+
+function redrawStartRectangle() {
+    if (patternBox.length < 2) return;
+    const r = stage.container().getBoundingClientRect();
+    const p = patternBox[0].clone();
+    const bottomRight = new Point(
+        window.innerWidth - r.left - patternBox[1].x - 50,
+        window.innerHeight - r.top - patternBox[1].y - 50);
+    const topLeft = p.clone().s(-1);
+    const wh = bottomRight.sub(topLeft);
+    aShowSensitivityWarn.set(wh.x < 100 || wh.y < 100);
+    startRectangle.x(Math.max(1, topLeft.x));
+    startRectangle.y(Math.max(1, topLeft.y));
+    startRectangle.width(wh.x);
+    startRectangle.height(wh.y);
+    layer.add(startRectangle);
+    redraw();
 }
 
 function clear() {
-    layer.destroyChildren();
+    layer.removeChildren();
     traceShapes = [];
 }
 
@@ -392,10 +431,10 @@ function weaponControls() {
 }
 
 function statControls() {
-    watchAttr('show-detailed-stats', (v: string) => {
+    aShowDetailedStats.watch((v: boolean) => {
         const e = document.getElementById('detailed-stats');
         if (!e) return;
-        if (v == 'true') {
+        if (v) {
             e.classList.remove('hidden');
             setAttr('show-instructions', 'false');
             showStats();
@@ -406,20 +445,20 @@ function statControls() {
     document.getElementById('hide-stats')?.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        aShowDetailedStats('false');
+        aShowDetailedStats.set(false);
         return false;
     });
-    document.getElementById('show-detailed-stats')?.addEventListener('click', (e) => {
+    document.getElementById('stats-graph-btn')?.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        aShowDetailedStats((aShowDetailedStats() == 'false').toString());
+        aShowDetailedStats.set(!aShowDetailedStats.get());
         return false;
     });
 }
 
 function showStats() {
     const s = statsForSetup(trialSetup());
-    if (aShowDetailedStats() == 'true') {
+    if (aShowDetailedStats.get()) {
         const x: string[] = [];
             const median: number[] = [];
             const best: number[] = [];
@@ -499,6 +538,7 @@ class Shooting {
         });
         layer.add(this.fpsText);
         this.recoilTarget = !aStationaryTarget.get();
+        redrawStartRectangle();
     }
 
     start() {
@@ -671,6 +711,8 @@ class Shooting {
         this.crossHair?.visible(false);
         stage.container().classList.remove('no-cursor');
         if (getAttr('toggle-modes') == 'true') setAttr('hint', `${!this.showHint}`);
+        redrawStartRectangle();
+        redraw();
     }
 }
 
@@ -678,9 +720,6 @@ function displayTace() {
     const d = Number(getAttr('trace-mode')) % traceShapeTypes;
     traceShapes.forEach((sh, i) => sh.forEach(s => s.visible(i == d)));
 }
-
-const gameNamespace = 'game:';
-const aStationaryTarget = new BooleanAttribute('stationary-target', gameNamespace, true);
 
 export function setupGame() {
     /* https://konvajs.org/docs/sandbox/Animation_Stress_Test.html#page-title
@@ -713,7 +752,8 @@ export function setupGame() {
     instructionsControls();
     weaponControls();
     statControls();
-    watchAttr(['weapon', 'mag', 'sens'], showAllTraces);
+    watchAttr(['weapon', 'mag', 'sens'], showSelectedTrace);
+    window.addEventListener('resize', redrawStartRectangle);
     watchAttr(['stats', 'mag', 'weapon', 'hint'], showStats);
     watchAttr(['speed'], (v: string) => {
         const b = document.getElementById('speed-value');
@@ -724,6 +764,15 @@ export function setupGame() {
     watchAttr('trace-mode', () => {
         displayTace();
         stage.batchDraw();
+    });
+    aShowSensitivityWarn.watch((v: boolean) => {
+        const w = document.getElementById('sensitivity-warning');
+        if (w == null) return;
+        if (v) {
+            w.classList.remove('hidden');
+        } else {
+            w.classList.add('hidden');
+        }
     });
     stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
         e.evt.preventDefault();

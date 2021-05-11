@@ -20,13 +20,15 @@ block content
     #control
       h1 Apex Legends Recoil Patterns
       p.description Learn and practice spray/recoil patterns
+      p#sensitivity-warning.hidden
+        | Active area is too small! Try to resize window.
       #top-links
         p#show-instructions.action
           | Show instructions
         a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md" target="_blank")
           | FAQ
       #score
-        div#show-detailed-stats.tooltip
+        div#stats-graph-btn.tooltip
           img(src="/outline_insert_chart_white_48dp.png"  alt="show graph")
           .tooltiptext.small Show historical graph
         div#stats
@@ -148,9 +150,9 @@ block content
                   | set "sensitivity" to 3 * 1.2 = 3.6
               | . 
               a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.
-            li Pick a weapon and magazine size.
-            li Click on the area below and try to compensate for the recoils.
-            li The better you compensate the more points you will get. The maximal score is 100.
+            li Pick a weapon and magazine.
+            li Click in the dotted area below and try to offset the recoil.
+            li The better you compensate the higher score you get. The maximum is 100.
           p #[i Show path] displays the ideal compensation trajectory.
           p #[i Auto toggle] switches "show path" between sprays. I recommend enabling it for learning.
           p Uncheck #[i Stationary target] to make the crosshair stationary and recoil the target - it's closer to in-game.

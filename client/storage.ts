@@ -55,7 +55,7 @@ export function suspendAttrUpdates() {
 }
 
 export function resumeAttrUpdates() {
-    attrUpdatesActive = true;    
+    attrUpdatesActive = true;
 }
 
 export function setAttr(name: string, value: string, ns?: string) {
@@ -70,13 +70,14 @@ export function watchAttrs(fn: attrUpdateFn) {
     onAttrUpdates.push(fn);
 }
 
-export function watchAttr(names: string | string[], fn: (v: string) => void) {
+export function watchAttr(names: string | string[], fn: (v: string) => void, ns?: string) {
+    ns = ns || _attrNamespace;
     if (typeof names == 'string') {
         names = [names];
     }
     onAttrUpdates.push((n: string, v: string) => {
         for (const x of names) {
-            if (n == attrNamespace() + ':' + x) fn(v);
+            if (ns + ':' + x == n) fn(v);
         }
     });
 }
@@ -111,7 +112,7 @@ export function attrInput(id: string) {
         });
         return;
     }
-    console.error('unknown input type', a.type);
+    console.error('unknown input type', id, a.type);
 }
 
 export function attrNumericInput(id: string) {
@@ -162,5 +163,8 @@ export class BooleanAttribute extends Attribute {
     }
     set(value: boolean) {
         this.setRaw(value.toString());
+    }
+    watch(f: (a: boolean) => void) {
+        watchAttr(this.name, (v: string) => f(v == 'true'), this.namespace);
     }
 }
