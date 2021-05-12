@@ -1,3 +1,11 @@
+# v10 Firing area and spitfire mag size
+
+- Added a dotted region that shows a good starting position for a spray. If region is too small user will see a warning.
+
+- Updated mag size and audio for Spitfire with a purple mag.
+
+- Now versions are just sequential numbers as I realized that the game is useful already and it's not clear what should be "v1.0".
+
 # v0.9 Reworked simulation
 
 - Added a new "stationary target" option. If unchecked then crosshair will be pinned to the initial position, the target and hit markers will move. That experience should feel closer to the game. Thank you [u/Fartikus](https://www.reddit.com/user/Fartikus) for the suggestion!
