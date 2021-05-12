@@ -46,6 +46,7 @@ const NS = 'game:';
 const aStationaryTarget = new BooleanAttribute('stationary-target', NS, true);
 const aShowDetailedStats = new BooleanAttribute('show-detailed-stats', NS, false);
 const aShowSensitivityWarn = new BooleanAttribute('show-sensitivity-warn', NS, false);
+const aShowInstructions = new BooleanAttribute('show-instructions', NS, true);
 
 export interface MagInfo {
     size: number;
@@ -213,33 +214,32 @@ function addStat(v: number): TrialStats {
 }
 
 function instructionsControls() {
-    watchAttr('show-instructions', (v: string) => {
+    aShowInstructions.watch((v: boolean) => {
         const e = document.getElementById('instructions');
         if (!e) return;
-        if (v == 'false') {
+        if (!v) {
             e.classList.add('hidden');
         } else {
             e.classList.remove('hidden');
             aShowDetailedStats.set(false);
         }
     });
-
     {
         const e = document.getElementById('dismiss-instructions');
         e?.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            setAttr('show-instructions', 'false');
+            aShowInstructions.set(false);
             return false;
         });
     }
 
     {
-        const e = document.getElementById('show-instructions');
+        const e = document.getElementById('show-instructions-btn');
         e?.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            setAttr('show-instructions', 'true');
+            aShowInstructions.set(true);
             return false;
         });
     }
@@ -436,7 +436,7 @@ function statControls() {
         if (!e) return;
         if (v) {
             e.classList.remove('hidden');
-            setAttr('show-instructions', 'false');
+            aShowInstructions.set(false);
             showStats();
         } else {
             e.classList.add('hidden');
@@ -735,7 +735,6 @@ export function setupGame() {
     initAttr('volume', '20');
     initAttr('mute', 'false');
     initAttr('hint', 'true');
-    initAttr('show-instructions', 'true');
     initAttr('trace-mode', '1');
     initAttr('toggle-modes', 'false');
     initAttr('speed', '100');
@@ -754,6 +753,8 @@ export function setupGame() {
     statControls();
     watchAttr(['weapon', 'mag', 'sens'], showSelectedTrace);
     window.addEventListener('resize', redrawStartRectangle);
+    aShowDetailedStats.watch(redrawStartRectangle);
+    aShowInstructions.watch(redrawStartRectangle);
     watchAttr(['stats', 'mag', 'weapon', 'hint'], showStats);
     watchAttr(['speed'], (v: string) => {
         const b = document.getElementById('speed-value');
