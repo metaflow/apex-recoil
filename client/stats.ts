@@ -94,14 +94,14 @@ function touchStat(s: TrialStats) {
   s.today = t;
 }
 
-export function distanceScore(x: number) {
+export function distanceScore(x: number, h: number) {
   // Reasoning:
   // 1. Small errors should not decrease the score a lot.
   // 2. Big errors should decrease the score almost to 0. In game it's
   //    a binary value that suddenly drops drops "hit" to "no hit" but
   //    that would not be useful for training.
   // Graph: https://www.desmos.com/calculator/j7vjbzvuly.
-  return Math.exp(-.0004 * Math.pow(x, 2));
+  return Math.exp(-.0004 / h * Math.pow(x, 2));
 }
 
 export function statsForSetup(c: TrialSetup): TrialStats | undefined {

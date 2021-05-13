@@ -83,3 +83,7 @@ export function numberToDate(n: number): string {
   const y = Math.floor(m / 100);
   return `${y}-${zeroPad(m % 100, 2)}-${zeroPad(n % 100, 2)}`;
 }
+
+export function clamp(x: number, from: number, to: number) {
+  return Math.max(from, Math.min(to, x));
+}
