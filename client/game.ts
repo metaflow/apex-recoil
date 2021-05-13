@@ -1,18 +1,18 @@
 /**
- * Copyright 2021 Mikhail Goncharov
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://w.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2021 Mikhail Goncharov
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://w.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 import { Howl } from "howler";
 import Konva from "konva";
@@ -21,17 +21,18 @@ import { resumeAttrUpdates, setAttr, getAttr, initAttr, attrInput, attrNamespace
 import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
-import { percentile } from "./stats";
+import { addStat, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
+import { numberToDate, today } from "./utils";
 
-const statsDataVersion = 2;
+
 let sound: Howl | null = null;
-let stats: TrialStats[] = [];
 let soundPath = '';
 const weapons = new Map<string, Weapon>();
 const colorStartCircle = theme.colorStartCircle;
 const colorHintPath = theme.colorHintPath;
 const scoreGradient = theme.scoreGradient;
 let shooting: Shooting | null = null;
+let movingTarget: MovingTarget | null = null;
 const traceShapeTypes = 3;
 let traceShapes: Konva.Shape[][] = [];
 
@@ -42,11 +43,13 @@ let startRectangle = new Konva.Rect({
 });
 let pattern: Point[] = [];
 let patternBox: [Point, Point];
+let animation: Konva.Animation | null = null;
 const NS = 'game:';
 const aStationaryTarget = new BooleanAttribute('stationary-target', NS, true);
 const aShowDetailedStats = new BooleanAttribute('show-detailed-stats', NS, false);
 const aShowSensitivityWarn = new BooleanAttribute('show-sensitivity-warn', NS, false);
 const aShowInstructions = new BooleanAttribute('show-instructions', NS, true);
+const aMovingTarget = new BooleanAttribute('moving-target', NS, false)
 
 export interface MagInfo {
     size: number;
@@ -61,114 +64,47 @@ export interface Weapon {
     y: number[];
 }
 
-interface TrialSetup {
-    weapon: string;
-    mag: string;
-    hint: string;
+interface Rect {
+    topLeft: Point;
+    bottomRight: Point;
 }
 
-// [day (2021-04-30 is represented as 20210430), count, median, best].
-type DayResults = [number, number, number, number];
-
-interface TrialStats {
-    v: number;
-    setup: TrialSetup;
-    dayResults: DayResults[];
-    bestAllTime: number;
-    today: number;
-    todayResults: number[];
-};
-
-function loadStats() {
-    JSON.parse(getAttr('stats')).forEach((t: any) => {
-        const s = t['setup'];
-        if (s === undefined) return;
-        const version = t['v'];
-        if (version == null) {
-            // Initial unversioned storage.
-            if (s['barrel'] != null && s['barrel'] != '0') return;
-            if (s['stock'] != null && s['stock'] != '0') return;
-            const setup: TrialSetup = {
-                weapon: s['weapon'] || '',
-                mag: s['mag'] || '0',
-                hint: s['hint'] || 'true',
-            };
-            const st: TrialStats = {
-                v: statsDataVersion,
-                setup,
-                today: 20210423,
-                dayResults: t['days'].map((d: number, i: number) => {
-                    const z: DayResults = [
-                        (Math.floor(d / 100) + 1) * 100 + d % 100 + 1,
-                        0,
-                        t['medianByDay'][i],
-                        t['bestByDay'][i],
-                    ];
-                    return z;
-                }),
-                todayResults: t['todayResults'] || [],
-                bestAllTime: t.bestAllTime,
-            }
-            stats.push(st);
-        } else if (version == 1) {
-            // Delete entries that have only "path visible" set.
-            if (s['hint'] == 'true' && s['pacer'] == 'false') return;
-            t['v'] = 2;
-            delete(s['pacer']);
-            stats.push(t);
-        } else {
-            stats.push(t);
-        }
-    });
-    stats.forEach(s => touchStat(s));
-}
-
-function touchStat(s: TrialStats) {
-    const t = today();
-    if (s.today == t) return;
-    if (s.todayResults.length > 0) {
-        const r: DayResults = [
-            s.today,
-            s.todayResults.length,
-            percentile(s.todayResults, 0.5),
-            percentile(s.todayResults, 1)
-        ];
-        s.dayResults.push(r);
+class MovingTarget {
+    pos = new Point();
+    screenRect: Rect;
+    circle: Konva.Circle;
+    skew = 7;
+    constructor() {
+        this.screenRect = {
+            topLeft: new Point(),
+            bottomRight: new Point(),
+        };
+        this.circle = new Konva.Circle({
+            radius: 6,
+            stroke: 'blue',
+            strokeWidth: 2,
+            position: this.pos,
+        });
+        layer.add(this.circle);
     }
-    s.todayResults = [];
-    s.today = t;
+    frame() {
+        if (this.pos.x < this.screenRect.topLeft.x
+            || this.pos.x > this.screenRect.bottomRight.x
+            || this.pos.y < this.screenRect.topLeft.y
+            || this.pos.y > this.screenRect.bottomRight.y
+            || true) {
+                this.pos.x = Math.max(0, (this.screenRect.topLeft.x + this.screenRect.bottomRight.x) / 2);
+                this.pos.y = Math.max(0, (this.screenRect.topLeft.y + this.screenRect.bottomRight.y) / 2);
+            }
+        this.circle.position(this.pos);
+        return true;
+    }
+    clear() {
+        this.circle.destroy();
+    }
 }
 
-function distanceScore(x: number) {
-    // Reasoning:
-    // 1. Small errors should not decrease the score a lot.
-    // 2. Big errors should decrease the score almost to 0. In game it's
-    //    a binary value that suddenly drops drops "hit" to "no hit" but
-    //    that would not be useful for training.
-    // Graph: https://www.desmos.com/calculator/j7vjbzvuly.
-    return Math.exp(-.0004 * Math.pow(x, 2));
-}
-
-// Returns current date as a number. E.g. 2015-04-28 => 20150428.
-function today(): number {
-    return dateToNumber(new Date());
-}
-
-function dateToNumber(d: Date) {
-    return (d.getFullYear() * 100 + d.getMonth() + 1) * 100 + d.getDate();
-}
-
-function zeroPad(num: number, places: number) {
-    return String(num).padStart(places, '0');
-}
-
-function numberToDate(n: number): string {
-    const m = Math.floor(n / 100);
-    const y = Math.floor(m / 100);
-    return `${y}-${zeroPad(m % 100, 2)}-${zeroPad(n % 100, 2)}`;
-}
-
-function trialSetup(): TrialSetup {
+export function trialSetup(): TrialSetup {
     const weapon = getAttr('weapon');
     let mag = getAttr('mag');
     if (weapon == 'prowler') mag = '0';
@@ -177,40 +113,6 @@ function trialSetup(): TrialSetup {
         mag,
         hint: getAttr('hint'),
     };
-}
-
-function statsForSetup(c: TrialSetup): TrialStats | undefined {
-    return stats.find(x => {
-        try {
-            return x.setup.weapon == c.weapon &&
-                x.setup.mag == c.mag &&
-                x.setup.hint == c.hint;
-        } catch {
-            return false;
-        }
-    });
-}
-
-function addStat(v: number): TrialStats {
-    let s = statsForSetup(trialSetup());
-    const t = today();
-    if (s === undefined) {
-        s = {
-            v: statsDataVersion,
-            setup: trialSetup(),
-            bestAllTime: 0,
-            today: t,
-            todayResults: [],
-            dayResults: [],
-        };
-        stats.push(s);
-    }
-    if (s === undefined) throw new Error('no stat');
-    touchStat(s);
-    s.todayResults.push(v);
-    s.bestAllTime = Math.max(s.bestAllTime, v);
-    setAttr('stats', JSON.stringify(stats));
-    return s;
 }
 
 function instructionsControls() {
@@ -375,6 +277,10 @@ function redrawStartRectangle() {
     startRectangle.width(wh.x);
     startRectangle.height(wh.y);
     layer.add(startRectangle);
+    if (movingTarget != null) {
+        movingTarget.screenRect.topLeft = topLeft;
+        movingTarget.screenRect.bottomRight = bottomRight;
+    }
     redraw();
 }
 
@@ -460,10 +366,10 @@ function showStats() {
     const s = statsForSetup(trialSetup());
     if (aShowDetailedStats.get()) {
         const x: string[] = [];
-            const median: number[] = [];
-            const best: number[] = [];
-            const count: number[] = [];
-        if (s) {            
+        const median: number[] = [];
+        const best: number[] = [];
+        const count: number[] = [];
+        if (s) {
             s.dayResults.forEach(dayResults => {
                 x.push(numberToDate(dayResults[0]));
                 median.push(dayResults[2]);
@@ -485,7 +391,7 @@ function showStats() {
         if (s) {
             if (s.todayResults.length > 0) {
                 b.innerText = `Today's tries ${s.todayResults.length}, median ${Math.round(percentile(s.todayResults, 0.5))}, best ${percentile(s.todayResults, 1)}
-All time best ${s.bestAllTime}`;
+                    All time best ${s.bestAllTime}`;
             } else {
                 b.innerText = `Today's tries -, median -, best -\nAll time best ${s.bestAllTime}`;
             }
@@ -494,8 +400,7 @@ All time best ${s.bestAllTime}`;
 }
 
 class Shooting {
-    center: Point; // Starting position.
-    animation?: Konva.Animation;
+    center: Point; // Starting position.    
     totalFrames = 0;
     score = 0;
     mag = 1;
@@ -594,9 +499,7 @@ class Shooting {
         if (this.recoilTarget || !this.showHint) {
             stage.container().classList.add('no-cursor');
         }
-        this.animation = new Konva.Animation(() => {return this.frame()}, layer);
         this.frame();
-        this.animation.start();
         stage.batchDraw();
         stage.listening(false);
     }
@@ -662,11 +565,10 @@ class Shooting {
         shooting = null;
         stage.listening(true);
         resumeAttrUpdates();
-        this.animation?.stop();
         this.score /= this.mag;
         this.score = Math.max(0, Math.min(1, this.score));
         const x = Math.round(100 * this.score);
-        if (this.speed == 1) addStat(x);
+        if (this.speed == 1) addStat(x, trialSetup());
         this.hintGroup.visible(true);
         this.hitMarkers.forEach(m => m.radius(2));
         const txt = new Konva.Text({
@@ -741,11 +643,11 @@ export function setupGame() {
 
     loadStats();
 
-    attrInput('sens');
-    attrInput('hint');
-    attrInput('volume');
-    attrInput('speed');
-    attrInput('toggle-modes');
+    attrInput('sens', NS);
+    attrInput('hint', NS);
+    attrInput('volume', NS);
+    attrInput('speed', NS);
+    attrInput('toggle-modes', NS);
 
     soundControls();
     instructionsControls();
@@ -792,4 +694,29 @@ export function setupGame() {
                 break;
         }
     });
+    aMovingTarget.watch((v: boolean) => {
+        console.log('moving target updated', v, movingTarget != null);
+        if ((movingTarget == null) != v) return;
+        if (v) {
+            movingTarget = new MovingTarget();
+            redrawStartRectangle();
+        } else {
+            movingTarget?.clear();
+            movingTarget = null;
+            redraw();
+        }
+    })
+    animation = new Konva.Animation(() => {
+        let updated = false;
+        if (shooting != null) {
+            shooting.frame();
+            updated = true;
+        }
+        if (movingTarget != null) {
+            movingTarget.frame();
+            updated = true;
+        }
+        return updated;
+    }, [layer]);
+    animation.start();
 }

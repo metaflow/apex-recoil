@@ -86,37 +86,43 @@ export function pokeAttrs() {
     for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k == null) continue;
-        onAttrUpdates.forEach(f => f(k, localStorage.getItem(k) || ''));
+        onAttrUpdates.forEach(f => {
+            // console.log('poke attr', k, localStorage.getItem(k) || '');
+            f(k, localStorage.getItem(k) || '')
+        });
     }
 }
 
-export function attrInput(id: string) {
+export function attrInput(id: string, ns: string) {
     const a = document.getElementById(id) as HTMLInputElement;
     if (a == null) return;
-    a.value = getAttr(id);
+    a.value = getAttr(id, ns);
     if (a.type == 'text' || a.type == 'textarea' || a.type == 'range') {
         a.onkeyup = a.onchange = () => {
-            setAttr(id, a.value);
+            setAttr(id, a.value, ns);
         };
         watchAttr(id, (v: string) => {
             a.value = v;
-        });
+        }, ns);
+        // console.log('text input', id);
         return;
     }
     if (a.type == 'checkbox') {
         a.onchange = () => {
-            setAttr(id, a.checked + '');
+            setAttr(id, a.checked + '', ns);
         };
         watchAttr(id, (v: string) => {
+            console.log('new checkbox value', id, v);
             a.checked = v == (true + '');
-        });
+        }, ns);
+        // console.log('boolean input', id);
         return;
     }
     console.error('unknown input type', id, a.type);
 }
 
-export function attrNumericInput(id: string) {
-    attrInput(id);
+export function attrNumericInput(id: string, ns: string) {
+    attrInput(id, ns);
     const a = document.getElementById(id) as HTMLInputElement;
     if (a == null) {
         console.error('input',id, 'not found');
@@ -129,9 +135,9 @@ export function attrNumericInput(id: string) {
         }
         if (e.key == 'ArrowUp') {
             v++;
-            setAttr(id, Math.min(255, Number(getAttr(id)) + 1).toString());
+            setAttr(id, Math.min(255, Number(getAttr(id)) + 1).toString(), ns);
         }
-        setAttr(id, Math.min(255, Math.max(0, v)).toString());
+        setAttr(id, Math.min(255, Math.max(0, v)).toString(), ns);
     });
 }
 
@@ -144,7 +150,7 @@ class Attribute {
         this.namespace = namespace;
         this.def = def;
         initAttr(this.name, this.def, this.namespace);
-        attrInput(this.name);
+        attrInput(this.name, this.namespace);
     }
     getRaw(): string {
         return getAttr(this.name, this.namespace);

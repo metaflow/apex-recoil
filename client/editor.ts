@@ -36,9 +36,10 @@ let edgeStartName = '';
 let idxCounter = 0;
 let imageMask = new Array<Array<number>>();
 const attrConnectHover = 'connect-hover';
+const NS = 'editor';
 
 export function setupEditor() {
-    attrNamespace('editor');
+    attrNamespace(NS);
     initAttr('distance', '100');
     initAttr('weapon', 'r301');
     initAttr('stock', '0');
@@ -142,17 +143,17 @@ function clear() {
 };
 
 function setupControls() {
-    attrInput('weapon');
-    attrInput('barrel');
-    attrInput('stock');
-    attrInput('comment');
-    attrInput('distance');
-    attrNumericInput('threshold');
-    attrNumericInput('target-from');
-    attrNumericInput('target-to');
-    attrInput('enable-threshold');
-    attrInput('auto-targets');
-    attrInput(attrConnectHover);
+    attrInput('weapon', NS);
+    attrInput('barrel', NS);
+    attrInput('stock', NS);
+    attrInput('comment', NS);
+    attrInput('distance', NS);
+    attrNumericInput('threshold', NS);
+    attrNumericInput('target-from', NS);
+    attrNumericInput('target-to', NS);
+    attrInput('enable-threshold', NS);
+    attrInput('auto-targets', NS);
+    attrInput(attrConnectHover, NS);
 
     const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
     fileSelector?.addEventListener('change', () => {

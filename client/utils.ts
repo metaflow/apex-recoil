@@ -36,7 +36,7 @@ export function checkT<T extends PrimitiveOrConstructor>(o: any, className: T): 
 }
 
 export function error(...args: any): Error {
-    onError(...args);    
+    onError(...args);
     return new Error('error occured');
 }
 
@@ -63,4 +63,23 @@ export function clearError() {
 
 export function copy<T>(v: T): T {
     return JSON.parse(JSON.stringify(v));
+}
+
+// Returns current date as a number. E.g. 2015-04-28 => 20150428.
+export function today(): number {
+    return dateToNumber(new Date());
+}
+
+export function dateToNumber(d: Date) {
+    return (d.getFullYear() * 100 + d.getMonth() + 1) * 100 + d.getDate();
+}
+
+export function zeroPad(num: number, places: number) {
+    return String(num).padStart(places, '0');
+}
+
+export function numberToDate(n: number): string {
+    const m = Math.floor(n / 100);
+    const y = Math.floor(m / 100);
+    return `${y}-${zeroPad(m % 100, 2)}-${zeroPad(n % 100, 2)}`;
 }
