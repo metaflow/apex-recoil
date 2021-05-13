@@ -21,28 +21,28 @@ import { setupEditor } from './editor';
 import { pokeAttrs } from './storage';
 
 export const stage = new Konva.Stage({
-    container: 'stage',
-    width: window.screen.width,
-    height: window.screen.height,
+  container: 'stage',
+  width: window.screen.width,
+  height: window.screen.height,
 });
 
 document.getElementById('stage')?.addEventListener('contextmenu', e => {
-    e.preventDefault();
+  e.preventDefault();
 });
 
 export const layer = new Konva.Layer();
 stage.add(layer);
 
 export function cursor(): Point {
-    let pos = stage.getPointerPosition();
-    if (pos == null) pos = { x: 0, y: 0 };
-   return new Point(pos);
+  let pos = stage.getPointerPosition();
+  if (pos == null) pos = { x: 0, y: 0 };
+  return new Point(pos);
 }
 
 if (window.location.pathname.startsWith('/editor')) {
-    setupEditor();
+  setupEditor();
 } else {
-    setupGame();
+  setupGame();
 }
 pokeAttrs();
 stage.batchDraw();
