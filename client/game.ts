@@ -22,9 +22,7 @@ import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
 import { addStat, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
-import { clamp, numberToDate, today } from "./utils";
-import { raw } from "express";
-
+import { numberToDate, today } from "./utils";
 
 let sound: Howl | null = null;
 let soundPath = '';
@@ -34,7 +32,6 @@ const colorHintPath = theme.colorHintPath;
 const scoreGradient = theme.scoreGradient;
 let shooting: Shooting | null = null;
 let tracePreview: TracePreview | null = null;
-let target: Target | null = null;
 const traceShapeTypes = 3;
 
 let startRectangle = new Konva.Rect({
@@ -85,17 +82,16 @@ interface Frame {
 }
 
 class Target {
-  pos = new Point(10, 10);
-  rectSize = new Point();
+  private pos = new Point(-10, -10);
   circle: Konva.Circle;
-  skew = 2;
+  maxMultiplier = 2;
   next = new Point();
-  v = 0.1;
+  private v = 0.1;
   shapes: Konva.Shape[] = [];
   moving: boolean = false;
-  offset = new Point();
+  private _offset = new Point();
   multiplier: number = 1;
-  r = 6;
+  private dirty = false;
   constructor() {
     this.circle = new Konva.Circle({
       radius: 6,
@@ -103,8 +99,10 @@ class Target {
       strokeWidth: 2,
       position: this.pos,
     });
-    this.addShape(this.circle);
-    this.onSettingsUpdated();
+    // As it's called before layer is created.
+    window.setTimeout(()=>{
+      this.addShape(this.circle);
+    });
   }
   addShape(s: Konva.Shape) {
     layer.add(s);
@@ -116,7 +114,6 @@ class Target {
   onSettingsUpdated() {
     this.moving = aMovingTarget.get();
     this.v = aTargetSpeed.get() * scale() * this.multiplier / 1000;
-    this.rectSize = startRect.bottomRight.sub(startRect.topLeft);
     if (this.moving && !pointInRect(this.pos, startRect)) {
       this.pos.x = Math.max(0, (startRect.topLeft.x + startRect.bottomRight.x) / 2);
       this.pos.y = Math.max(0, (startRect.topLeft.y + startRect.bottomRight.y) / 2);
@@ -129,35 +126,47 @@ class Target {
     d.y *= Math.random();
     d.add(startRect.topLeft);
     this.next = d;
-    this.multiplier = 1 + Math.random() * (this.skew - 1);
+    this.multiplier = 1 + Math.random() * (this.maxMultiplier - 1);
     if (!this.moving) this.multiplier = 1;
     this.v = aTargetSpeed.get() * scale() * this.multiplier / 1000;
+    this.circle.radius(6 * this.multiplier * scale());
+    this.dirty = true;
   }
   frame(f: Frame): boolean {
+    let update = this.dirty;
     if (this.moving) {
       let d = this.next.clone().sub(this.pos);
-      let dtl = this.pos.clone().sub(startRect.topLeft);
-      let s = 1 + this.skew * clamp(dtl.y / this.rectSize.y, 0, 1);
-      const move = f.timeDiff * this.v ;
+      const move = f.timeDiff * this.v;
       if (d.length() < move) {
         this.pickNext();
         d = this.next.clone().sub(this.pos);
       }
       this.pos.add(d.s(move / d.length()));
+      update = true;
     }
-    this.r = 6 * this.multiplier;
-    this.circle.radius(this.r * scale());
-    // TODO: sometimes this does not change anything, watch own pos / offset.
-    this.circle.position(this.absolutePos());
-    return true;
+    if (update) {
+      this.circle.position(this.pos);
+      this.circle.offset(this._offset);
+      this.dirty = false;
+    }
+    return update;
   }
-  radius() {
-    return this.r;
+  position(p?: Point): Point {
+    if (p) {
+      this.pos = p;
+      this.dirty = true;
+    }
+    return this.pos.clone();
   }
-  absolutePos() {
-    return this.pos.clone().add(this.offset);
+  offset(p?: Point): Point {
+    if (p) {
+      this._offset = p;
+      this.dirty = true;
+    }
+    return this._offset;
   }
 }
+let target: Target = new Target();
 
 export function trialSetup(): TrialSetup {
   const weapon = getAttr('weapon');
@@ -166,7 +175,8 @@ export function trialSetup(): TrialSetup {
   return {
     weapon,
     mag,
-    hint: getAttr('hint'),
+    hint: getAttr('hint') == 'true',
+    moving: aMovingTarget.get(),
   };
 }
 
@@ -304,7 +314,7 @@ class TracePreview {
     const [line, circles] = drawPattern(pattern, n, patternBox[0].clone().s(-1).add(new Point(50, 50)), sc);
     this.addShape(line as Konva.Line);
     (circles as Konva.Circle[]).forEach(c => this.addShape(c));
-    target?.onSettingsUpdated();
+    target.onSettingsUpdated();
     redraw();
   }
   addShape(s: Konva.Shape) {
@@ -343,13 +353,12 @@ function redrawStartRectangle() {
   startRectangle.y(Math.max(1, topLeft.y));
   startRectangle.width(wh.x);
   startRectangle.height(wh.y);
-  
   startRect = {
     topLeft,
     bottomRight
   };
-  target?.onSettingsUpdated();
-  redraw();
+  target.onSettingsUpdated();
+  // redraw();
 }
 
 // function clear() {
@@ -474,7 +483,6 @@ class Shooting {
   mag = 1;
   speed = 1;
   hitMarker = new Konva.Circle();
-  hitCursors: Point[] = [];
   hitVectors: Point[] = [];
   pattern: Point[] = [];
   hitScores: number[] = [];
@@ -536,29 +544,13 @@ class Shooting {
       sound.play();
     }
     for (let i = 0; i < traceShapeTypes; i++) this.traceShapes.push([]);
-    this.showHint = getAttr('hint') == 'true';
+    this.showHint = (getAttr('hint') == 'true') && !this.movingTarget;
     this.hintGroup.visible(this.showHint);
     // Target.
     if (!this.movingTarget) {
-      target!.pos = this.startPos.clone();
-      target!.offset = new Point();
-      // target.onSettingsUpdated();
+      target.position(this.startPos.clone());
+      target.offset(new Point());
     }
-    // const target = new Konva.Circle({
-    //   radius: 2 + 4 * sc,
-    //   stroke: colorStartCircle,
-    //   strokeWidth: 1 + 1 * sc,
-    //   position: this.center.plain(),
-    // });
-    // if (this.recoilTarget) {
-    //   this.wallGroup.add(target);
-    // } else {
-    //   if (this.showHint) {
-    //     this.recoilGroup.add(target);
-    //   } else {
-    //     this.addShape(target);
-    //   }
-    // }
     this.pattern = this.weapon.x.map((x, idx) => {
       return new Point(x, this.weapon.y[idx]).s(sc);
     });
@@ -611,21 +603,20 @@ class Shooting {
     }
     this.wallGroup.offset(vRecoilCompensated);
     if (this.recoilTarget) {
-      target!.offset = vRecoilCompensated.clone().s(-1);
+      target.offset(vRecoilCompensated.clone());
     } else {
-      if (this.showHint) {
-        target!.offset = vRecoilNextFrame.clone().s(-1);
+      if (this.showHint && !this.movingTarget) {
+        target.offset(vRecoilNextFrame.clone());
       }
     }
     // Register new shots.
     while (this.hitIndex < i) {
       this.hitIndex++;
       const p = this.pattern[this.hitIndex];
-      this.hitCursors.push(cur);
-      this.hitVectors.push(cur.clone().sub(target!.pos));
+      this.hitVectors.push(cur.clone().sub(target.position()));
       let hit = cur.clone().add(p);
-      const rawDistance = hit.distance(target!.pos) / sc;
-      let s = distanceScore(rawDistance, target!.multiplier);
+      const rawDistance = hit.distance(target.position()) / sc;
+      let s = distanceScore(rawDistance, target.multiplier);
       this.hitScores.push(s);
       this.score += s;
       this.hitMarker.radius(this.recoilTarget ? 1 : 2);
@@ -674,8 +665,7 @@ class Shooting {
     });
     txt.position(this.startPos.clone().add(new Point(20, -10)).plain());
     this.addShape(txt);
-    // if (!this.movingTarget) {
-      // Display trail.
+    // Display trail.
     this.hitVectors.forEach((v, idx) => {
       const p = this.pattern[idx];
       const c = this.startPos.clone().add(v);
@@ -700,11 +690,10 @@ class Shooting {
       this.hintGroup.add(ln);
     });
     this.displayTace();
-    // }
-    this.hintGroup.offset(new Point(0, 0));
-    this.wallGroup.offset(new Point(0, 0));
-    this.recoilGroup.offset(new Point(0, 0));
-    target!.offset = new Point();
+    this.hintGroup.offset(new Point());
+    this.wallGroup.offset(new Point());
+    this.recoilGroup.offset(new Point());
+    target.offset(new Point());
     this.crossHair?.visible(false);
     stage.container().classList.remove('no-cursor');
     if (getAttr('toggle-modes') == 'true') setAttr('hint', `${!this.showHint}`);
@@ -757,24 +746,21 @@ export function setupGame() {
   instructionsControls();
   weaponControls();
   statControls();
-  target = new Target();
   watchAttr(['weapon', 'mag', 'sens'], () => {
     tracePreview?.clear();
     tracePreview = new TracePreview();
     redrawStartRectangle();
-    target?.onSettingsUpdated();
-    redraw();
   });
   watchAttr(['sens'], () => {
-    target?.onSettingsUpdated();
+    target.onSettingsUpdated();
   });
   window.addEventListener('resize', () => {
     redrawStartRectangle();
-    target?.onSettingsUpdated();
   });
   aShowDetailedStats.watch(redrawStartRectangle);
   aShowInstructions.watch(redrawStartRectangle);
   watchAttr(['stats', 'mag', 'weapon', 'hint'], showStats);
+  aMovingTarget.watch(showStats); // TODO add watching of multiple obj attributes.
   watchAttr(['speed'], (v: string) => {
     const b = document.getElementById('speed-value');
     if (!b) return;
@@ -814,20 +800,16 @@ export function setupGame() {
     }
   });
   aMovingTarget.watch((v: boolean) => {
-    target!.onSettingsUpdated();
-    redraw();
+    target.onSettingsUpdated();
   });
   aTargetSpeed.watch((v: number) => {
     const e = document.getElementById("target-speed-value");
-    if (e) e.innerText = `${v}..${v*target!.skew}`;
-    target!.onSettingsUpdated();
+    if (e) e.innerText = `${v}..${v*target.maxMultiplier}`;
+    target.onSettingsUpdated();
   });
   animation = new Konva.Animation((f: any) => {
-    let updated = false;
-    if (shooting != null) {
-      updated = shooting.frame();
-    }
-    updated = target!.frame(f) || updated;
+    let updated = target.frame(f);
+    if (shooting != null) updated = shooting.frame() || updated;
     return updated;
   }, [layer]);
   animation.start();

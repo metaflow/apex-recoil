@@ -1,7 +1,7 @@
 import { getAttr, setAttr } from "./storage";
 import { today } from "./utils";
 
-const statsDataVersion = 2;
+const statsDataVersion = 3;
 export let stats: TrialStats[] = [];
 
 export function percentile(values: number[], p: number) {
@@ -19,7 +19,8 @@ export function percentile(values: number[], p: number) {
 export interface TrialSetup {
   weapon: string;
   mag: string;
-  hint: string;
+  hint: boolean;
+  moving: boolean;
 }
 
 // [day (2021-04-30 is represented as 20210430), count, median, best].
@@ -35,60 +36,70 @@ interface TrialStats {
 };
 
 export function loadStats() {
+  // console.log('stats raw', JSON.parse(getAttr('stats')));
   JSON.parse(getAttr('stats')).forEach((t: any) => {
-      const s = t['setup'];
-      if (s === undefined) return;
-      const version = t['v'];
-      if (version == null) {
-          // Initial unversioned storage.
-          if (s['barrel'] != null && s['barrel'] != '0') return;
-          if (s['stock'] != null && s['stock'] != '0') return;
-          const setup: TrialSetup = {
-              weapon: s['weapon'] || '',
-              mag: s['mag'] || '0',
-              hint: s['hint'] || 'true',
-          };
-          const st: TrialStats = {
-              v: statsDataVersion,
-              setup,
-              today: 20210423,
-              dayResults: t['days'].map((d: number, i: number) => {
-                  const z: DayResults = [
-                      (Math.floor(d / 100) + 1) * 100 + d % 100 + 1,
-                      0,
-                      t['medianByDay'][i],
-                      t['bestByDay'][i],
-                  ];
-                  return z;
-              }),
-              todayResults: t['todayResults'] || [],
-              bestAllTime: t.bestAllTime,
-          }
-          stats.push(st);
-      } else if (version == 1) {
-          // Delete entries that have only "path visible" set.
-          if (s['hint'] == 'true' && s['pacer'] == 'false') return;
-          t['v'] = 2;
-          delete(s['pacer']);
-          stats.push(t);
-      } else {
-          stats.push(t);
+    const s = t['setup'];
+    if (s === undefined) return;
+    let version = t['v'];
+    if (version == null) {
+      // Initial unversioned storage.
+      if (s['barrel'] != null && s['barrel'] != '0') return;
+      if (s['stock'] != null && s['stock'] != '0') return;
+      const setup: TrialSetup = {
+        weapon: s['weapon'] || '',
+        mag: s['mag'] || '0',
+        hint: s['hint'] || 'true',
+        moving: false,
+      };
+      const st: TrialStats = {
+        v: statsDataVersion,
+        setup,
+        today: 20210423,
+        dayResults: t['days'].map((d: number, i: number) => {
+          const z: DayResults = [
+            (Math.floor(d / 100) + 1) * 100 + d % 100 + 1,
+            0,
+            t['medianByDay'][i],
+            t['bestByDay'][i],
+          ];
+          return z;
+        }),
+        todayResults: t['todayResults'] || [],
+        bestAllTime: t.bestAllTime,
       }
+      t = st;
+      stats.push(st);
+      version = 1;
+    }
+    if (version == 1) {
+      // Delete entries that have only "path visible" set.
+      if (s['hint'] == 'true' && s['pacer'] == 'false') return;
+      delete (s['pacer']);
+      version = 2;
+    }
+    if (version == 2) {
+      s['moving'] = false;
+      s['hint'] = s['hint'] == 'true';
+      version = 3;
+    }
+    t['v'] = statsDataVersion;
+    stats.push(t);
   });
   stats.forEach(s => touchStat(s));
+  // console.log('loaded', stats);
 }
 
 function touchStat(s: TrialStats) {
   const t = today();
   if (s.today == t) return;
   if (s.todayResults.length > 0) {
-      const r: DayResults = [
-          s.today,
-          s.todayResults.length,
-          percentile(s.todayResults, 0.5),
-          percentile(s.todayResults, 1)
-      ];
-      s.dayResults.push(r);
+    const r: DayResults = [
+      s.today,
+      s.todayResults.length,
+      percentile(s.todayResults, 0.5),
+      percentile(s.todayResults, 1)
+    ];
+    s.dayResults.push(r);
   }
   s.todayResults = [];
   s.today = t;
@@ -106,13 +117,14 @@ export function distanceScore(x: number, h: number) {
 
 export function statsForSetup(c: TrialSetup): TrialStats | undefined {
   return stats.find(x => {
-      try {
-          return x.setup.weapon == c.weapon &&
-              x.setup.mag == c.mag &&
-              x.setup.hint == c.hint;
-      } catch {
-          return false;
-      }
+    try {
+      return x.setup.weapon == c.weapon &&
+        x.setup.mag == c.mag &&
+        x.setup.hint == c.hint &&
+        x.setup.moving == c.moving;
+    } catch {
+      return false;
+    }
   });
 }
 
@@ -120,15 +132,15 @@ export function addStat(v: number, setup: TrialSetup): TrialStats {
   let s = statsForSetup(setup);
   const t = today();
   if (s === undefined) {
-      s = {
-          v: statsDataVersion,
-          setup,
-          bestAllTime: 0,
-          today: t,
-          todayResults: [],
-          dayResults: [],
-      };
-      stats.push(s);
+    s = {
+      v: statsDataVersion,
+      setup,
+      bestAllTime: 0,
+      today: t,
+      todayResults: [],
+      dayResults: [],
+    };
+    stats.push(s);
   }
   if (s === undefined) throw new Error('no stat');
   touchStat(s);
