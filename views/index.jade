@@ -99,6 +99,10 @@ block content
           p
             input(type='checkbox' id='moving-target')
             | Moving target&nbsp;
+          div
+            //- img(src="/speed_white_24dp.svg" alt="speed control")
+            input.slider#target-speed(type='range' min="1" max="300" step="1")
+            span#target-speed-value
           #sound-control
             #toggle-mute
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted

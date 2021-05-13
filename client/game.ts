@@ -17,7 +17,7 @@
 import { Howl } from "howler";
 import Konva from "konva";
 import { cursor, layer, stage } from "./main";
-import { resumeAttrUpdates, setAttr, getAttr, initAttr, attrInput, attrNamespace, createAttrFunc, suspendAttrUpdates, watchAttr, BooleanAttribute } from './storage';
+import { resumeAttrUpdates, setAttr, getAttr, initAttr, attrInput, attrNamespace, createAttrFunc, suspendAttrUpdates, watchAttr, BooleanAttribute, NumericAttribute } from './storage';
 import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
@@ -54,7 +54,8 @@ const aStationaryTarget = new BooleanAttribute('stationary-target', NS, true);
 const aShowDetailedStats = new BooleanAttribute('show-detailed-stats', NS, false);
 const aShowSensitivityWarn = new BooleanAttribute('show-sensitivity-warn', NS, false);
 const aShowInstructions = new BooleanAttribute('show-instructions', NS, true);
-const aMovingTarget = new BooleanAttribute('moving-target', NS, false)
+const aMovingTarget = new BooleanAttribute('moving-target', NS, false);
+const aTargetSpeed = new NumericAttribute('target-speed', NS, 100);
 
 export interface MagInfo {
   size: number;
@@ -87,12 +88,13 @@ class Target {
   pos = new Point(10, 10);
   rectSize = new Point();
   circle: Konva.Circle;
-  skew = 6;
+  skew = 2;
   next = new Point();
   v = 0.1;
   shapes: Konva.Shape[] = [];
   moving: boolean = false;
   offset = new Point();
+  multiplier: number = 1;
   r = 6;
   constructor() {
     this.circle = new Konva.Circle({
@@ -113,37 +115,37 @@ class Target {
   }
   onSettingsUpdated() {
     this.moving = aMovingTarget.get();
-    this.v = 50 * scale() / 1000;
+    this.v = aTargetSpeed.get() * scale() * this.multiplier / 1000;
     this.rectSize = startRect.bottomRight.sub(startRect.topLeft);
     if (this.moving && !pointInRect(this.pos, startRect)) {
       this.pos.x = Math.max(0, (startRect.topLeft.x + startRect.bottomRight.x) / 2);
       this.pos.y = Math.max(0, (startRect.topLeft.y + startRect.bottomRight.y) / 2);
     }
-    if (!pointInRect(this.next, startRect)) this.pickNext();
+    this.pickNext();
   }
   pickNext() {
     const d = startRect.bottomRight.clone().sub(startRect.topLeft);
-    // console.log('vd', d, this.screenRect);
     d.x *= Math.random();
     d.y *= Math.random();
     d.add(startRect.topLeft);
     this.next = d;
+    this.multiplier = 1 + Math.random() * (this.skew - 1);
+    if (!this.moving) this.multiplier = 1;
+    this.v = aTargetSpeed.get() * scale() * this.multiplier / 1000;
   }
   frame(f: Frame): boolean {
     if (this.moving) {
       let d = this.next.clone().sub(this.pos);
       let dtl = this.pos.clone().sub(startRect.topLeft);
       let s = 1 + this.skew * clamp(dtl.y / this.rectSize.y, 0, 1);
-      const move = f.timeDiff * this.v * s;
+      const move = f.timeDiff * this.v ;
       if (d.length() < move) {
         this.pickNext();
         d = this.next.clone().sub(this.pos);
       }
       this.pos.add(d.s(move / d.length()));
-      this.r = 6 * s;
-    } else {
-      this.r = 6;
     }
+    this.r = 6 * this.multiplier;
     this.circle.radius(this.r * scale());
     // TODO: sometimes this does not change anything, watch own pos / offset.
     this.circle.position(this.absolutePos());
@@ -473,6 +475,7 @@ class Shooting {
   speed = 1;
   hitMarker = new Konva.Circle();
   hitCursors: Point[] = [];
+  hitVectors: Point[] = [];
   pattern: Point[] = [];
   hitScores: number[] = [];
   showHint = true;
@@ -520,7 +523,7 @@ class Shooting {
   start() {
     this.start_t = Date.now();
     const cur = cursor();
-    this.startPos = cursor();
+    this.startPos = cur.clone();
     suspendAttrUpdates();
     this.weapon = weapons.get(getAttr('weapon'))!;
     if (this.weapon == null) throw Error("weapon not found");
@@ -537,7 +540,7 @@ class Shooting {
     this.hintGroup.visible(this.showHint);
     // Target.
     if (!this.movingTarget) {
-      target!.pos = cursor();
+      target!.pos = this.startPos.clone();
       target!.offset = new Point();
       // target.onSettingsUpdated();
     }
@@ -560,21 +563,19 @@ class Shooting {
       return new Point(x, this.weapon.y[idx]).s(sc);
     });
     {
-      const [ln, circles] = drawPattern(this.pattern, this.mag, target!.absolutePos(), sc);
+      const [ln, circles] = drawPattern(this.pattern, this.mag, this.startPos.clone(), sc);
       this.hintGroup.add(ln as Konva.Line);
       (circles as Konva.Circle[]).forEach(c => this.hintGroup.add(c));
     }
     // Replace cursor with a fixed point.
-    if (this.recoilTarget) {
+    if (this.recoilTarget || !this.showHint) {
       this.crossHair = new Konva.Circle({
         radius: 2,
         fill: 'red',
         position: cur.plain(),
       });
       this.addShape(this.crossHair);
-    }
-    if (this.recoilTarget || !this.showHint) {
-      // stage.container().classList.add('no-cursor');
+      stage.container().classList.add('no-cursor');
     }
     this.frame();
     stage.batchDraw();
@@ -593,24 +594,27 @@ class Shooting {
 
   frame(): boolean {
     if (this.finished) return false;
-    this.fpsText.text(`FPS: ${Math.round(1000 * this.totalFrames / (Date.now() - this.start_t))}`);[[[[[[[[[]]]]]]]]]
+    this.fpsText.text(`FPS: ${Math.round(1000 * this.totalFrames / (Date.now() - this.start_t))}`);
     this.totalFrames++;
     const sc = scale();
     const cur = cursor();
     const dCur = cur.clone().sub(this.startPos);
-    if (this.recoilTarget) this.hintGroup.offset(dCur);
     const frame_t = (Date.now() - this.start_t) * this.speed + 8; // Add half frame.
     let [vRecoil, i] = this.recoilVector(frame_t, this.hitIndex);
     let [vRecoilNextFrame, _] = this.recoilVector(frame_t + 24, i);
     this.recoilGroup.offset(vRecoilNextFrame);
     const vRecoilCompensated = vRecoil.clone().add(dCur);
+    if (this.recoilTarget) {
+      this.hintGroup.offset(dCur);
+    } else {
+      this.crossHair?.offset(vRecoilCompensated.clone().s(-1));
+    }
     this.wallGroup.offset(vRecoilCompensated);
     if (this.recoilTarget) {
       target!.offset = vRecoilCompensated.clone().s(-1);
     } else {
       if (this.showHint) {
         target!.offset = vRecoilNextFrame.clone().s(-1);
-        // this.recoilGroup.add(target);
       }
     }
     // Register new shots.
@@ -618,9 +622,10 @@ class Shooting {
       this.hitIndex++;
       const p = this.pattern[this.hitIndex];
       this.hitCursors.push(cur);
+      this.hitVectors.push(cur.clone().sub(target!.pos));
       let hit = cur.clone().add(p);
       const rawDistance = hit.distance(target!.pos) / sc;
-      let s = distanceScore(rawDistance, target!.radius());
+      let s = distanceScore(rawDistance, target!.multiplier);
       this.hitScores.push(s);
       this.score += s;
       this.hitMarker.radius(this.recoilTarget ? 1 : 2);
@@ -656,7 +661,7 @@ class Shooting {
     this.score = Math.max(0, Math.min(1, this.score));
     const x = Math.round(100 * this.score);
     if (this.speed == 1) addStat(x, trialSetup());
-    this.hintGroup.visible(!this.movingTarget);
+    this.hintGroup.visible(true);
     this.hitMarkers.forEach(m => m.radius(2));
     const txt = new Konva.Text({
       text: `${x}`,
@@ -669,31 +674,33 @@ class Shooting {
     });
     txt.position(this.startPos.clone().add(new Point(20, -10)).plain());
     this.addShape(txt);
-    if (!this.movingTarget) {
+    // if (!this.movingTarget) {
       // Display trail.
-      this.hitCursors.forEach((cur, idx) => {
-        const p = this.pattern[idx];
-        let traceTarget = this.startPos.clone().sub(p);
-        const clr = gradientColor(this.hitScores[idx]);
-        const b = new Konva.Circle({
-          radius: 2,
-          fill: clr,
-          position: cur.plain(),
-          visible: false,
-        });
-        this.hintGroup.add(b);
-        this.traceShapes[1].push(b);
-        const c = new Konva.Line({
-          points: [cur.x, cur.y, traceTarget.x, traceTarget.y],
-          stroke: clr,
-          strokeWidth: 1,
-          visible: false,
-        });
-        this.traceShapes[2].push(c);
-        this.hintGroup.add(c);
+    this.hitVectors.forEach((v, idx) => {
+      const p = this.pattern[idx];
+      const c = this.startPos.clone().add(v);
+      let traceTarget = this.startPos.clone().sub(p);
+      const clr = gradientColor(this.hitScores[idx]);
+      const b = new Konva.Circle({
+        radius: 2,
+        fill: clr,
+        position: this.startPos.clone().add(v),
+        visible: false,
       });
-      this.displayTace();
-    }
+      (this.traceShapes[0][idx] as Konva.Circle).position(v.clone().add(p).add(this.startPos));
+      this.hintGroup.add(b);
+      this.traceShapes[1].push(b);
+      const ln = new Konva.Line({
+        points: [c.x, c.y, traceTarget.x, traceTarget.y],
+        stroke: clr,
+        strokeWidth: 1,
+        visible: false,
+      });
+      this.traceShapes[2].push(ln);
+      this.hintGroup.add(ln);
+    });
+    this.displayTace();
+    // }
     this.hintGroup.offset(new Point(0, 0));
     this.wallGroup.offset(new Point(0, 0));
     this.recoilGroup.offset(new Point(0, 0));
@@ -705,7 +712,7 @@ class Shooting {
     redraw();
   }
   displayTace() {
-    if (this.movingTarget) return;
+    // if (this.movingTarget) return;
     const d = Number(getAttr('trace-mode')) % traceShapeTypes;
     this.traceShapes.forEach((sh, i) => sh.forEach(s => s.visible(i == d)));
   }
@@ -809,7 +816,12 @@ export function setupGame() {
   aMovingTarget.watch((v: boolean) => {
     target!.onSettingsUpdated();
     redraw();
-  })
+  });
+  aTargetSpeed.watch((v: number) => {
+    const e = document.getElementById("target-speed-value");
+    if (e) e.innerText = `${v}..${v*target!.skew}`;
+    target!.onSettingsUpdated();
+  });
   animation = new Konva.Animation((f: any) => {
     let updated = false;
     if (shooting != null) {

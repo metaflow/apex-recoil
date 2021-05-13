@@ -174,3 +174,19 @@ export class BooleanAttribute extends Attribute {
     watchAttr(this.name, (v: string) => f(v == 'true'), this.namespace);
   }
 }
+
+
+export class NumericAttribute extends Attribute {
+  constructor(name: string, namespace: string, def: number) {
+    super(name, namespace, def.toString());
+  }
+  get(): number {
+    return Number(this.getRaw());
+  }
+  set(value: number) {
+    this.setRaw(value.toString());
+  }
+  watch(f: (a: number) => void) {
+    watchAttr(this.name, (v: string) => f(this.get()), this.namespace);
+  }
+}
