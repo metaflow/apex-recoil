@@ -17,7 +17,7 @@
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
 import { cursor, layer, stage } from "./main";
-import { watchAttr, setAttr, getAttr, initAttr, attrInput, attrNamespace, attrNumericInput } from './storage';
+import { watchAttr, attrNamespace, NumericAttribute, StringAttribute, BooleanAttribute } from './storage';
 import { PlainPoint, Point } from "./point";
 import specs from './specs.json';
 
@@ -35,30 +35,31 @@ let auto_points: Konva.Circle[] = [];
 let edgeStartName = '';
 let idxCounter = 0;
 let imageMask = new Array<Array<number>>();
-const attrConnectHover = 'connect-hover';
 const NS = 'editor';
+const aDistance = new NumericAttribute('distance', NS, 100);
+const aWeapon = new StringAttribute('weapon', NS, 'r301');
+const aStock = new NumericAttribute('stock', NS, 0);
+const aBarrel = new NumericAttribute('barrel', NS, 0);
+const aPoints = new StringAttribute('points', NS, '[]');
+const aEdges = new StringAttribute('edges', NS, '[]');
+const aImageData = new StringAttribute('imagedata', NS, '[]');
+const aAnchors = new StringAttribute('anchors', NS, '[]');
+const aThreshold = new NumericAttribute('threshold', NS, 0);
+const aSens = new NumericAttribute('sens', NS, 5);
+const aTargetFrom = new NumericAttribute('target-from', NS, 0);
+const aTargetTo = new NumericAttribute('target-to', NS, 0);
+const aEnableThreshold = new BooleanAttribute('enable-threshold', NS, true);
+const aAutoTargets = new BooleanAttribute('auto-targets', NS, true);
+const aConnectHover = new BooleanAttribute('connect-hover', NS, true);
+const aComment =  new StringAttribute('comment', NS, '');
 
 export function setupEditor() {
   attrNamespace(NS);
-  initAttr('distance', '100');
-  initAttr('weapon', 'r301');
-  initAttr('stock', '0');
-  initAttr('barrel', '0');
-  initAttr('points', '[]');
-  initAttr('edges', '[]');
-  initAttr('anchors', '[]');
-  initAttr('threshold', '0');
-  initAttr('target-from', '10');
-  initAttr('target-to', '100');
-  initAttr('enable-threshold', 'true');
-  initAttr('auto-targets', 'true');
-  initAttr(attrConnectHover, 'true');
+
 
   setupControls();
   initImage();
   loadSpecs();
-
-  // layer.add(line);
 
   watchAttr('comment', (v: string) => {
     const comment = document.getElementById('comment');
@@ -69,13 +70,11 @@ export function setupEditor() {
   });
   watchAttr(['cpi', 'sens', 'distance', 'weapon', 'barrel', 'stock', 'comment'],
     updateSpec);
-
-  // hotkeys('ctrl+z', undo); TODO: delete current edge start
   (document.getElementById('accept-auto') as HTMLButtonElement)?.addEventListener('click', acceptAuto);
   (document.getElementById('clear') as HTMLButtonElement)?.addEventListener('click', clear);
-  const attAnchors = JSON.parse(getAttr('anchors'));
-  const attPoints = JSON.parse(getAttr('points'));
-  const attEdges = JSON.parse(getAttr('edges'));
+  const attAnchors = JSON.parse(aAnchors.get());
+  const attPoints = JSON.parse(aPoints.get());
+  const attEdges = JSON.parse(aEdges.get());
   attAnchors.forEach((x: string) => anchors.add(x));
   attPoints.forEach((p: [string, number, number]) => addPoint({ x: p[1], y: p[2] }, p[0]));
   attEdges.forEach((v: [string, string]) => addEdge(v[0], v[1]));
@@ -137,40 +136,28 @@ function clear() {
   anchors.clear();
   layer.destroyChildren();
   edgeStartName = '';
-  setAttr('imagedata', getAttr('imagedata'));
+  aImageData.set(aImageData.get()); // TODO: just poke.
   updateShapes();
   stage.batchDraw();
 };
 
 function setupControls() {
-  attrInput('weapon', NS);
-  attrInput('barrel', NS);
-  attrInput('stock', NS);
-  attrInput('comment', NS);
-  attrInput('distance', NS);
-  attrNumericInput('threshold', NS);
-  attrNumericInput('target-from', NS);
-  attrNumericInput('target-to', NS);
-  attrInput('enable-threshold', NS);
-  attrInput('auto-targets', NS);
-  attrInput(attrConnectHover, NS);
-
   const fileSelector = document.getElementById('file-selector') as HTMLInputElement;
   fileSelector?.addEventListener('change', () => {
     const fileList = fileSelector.files;
     if (fileList == null) return;
     const file = fileList.item(0);
     if (!file) return;
-    setAttr('comment', file.name);
+    aComment.set(file.name);
     const mm = file.name.match(/(?:.* )?([0-9.]+)\.png/)
     if (mm != null) {
       console.log(mm);
-      setAttr('distance', mm[1]);
+      aDistance.set(Number(mm[1]));
     }
     const reader = new FileReader();
     reader.addEventListener('load', (event) => {
       clear();
-      setAttr('imagedata', (event.target?.result as string) || '')
+      aImageData.set((event.target?.result as string) || '');
     });
     reader.readAsDataURL(file);
   });
@@ -210,7 +197,7 @@ function addPoint(p: PlainPoint, name: string) {
     stage.batchDraw();
   });
   c.on('mouseover', function (e) {
-    if (getAttr(attrConnectHover) === 'false') return;
+    if (!aConnectHover.get()) return;
     if (edgeStartName == '') return;
     if (edges.find(e => e.from == c.name() || e.to == c.name())) return;
     addEdge(edgeStartName, c.name());
@@ -283,24 +270,24 @@ function addEdge(a: string, b: string) {
   }
 }
 
+function selectedWeapon(): Weapon {
+  const w = weapons.get(aWeapon.get());
+  if (w == null) throw Error("weapon not found");
+  return w;
+}
+
 function updateSpec(_?: string) {
-  setAttr('points', JSON.stringify(Array.from(points.entries())
+  aPoints.set(JSON.stringify(Array.from(points.entries())
     .map((v: [string, Konva.Circle]) => [v[0], v[1].x(), v[1].y()])));
-  setAttr('anchors', JSON.stringify(Array.from(anchors.values())));
-  setAttr('edges', JSON.stringify(edges.map(e => [e.from, e.to])));
-  let cpi = Number(getAttr('cpi'));
-  let sens = Number(getAttr('sens'));
-  let distance = Number(getAttr('distance'));
-  if (isNaN(cpi) || isNaN(sens) || isNaN(distance)) {
+  aAnchors.set(JSON.stringify(Array.from(anchors.values())));
+  aEdges.set(JSON.stringify(edges.map(e => [e.from, e.to])));
+  let sens = aSens.get();
+  let distance = aDistance.get();
+  if (isNaN(sens) || isNaN(distance)) {
     setText('invalid value of one of the params');
     return;
   }
-  const w = weapons.get(getAttr('weapon'));
-  if (w == null) {
-    setText('unknown weapon');
-    return;
-  }
-
+  const w = selectedWeapon();
   let idx = Array.from(anchors.values());
   idx.forEach(x => {
     if (!points.has(x)) anchors.delete(x);
@@ -340,10 +327,10 @@ function updateSpec(_?: string) {
   const ort = pp[0];
   pp = pp.map(p => p.clone().sub(ort));
   const spec = {
-    weapon: getAttr('weapon'),
-    barrel: getAttr('barrel'),
-    stock: getAttr('stock'),
-    comment: getAttr('comment'),
+    weapon: aWeapon.get(),
+    barrel: aBarrel.get(),
+    stock: aStock.get(),
+    comment: aComment.get(),
     x: pp.map(p => Math.round(p.x * 10) / 10),
     y: pp.map(p => Math.round(p.y * 10) / 10),
   };
@@ -369,8 +356,8 @@ function loadSpecs() {
 function autoFilter(imageData: ImageData) {
   auto_points.forEach(p => p.remove());
   auto_points = [];
-  const showThreshold = getAttr('enable-threshold') == 'true';
-  const th = Number(getAttr('threshold'));
+  const showThreshold = aEnableThreshold.get();
+  const th = aThreshold.get();
   const h = imageData.height;
   const w = imageData.width;
 
@@ -392,9 +379,9 @@ function autoFilter(imageData: ImageData) {
       }
     }
   }
-  if (getAttr('auto-targets') == 'false') return;
-  const targetFrom = Number(getAttr('target-from'));
-  const targetTo = Number(getAttr('target-to'));
+  if (!aAutoTargets.get()) return;
+  const targetFrom = aTargetFrom.get();
+  const targetTo = aTargetTo.get();
   const fill = (x: number, y: number): [number, number, number, number] => {
     if (x < 0 || x >= w || y < 0 || y >= h || imageMask[x][y] > 255) return [x, y, 1000, 0];
     let best: [number, number, number, number] = [x, y, imageMask[x][y], 1];
