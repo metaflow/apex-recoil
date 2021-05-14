@@ -17,7 +17,7 @@
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
 import { cursor, layer, stage } from "./main";
-import { watchAttr, attrNamespace, NumericAttribute, StringAttribute, BooleanAttribute } from './storage';
+import { NumericAttribute, StringAttribute, BooleanAttribute, watch } from './storage';
 import { PlainPoint, Point } from "./point";
 import specs from './specs.json';
 
@@ -54,22 +54,17 @@ const aConnectHover = new BooleanAttribute('connect-hover', NS, true);
 const aComment =  new StringAttribute('comment', NS, '');
 
 export function setupEditor() {
-  attrNamespace(NS);
-
-
   setupControls();
   initImage();
   loadSpecs();
-
-  watchAttr('comment', (v: string) => {
+  aComment.watch((v: string) => {
     const comment = document.getElementById('comment');
     if (comment != null) (comment as HTMLTextAreaElement).value = v;
   });
   stage.on('mousedown', function (e: Konva.KonvaEventObject<MouseEvent>) {
     addPoint(cursor().plain(), `${idxCounter}`);
   });
-  watchAttr(['cpi', 'sens', 'distance', 'weapon', 'barrel', 'stock', 'comment'],
-    updateSpec);
+  watch([aSens, aDistance, aWeapon, aBarrel, aStock, aComment], updateSpec);
   (document.getElementById('accept-auto') as HTMLButtonElement)?.addEventListener('click', acceptAuto);
   (document.getElementById('clear') as HTMLButtonElement)?.addEventListener('click', clear);
   const attAnchors = JSON.parse(aAnchors.get());
@@ -93,19 +88,13 @@ function acceptAuto() {
 }
 
 function initImage() {
-  watchAttr([
-    'threshold',
-    'enable-threshold',
-    'auto-targets',
-    'target-from',
-    'target-to'],
-    (v: string) => {
-      // TODO: all of that is needed?
-      img?.cache();
-      img?.draw();
-      stage.batchDraw();
-    });
-  watchAttr('imagedata', (s: string) => {
+  watch([aThreshold, aEnableThreshold, aAutoTargets, aTargetTo, aTargetFrom], () => {
+    // TODO: all of that is needed?
+    img?.cache();
+    img?.draw();
+    stage.batchDraw();
+  });
+  aImageData.watch((s: string) => {
     if (s === '') return;
     Konva.Image.fromURL(s, function (x: Konva.Image) {
       if (img != null) {
@@ -127,7 +116,6 @@ function initImage() {
       stage.batchDraw();
     });
   });
-
 }
 
 function clear() {
@@ -136,7 +124,7 @@ function clear() {
   anchors.clear();
   layer.destroyChildren();
   edgeStartName = '';
-  aImageData.set(aImageData.get()); // TODO: just poke.
+  aImageData.poke();
   updateShapes();
   stage.batchDraw();
 };
@@ -361,11 +349,9 @@ function autoFilter(imageData: ImageData) {
   const h = imageData.height;
   const w = imageData.width;
 
-  // const g = new Array<Array<number>>(w);
   for (let i = 0; i < w; i++) {
     for (let j = 0; j < h; j++) {
       const p = (j * w + i) * 4;
-      // const v = (imageData.data[p + 0] + imageData.data[p + 1] + imageData.data[p + 2]) / 3;
       const v = imageData.data[p + 0];
       if (v < th) {
         imageMask[i][j] = v;

@@ -17,11 +17,11 @@
 import { Howl } from "howler";
 import Konva from "konva";
 import { cursor, layer, stage } from "./main";
-import { resumeAttrUpdates, attrNamespace, suspendAttrUpdates, watchAttr, BooleanAttribute, NumericAttribute, StringAttribute } from './storage';
+import { resumeAttrUpdates, suspendAttrUpdates, BooleanAttribute, NumericAttribute, StringAttribute, watch } from './storage';
 import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
-import { addStat, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
+import { addStat, aStats, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
 import { clamp, numberToDate, today } from "./utils";
 
 let sound: Howl | null = null;
@@ -43,7 +43,7 @@ let startRect: Rect = {
   bottomRight: new Point(10, 10),
 };
 let pattern: Point[] = [];
-let patternBox: [Point, Point];
+let patternBox: [Point, Point] = [new Point(), new Point()];
 let animation: Konva.Animation | null = null;
 const NS = 'game:';
 const aStationaryTarget = new BooleanAttribute('stationary-target', NS, true);
@@ -105,7 +105,7 @@ class Target {
       position: this.pos,
     });
     // As it's called before layer is created.
-    window.setTimeout(()=>{
+    window.setTimeout(() => {
       this.addShape(this.circle);
     });
   }
@@ -232,12 +232,12 @@ function updateSound() {
 }
 
 function soundControls() {
-  watchAttr(['weapon', 'mag', 'mute'], updateSound);
+  watch([aWeapon, aMag, aMute], updateSound);
   const mute = (document.getElementById('muted') as HTMLImageElement);
   const unmute = (document.getElementById('unmuted') as HTMLImageElement);
   if (mute != null || unmute != null) {
-    watchAttr(['mute'], (v: string) => {
-      if (v == 'true') {
+    aMute.watch((v: boolean) => {
+      if (v) {
         unmute.classList.add('hidden');
         mute.classList.remove('hidden');
       } else {
@@ -375,15 +375,15 @@ function weaponControls() {
     const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
     if (d != null) d.addEventListener('click', () => aWeapon.set(s.name));
   });
-
-  watchAttr('weapon', (v: string) => {
+  
+  aWeapon.watch((v: string) => {
+    console.log('weapon updated', v);
     const s = document.querySelector(`#weapon-select .selected`) as HTMLDivElement;
     if (s != null) s.classList.remove('selected');
     const d = document.querySelector(`#weapon-select .${v}`) as HTMLDivElement;
     if (d == null) return;
     d.classList.add('selected');
   });
-
   for (let i = 0; i <= 3; i++) {
     const d = document.querySelector(`#mag-select .mag-${i}`) as HTMLDivElement;
     if (d != null) {
@@ -392,8 +392,7 @@ function weaponControls() {
       console.error(`#mag-select .mag-${i}`, 'not found');
     }
   }
-
-  watchAttr('mag', (v: string) => {
+  aMag.watch((v: number) => {
     const s = document.querySelector(`#mag-select .selected`) as HTMLDivElement;
     if (s != null) s.classList.remove('selected');
     const d = document.querySelector(`#mag-select .mag-${v}`) as HTMLDivElement;
@@ -477,7 +476,7 @@ class Shooting {
   hitScores: number[] = [];
   showHint = true;
   start_t = 0;
-  weapon: Weapon = {name: '', mags: [], x: [], y: [], timePoints: []};
+  weapon: Weapon = { name: '', mags: [], x: [], y: [], timePoints: [] };
   hitIndex = -1; // Position in the patter we already passed.
   hitMarkers: Konva.Circle[] = [];
   crossHair?: Konva.Circle;
@@ -708,20 +707,19 @@ export function setupGame() {
   * drawn onto the hit graph */
   layer.listening(false);
   layer.add(startRectangle);
-  attrNamespace('game:');
   loadStats();
   soundControls();
   instructionsControls();
   weaponControls();
   statControls();
-  watchAttr(['weapon', 'mag', 'sens'], () => {
+  watch([aWeapon, aMag, aSens], () => {
     if (shooting.running) return;
     shooting.clear();
     tracePreview?.clear();
     tracePreview = new TracePreview();
     redrawStartRectangle();
   });
-  watchAttr(['sens'], () => {
+  aSens.watch(() => {
     target.onSettingsUpdated();
   });
   window.addEventListener('resize', () => {
@@ -729,15 +727,15 @@ export function setupGame() {
   });
   aShowDetailedStats.watch(redrawStartRectangle);
   aShowInstructions.watch(redrawStartRectangle);
-  watchAttr(['stats', 'mag', 'weapon', 'hint'], showStats);
+  watch([aStats, aMag, aWeapon, aHint], showStats);
   aMovingTarget.watch(showStats); // TODO add watching of multiple obj attributes.
-  watchAttr(['speed'], (v: string) => {
+  {
     const b = document.getElementById('speed-value');
-    if (!b) return;
-    const s = Number(v);
-    b.innerText = s == 100 ? 'normal' : `x ${s / 100}`;
-  });
-  watchAttr('trace-mode', () => {
+    if (b) aFireSpeed.watch((s: number) => {
+      b.innerText = s == 100 ? 'normal' : `x ${s / 100}`;
+    });
+  }
+  aTraceMode.watch(() => {
     shooting.displayTace();
     redraw();
   });

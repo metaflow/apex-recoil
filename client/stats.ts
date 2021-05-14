@@ -4,7 +4,7 @@ import { today } from "./utils";
 
 const statsDataVersion = 3;
 export let stats: TrialStats[] = [];
-const aStats = new StringAttribute('stats', 'game:', '[]');
+export const aStats = new StringAttribute('stats', 'game:', '[]');
 
 export function percentile(values: number[], p: number) {
   const xx = values.map(x => x);

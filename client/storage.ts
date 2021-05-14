@@ -14,149 +14,100 @@
  * limitations under the License.
  */
 
-let _attrNamespace = '';
-type attrUpdateFn = (name: string, v: string) => void;
-let onAttrUpdates: attrUpdateFn[] = [];
-
-export function attrNamespace(v?: string): string {
-  if (v != null) _attrNamespace = v;
-  return _attrNamespace;
-}
-
-function getAttr(name: string, ns?: string): string {
-  ns = ns || _attrNamespace;
-  return localStorage.getItem(ns + ':' + name) || '';
-}
-
-function initAttr(name: string, def: string, ns?: string) {
-  ns = ns || _attrNamespace;
-  const s = ns + ':' + name;
-  if (localStorage.getItem(s) == null) localStorage.setItem(s, def);
-}
-
-function createAttrFunc(id: string, def: string) {
-  let firstCall = true;
-  return function (v?: string): string {
-    if (firstCall) {
-      initAttr(id, def);
-      firstCall = false;
-    }
-    if (v != null) {
-      setAttr(id, v);
-      return v;
-    }
-    return getAttr(id);
-  };
-}
-
 let attrUpdatesActive = true;
+let allAttributes: Attribute[] = [];
+
+export function pokeAttrs() {
+  allAttributes.forEach(a => a.poke());
+}
+
 export function suspendAttrUpdates() {
   attrUpdatesActive = false;
 }
 
 export function resumeAttrUpdates() {
+  allAttributes.forEach(a => {
+    if (a.dirty) {
+      a.dirty = false;
+      a.poke();
+    }
+  });
   attrUpdatesActive = true;
 }
 
-function setAttr(name: string, value: string, ns?: string) {
-  ns = ns || _attrNamespace;
-  localStorage.setItem(ns + ':' + name, value);
-  if (attrUpdatesActive) {
-    onAttrUpdates.forEach(f => f(ns + ':' + name, value));
-  }
+export function watch(attrs: Attribute[], fn: () => void) {
+  attrs.forEach(a => a.watchRaw(fn));
 }
 
-export function watchAttrs(fn: attrUpdateFn) {
-  onAttrUpdates.push(fn);
-}
-
-export function watchAttr(names: string | string[], fn: (v: string) => void, ns?: string) {
-  ns = ns || _attrNamespace;
-  if (typeof names == 'string') {
-    names = [names];
-  }
-  onAttrUpdates.push((n: string, v: string) => {
-    for (const x of names) {
-      if (ns + ':' + x == n) fn(v);
-    }
-  });
-}
-// TODO: instead set 0 timeout in attr
-export function pokeAttrs() {
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k == null) continue;
-    onAttrUpdates.forEach(f => {
-      // console.log('poke attr', k, localStorage.getItem(k) || '');
-      f(k, localStorage.getItem(k) || '')
-    });
-  }
-}
-
-function attrInput(id: string, ns: string) {
-  const a = document.getElementById(id) as HTMLInputElement;
-  if (a == null) return;
-  a.value = getAttr(id, ns);
-  if (a.type == 'text' || a.type == 'textarea' || a.type == 'range') {
-    a.onkeyup = a.onchange = () => {
-      setAttr(id, a.value, ns);
-    };
-    watchAttr(id, (v: string) => {
-      a.value = v;
-    }, ns);
-    // console.log('text input', id);
-    return;
-  }
-  if (a.type == 'checkbox') {
-    a.onchange = () => {
-      setAttr(id, a.checked + '', ns);
-    };
-    watchAttr(id, (v: string) => {
-      // console.log('new checkbox value', id, v);
-      a.checked = v == (true + '');
-    }, ns);
-    // console.log('boolean input', id);
-    return;
-  }
-  console.error('unknown input type', id, a.type);
-}
-
-function attrNumericInput(id: string, ns: string) {
-  attrInput(id, ns);
-  const a = document.getElementById(id) as HTMLInputElement;
-  if (a == null) {
-    console.error('input', id, 'not found');
-    return;
-  }
-  a.addEventListener('keydown', (e) => {
-    let v = Number(getAttr(id));
-    if (e.key == 'ArrowDown') {
-      v--;
-    }
-    if (e.key == 'ArrowUp') {
-      v++;
-      setAttr(id, Math.min(255, Number(getAttr(id)) + 1).toString(), ns);
-    }
-    setAttr(id, Math.min(255, Math.max(0, v)).toString(), ns);
-  });
-}
-
-class Attribute {
+type watcher = (v: string) => void;
+abstract class Attribute {
   name: string;
   namespace: string;
   def: string;
+  value: string = '';
+  fullName: string;
+  rawWatchers: watcher[] = [];
+  dirty: boolean = false;
   constructor(name: string, namespace: string, def: string) {
     this.name = name;
     this.namespace = namespace;
+    this.fullName = namespace + ':' + name;
     this.def = def;
-    initAttr(this.name, this.def, this.namespace);
-    attrInput(this.name, this.namespace);
+    this.init();
+    allAttributes.push(this);
+  }
+  init() {
+    let v = localStorage.getItem(this.fullName);
+    if (v == null) {
+      localStorage.setItem(this.fullName, this.def);
+      v = this.def;
+    }
+    this.value = v;
+    this.initInput();
+  }
+  poke() {
+    console.log('poke', this.fullName, this.rawWatchers.length);
+    this.rawWatchers.forEach(f => f(this.value));
   }
   getRaw(): string {
-    return getAttr(this.name, this.namespace);
+    return this.value;
   }
   setRaw(v: string) {
-    setAttr(this.name, v, this.namespace);
+    if (v == this.value) return;
+    this.value = v;
+    localStorage.setItem(this.fullName, v);
+    if (attrUpdatesActive) {
+      this.poke();
+    } else {
+      this.dirty = true;
+    }
+  }
+  watchRaw(fn: watcher) {
+    this.rawWatchers.push(fn);
+  }
+  initInput() {
+    const a = document.getElementById(this.name) as HTMLInputElement;
+    if (a == null) return;
+    a.value = this.getRaw();
+    if (a.type == 'text' || a.type == 'textarea' || a.type == 'range') {
+      a.onkeyup = a.onchange = () => {
+        this.setRaw(a.value);
+      };
+      this.watchRaw((v: string) => {
+        a.value = v;
+      });
+      return;
+    }
+    if (a.type == 'checkbox') {
+      a.onchange = () => {
+        this.setRaw(a.checked + '');
+      };
+      this.watchRaw((v: string) => {
+        a.checked = v == 'true';
+      });
+      return;
+    }
+    console.error('unknown input type', this.name, a.type);
   }
 }
 
@@ -167,9 +118,14 @@ export class StringAttribute extends Attribute {
   set(v: string) {
     this.setRaw(v);
   }
+  watch(f: watcher) {
+    this.watchRaw(f);
+  }
 }
 
+type booleanWatcher = (v: boolean) => void;
 export class BooleanAttribute extends Attribute {
+  watchers: booleanWatcher[] = [];
   constructor(name: string, namespace: string, def: boolean) {
     super(name, namespace, def.toString());
   }
@@ -180,14 +136,33 @@ export class BooleanAttribute extends Attribute {
     this.setRaw(value.toString());
   }
   watch(f: (a: boolean) => void) {
-    watchAttr(this.name, (v: string) => f(v == 'true'), this.namespace);
+    this.watchers.push(f);
+  }
+  poke() {
+    super.poke();
+    const v = this.get();
+    this.watchers.forEach(f => f(v));
   }
 }
 
-
+type numericWatcher = (v: number) => void;
 export class NumericAttribute extends Attribute {
+  watchers: numericWatcher[] = [];
   constructor(name: string, namespace: string, def: number) {
     super(name, namespace, def.toString());
+  }
+  init() {
+    super.init();
+    const a = document.getElementById(this.name) as HTMLInputElement;
+    if (a == null) return;
+    a.addEventListener('keydown', (e) => {
+      if (e.key == 'ArrowDown') {
+        this.set(this.get()-1);
+      }
+      if (e.key == 'ArrowUp') {
+        this.set(this.get()+1);
+      }
+    });
   }
   get(): number {
     return Number(this.getRaw());
@@ -196,6 +171,11 @@ export class NumericAttribute extends Attribute {
     this.setRaw(value.toString());
   }
   watch(f: (a: number) => void) {
-    watchAttr(this.name, (v: string) => f(this.get()), this.namespace);
+    this.watchers.push(f);
+  }
+  poke() {
+    super.poke();
+    const v = this.get();
+    this.watchers.forEach(f => f(v));
   }
 }
