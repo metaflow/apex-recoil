@@ -30,7 +30,6 @@ const weapons = new Map<string, Weapon>();
 const colorStartCircle = theme.colorStartCircle;
 const colorHintPath = theme.colorHintPath;
 const scoreGradient = theme.scoreGradient;
-let shooting: Shooting | null = null;
 let tracePreview: TracePreview | null = null;
 const traceShapeTypes = 3;
 
@@ -84,13 +83,11 @@ interface Frame {
 class Target {
   private pos = new Point(-10, -10);
   circle: Konva.Circle;
-  maxMultiplier = 2;
   next = new Point();
-  private v = 0.1;
+  private v = 1;
   shapes: Konva.Shape[] = [];
   moving: boolean = false;
   private _offset = new Point();
-  multiplier: number = 1;
   private dirty = false;
   constructor() {
     this.circle = new Konva.Circle({
@@ -113,7 +110,7 @@ class Target {
   }
   onSettingsUpdated() {
     this.moving = aMovingTarget.get();
-    this.v = aTargetSpeed.get() * scale() * this.multiplier / 1000;
+    this.v = aTargetSpeed.get() * scale() / 1000;
     if (this.moving && !pointInRect(this.pos, startRect)) {
       this.pos.x = Math.max(0, (startRect.topLeft.x + startRect.bottomRight.x) / 2);
       this.pos.y = Math.max(0, (startRect.topLeft.y + startRect.bottomRight.y) / 2);
@@ -126,10 +123,8 @@ class Target {
     d.y *= Math.random();
     d.add(startRect.topLeft);
     this.next = d;
-    this.multiplier = 1 + Math.random() * (this.maxMultiplier - 1);
-    if (!this.moving) this.multiplier = 1;
-    this.v = aTargetSpeed.get() * scale() * this.multiplier / 1000;
-    this.circle.radius(6 * this.multiplier * scale());
+    this.v = aTargetSpeed.get() * scale() / 1000;
+    this.circle.radius(6 * scale()); // Head radius from 40m is ~6px.
     this.dirty = true;
   }
   frame(f: Frame): boolean {
@@ -488,7 +483,7 @@ class Shooting {
   hitScores: number[] = [];
   showHint = true;
   start_t = 0;
-  weapon: Weapon;
+  weapon: Weapon = {name: '', mags: [], x: [], y: [], timePoints: []};
   hitIndex = -1; // Position in the patter we already passed.
   hitMarkers: Konva.Circle[] = [];
   crossHair?: Konva.Circle;
@@ -496,23 +491,17 @@ class Shooting {
   wallGroup: Konva.Group;
   recoilGroup: Konva.Group;
   fpsText: Konva.Text;
-  recoilTarget: boolean;
+  recoilTarget: boolean = false;
   traceShapes: Konva.Shape[][] = [];
-  finished: boolean = false;
+  running: boolean = false;
   shapes: (Konva.Shape | Konva.Group)[] = [];
-  movingTarget: boolean;
+  movingTarget: boolean = false;
 
   constructor() {
     this.startPos = new Point();
-    this.movingTarget = aMovingTarget.get();
-    this.weapon = weapons.get(getAttr('weapon'))!;
-    if (this.weapon == null) throw Error("weapon not found");
     this.hintGroup = new Konva.Group();
-    this.addShape(this.hintGroup);
     this.wallGroup = new Konva.Group();
-    this.addShape(this.wallGroup);
     this.recoilGroup = new Konva.Group();
-    this.addShape(this.recoilGroup);
     this.fpsText = new Konva.Text({
       text: `FPS: -`,
       fontSize: 14,
@@ -523,18 +512,23 @@ class Shooting {
       x: 10,
       y: 10,
     });
-    this.addShape(this.fpsText);
-    this.recoilTarget = !aStationaryTarget.get();
-    redrawStartRectangle();
   }
 
   start() {
+    this.weapon = weapons.get(getAttr('weapon'))!;
+    if (this.weapon == null) throw Error("weapon not found");
+    this.running = true;
+    this.addShape(this.hintGroup);
+    this.addShape(this.wallGroup);
+    this.addShape(this.recoilGroup);
+    this.addShape(this.fpsText);
+    suspendAttrUpdates();
+    this.recoilTarget = !aStationaryTarget.get();
+    this.movingTarget = aMovingTarget.get();
     this.start_t = Date.now();
     const cur = cursor();
     this.startPos = cur.clone();
-    suspendAttrUpdates();
-    this.weapon = weapons.get(getAttr('weapon'))!;
-    if (this.weapon == null) throw Error("weapon not found");
+    
     const sc = scale();
     this.speed = Math.min(1, Math.max(0.1, Number(getAttr('speed')) / 100));
     this.mag = this.weapon.mags[Number(getAttr('mag'))]?.size || 1;
@@ -585,7 +579,7 @@ class Shooting {
   }
 
   frame(): boolean {
-    if (this.finished) return false;
+    if (!this.running) return false;
     this.fpsText.text(`FPS: ${Math.round(1000 * this.totalFrames / (Date.now() - this.start_t))}`);
     this.totalFrames++;
     const sc = scale();
@@ -616,7 +610,7 @@ class Shooting {
       this.hitVectors.push(cur.clone().sub(target.position()));
       let hit = cur.clone().add(p);
       const rawDistance = hit.distance(target.position()) / sc;
-      let s = distanceScore(rawDistance, target.multiplier);
+      let s = distanceScore(rawDistance);
       this.hitScores.push(s);
       this.score += s;
       this.hitMarker.radius(this.recoilTarget ? 1 : 2);
@@ -645,7 +639,7 @@ class Shooting {
   }
 
   finish() {
-    this.finished = true;
+    this.running = false;
     stage.listening(true);
     resumeAttrUpdates();
     this.score /= this.mag;
@@ -714,6 +708,7 @@ class Shooting {
     layer.add(s);
   }
 }
+let shooting = new Shooting();
 
 export function setupGame() {
   /* https://konvajs.org/docs/sandbox/Animation_Stress_Test.html#page-title
@@ -747,6 +742,8 @@ export function setupGame() {
   weaponControls();
   statControls();
   watchAttr(['weapon', 'mag', 'sens'], () => {
+    if (shooting.running) return;
+    shooting.clear();
     tracePreview?.clear();
     tracePreview = new TracePreview();
     redrawStartRectangle();
@@ -768,7 +765,7 @@ export function setupGame() {
     b.innerText = s == 100 ? 'normal' : `x ${s / 100}`;
   });
   watchAttr('trace-mode', () => {
-    shooting?.displayTace();
+    shooting.displayTace();
     redraw();
   });
   aShowSensitivityWarn.watch((v: boolean) => {
@@ -784,8 +781,8 @@ export function setupGame() {
     e.evt.preventDefault();
     switch (e.evt.button) {
       case 0:
-        if (shooting == null || shooting.finished) {
-          shooting?.clear();
+        if (!shooting.running) {
+          shooting.clear();
           shooting = new Shooting();
           tracePreview?.clear();
           tracePreview = null;
@@ -804,13 +801,13 @@ export function setupGame() {
   });
   aTargetSpeed.watch((v: number) => {
     const e = document.getElementById("target-speed-value");
-    if (e) e.innerText = `${v}..${v*target.maxMultiplier}`;
+    if (e) e.innerText = `${v}`;
     target.onSettingsUpdated();
   });
   animation = new Konva.Animation((f: any) => {
-    let updated = target.frame(f);
-    if (shooting != null) updated = shooting.frame() || updated;
-    return updated;
+    const a = target.frame(f);
+    const b = shooting.frame();
+    return a || b;
   }, [layer]);
   animation.start();
 }
