@@ -140,7 +140,7 @@ h2 {
     flex-direction: column;
     display: flex;
     #settings {
-      padding: 4px;
+      padding: 4px 4px 0 8px;
       > p, > div {
         padding-top: 4px;
       }
@@ -487,8 +487,4 @@ div.btn {
   display:flex;
   justify-content:center;
   align-items:center;
-}
-
-.pad-left {
-  padding-left: 4px;
 }

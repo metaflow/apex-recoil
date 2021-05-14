@@ -88,7 +88,7 @@ block content
               span.tooltiptext
                 | Example: for mouse sensitivity 3 and ADS <br/>
                 | multiplier 1.2 set "sensitivity" to 3 * 1.2 = 3.6
-          p.pad-left Mode:
+          p Mode:
           #mode-selection.button-row
             #mode-fixed-path.btn
               div Follow path
@@ -96,7 +96,7 @@ block content
               div Still target
             #mode-moving.btn
               div Moving target
-          div.pad-left.row
+          div.row
             .tooltip
               img(src="/outline_run_circle_white_24dp.png" alt="target control")
               span.tooltiptext
@@ -123,14 +123,14 @@ block content
               div Path-dots
             #trace-2.btn
               div Path-lines
-          .row.pad-left
+          .row
             .tooltip
               img(src="/outline_slow_motion_video_white_24dp.png" alt="speed control").tooltip
               span.tooltiptext
                 | Firing speed. Reduce it if you struggle to follow the pattern
             input.slider#speed(type='range' min="10" max="100" step="10")
             span#speed-value
-          #sound-control.row.pad-left
+          #sound-control.row
             #toggle-mute.tooltip
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
               img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
