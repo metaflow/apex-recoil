@@ -34,37 +34,37 @@ block content
         div#stats
           p#score-stats
       #weapon-select.grid
-        div.havoc_tc
+        div.havoc_tc.btn
           img(src="/images/havoc.png", alt="havoc")
           p.name HAVOC
-        div.flatline
+        div.flatline.btn
           img(src="/images/flatline.png", alt="flatline")
           p.name Flatline
-        div.r301
+        div.r301.btn
           img(src="/images/r301.png", alt="r-301")
           p.name R-301
-        div.alternator
+        div.alternator.btn
             img(src="/images/alternator.png", alt="alternator")
             p.name Alternator
-        div.prowler
+        div.prowler.btn
           img(src="/images/prowler.png", alt="prowler")
           p.name Prowler
-        div.r99
+        div.r99.btn
           img(src="/images/r99.png", alt="r-99")
           p.name R-99
-        div.volt
+        div.volt.btn
           img(src="/images/volt.png", alt="volt")
           p.name Volt
-        div.devotion_tc
+        div.devotion_tc.btn
           img(src="/images/devotion.png", alt="devotion")
           p.name Devotion
-        div.lstar
+        div.lstar.btn
           img(src="/images/lstar.png", alt="lstar")
           p.name L-STAR
-        div.spitfire
+        div.spitfire.btn
           img(src="/images/spitfire.png", alt="spitfire")
           p.name Spitfire
-        div.re45
+        div.re45.btn
           img(src="/images/re45.png", alt="re45")
           p.name RE-45
       #mag-select.grid
@@ -84,6 +84,13 @@ block content
               span.tooltiptext
                 | Example: for mouse sensitivity 3 and ADS multiplier 1.2 
                 | set "sensitivity" to 3 * 1.2 = 3.6
+          #mode-selection
+            #mode-fixed-path.btn
+              div Fixed target Path visible
+            #mode-fixed.btn
+              div Fixed target
+            #mode-moving.btn
+              div Moving Target
           p
             input(type='checkbox' id='hint')
             | Show path&nbsp;
@@ -99,16 +106,16 @@ block content
           p
             input(type='checkbox' id='moving-target')
             | Moving target&nbsp;
-          div
+          div.row
             //- img(src="/speed_white_24dp.svg" alt="speed control")
             input.slider#target-speed(type='range' min="1" max="300" step="1")
             span#target-speed-value
-          #sound-control
+          #sound-control.row
             #toggle-mute
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
               img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
             input.slider#volume(type='range' min="0" max="100")
-          div
+          .row
             img(src="/speed_white_24dp.svg" alt="speed control")
             input.slider#speed(type='range' min="10" max="100" step="10")
             span#speed-value

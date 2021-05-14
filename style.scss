@@ -18,10 +18,10 @@
 @import "./theme.scss";
 
 @function map-deep-get($map, $keys...) {
-    @each $key in $keys {
-        $map: map-get($map, $key);
-    }
-    @return $map;
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+  @return $map;
 }
 
 $background: map-deep-get($theme, "background");
@@ -36,426 +36,465 @@ $attachment_3: map-deep-get($theme, "attachment_3");
 
 html,
 body {
-    height: 100%;
-    // font: 14px "Lucida Console", Monaco, monospace;
-    font: 14px sans-serif;
-    color: $foreground;
-    background-color: $background;
-    margin: 0;
-    overflow: hidden;
+  height: 100%;
+  // font: 14px "Lucida Console", Monaco, monospace;
+  font: 14px sans-serif;
+  color: $foreground;
+  background-color: $background;
+  margin: 0;
+  overflow: hidden;
 }
 
 a {
-    color: #00b7ff;
+  color: #00b7ff;
 }
 
 i {
-    font-style: italic;
-    color: $active2;
+  font-style: italic;
+  color: $active2;
 }
 
 b {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 #stage {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    cursor: url(/red_dot.png) 3 3, crosshair;
-    &.no-cursor {
-        cursor: none;
-    }
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: url(/red_dot.png) 3 3, crosshair;
+  &.no-cursor {
+    cursor: none;
+  }
 }
 
 .hidden {
-    display: none;
+  display: none;
 }
 
 #editor {
-    flex-direction: row;
-    display: flex;
-    #tools {
-        overflow-wrap: anywhere;
-        flex-basis: 300px;
-        border-right: 1px white solid;
-        max-width: 300px;
-        padding: 4px;
-        p {
-            margin-bottom: 4px;
-        }
+  flex-direction: row;
+  display: flex;
+  #tools {
+    overflow-wrap: anywhere;
+    flex-basis: 300px;
+    border-right: 1px white solid;
+    max-width: 300px;
+    padding: 4px;
+    p {
+      margin-bottom: 4px;
     }
-    input[type="text"] {
-        width: 8ch;
-    }
+  }
+  input[type="text"] {
+    width: 8ch;
+  }
 }
 
 .grid {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 ul {
-    list-style-type: disc;
-    list-style-position: inside;
+  list-style-type: disc;
+  list-style-position: inside;
 }
 
 h1 {
-    text-align: center;
-    font-weight: bold;
-    padding: 6px 0;
-    color: $active;
-    font-size: 1.1em;
+  text-align: center;
+  font-weight: bold;
+  padding: 6px 0;
+  color: $active;
+  font-size: 1.1em;
 }
 
 h2 {
-    font-weight: bold;
-    font-size: 1.1em;
+  font-weight: bold;
+  font-size: 1.1em;
 }
 
 #game {
-    flex-direction: row;
+  flex-direction: row;
+  display: flex;
+  height: 100%;
+  #instructions {
+    background-color: $menu;
+    padding: 12px 20px;
+  }
+  #sensitivity-warning {
+    color: $error;
+    padding: 8px;
+    text-align: center;
+  }
+  #control {
+    .description {
+      padding: 0 4px;
+      text-align: center;
+    }
+    max-width: 300px;
+    min-width: 300px;
+    // border-right: 1px white solid;
+    // border-right-style: inset;
+    background-color: $menu;
+    flex-direction: column;
     display: flex;
-    height: 100%;
-    #instructions {
-        background-color: $menu;
-        padding: 12px 20px;
-    }
-    #sensitivity-warning {
-        color: $error;
-        padding: 8px;
-        text-align: center;
-    }
-    #control {
-        .description {
-            padding: 0 4px;
-            text-align: center;
+    #settings {
+      padding: 4px;
+      p {
+        padding-top: 4px;
+      }
+      #toggle-modes {
+        padding-left: 4px;
+      }
+      #sound-control {
+        #toggle-mute {
+          cursor: pointer;
         }
-        max-width: 300px;
-        min-width: 300px;
-        // border-right: 1px white solid;
-        // border-right-style: inset;
-        background-color: $menu;
-        flex-direction: column;
+      }
+      .row {
         display: flex;
-        #settings {
-            padding: 4px;
-            p {
-                padding-top: 4px;
-            }
-            #toggle-modes {
-                padding-left: 4px;
-            }
-            #sound-control {
-                #toggle-mute {
-                    cursor: pointer;
-                }
-            }
-            div {
-                display: flex;
-                align-items: center;
-            }
-        }
-        #top-links {
-            display: flex;
-            justify-content: space-around;
-            padding: 4px 12px;
-        }
-        #score {
-            display: flex;
-            flex-direction: row;
-            #stats-graph-btn {
-                cursor: pointer;
-            }
-            #stats {
-                text-align: right;
-                margin: auto;
-            }
-            .label {
-                line-height: 50px;
-                vertical-align: bottom;
-                padding-right: 8px;
-            }
-            padding: 4px 12px;
-        }
-        #weapon-select {
-            div {
-                position: relative;
-                width: 140px;
-                margin: 4px;
-                border: 1px solid transparent;
-                cursor: pointer;
-                &:hover {
-                    border-color: $foreground;
-                }
-                &.selected {
-                    border-color: $active;
-                    background-color: adjust-color($active, $alpha: -0.5);
-                    .name {
-                        color: $background;
-                    }
-                }
-                img {
-                    padding: 4px;
-                    max-width: 140px;
-                    max-height: 50px;
-                    margin-left: auto;
-                    margin-right: auto;
-                    display: block;
-                }
-                .name {
-                    position: absolute;
-                    bottom: 2px;
-                    left: 2px;
-                }
-            }
-        }
-        #attachment-select {
-            div {
-                width: 40px;
-                margin: 4px;
-                border: 1px solid transparent;
-                &:hover {
-                    border-color: $foreground;
-                }
-                img {
-                    padding: 4px;
-                    width: 40px;
-                    // height: 40px;
-                    margin-left: auto;
-                    margin-right: auto;
-                    display: block;
-                }
-                &.attachment-0 {
-                    &.selected {
-                        border-color: $active;
-                    }
-                }
-                &.attachment-1 {
-                    &.selected {
-                        border-color: $active;
-                        background-color: $attachment_1;
-                    }
-                    background-color: adjust-color($attachment_1, $alpha: -0.5);
-                }
-                &.attachment-2 {
-                    &.selected {
-                        border-color: $active;
-                        background-color: $attachment_2;
-                    }
-                    background-color: adjust-color($attachment_2, $alpha: -0.5);
-                }
-                &.attachment-3 {
-                    &.selected {
-                        border-color: $active;
-                        background-color: $attachment_3;
-                    }
-                    background-color: adjust-color($attachment_3, $alpha: -0.5);
-                }
-            }
-        }
-        #mag-select {
-            div {
-                width: 40px;
-                margin: 4px;
-                border: 1px solid transparent;
-                &:hover {
-                    border-color: $foreground;
-                }
-                img {
-                    padding: 4px;
-                    width: 40px;
-                    height: 40px;
-                    margin-left: auto;
-                    margin-right: auto;
-                    display: block;
-                }
-                &.mag-0 {
-                    &.selected {
-                        border-color: $active;
-                    }
-                }
-                &.mag-1 {
-                    background-color: adjust-color($attachment_1, $alpha: -0.5);
-                    &.selected {
-                        border-color: $active;
-                        background-color: $attachment_1;
-                    }
-                }
-                &.mag-2 {
-                    background-color: adjust-color($attachment_2, $alpha: -0.5);
-                    &.selected {
-                        border-color: $active;
-                        background-color: $attachment_2;
-                    }
-                }
-                &.mag-3 {
-                    background-color: adjust-color($attachment_3, $alpha: -0.5);
-                    &.selected {
-                        border-color: $active;
-                        background-color: $attachment_3;
-                    }
-                }
-            }
-        }
-        #controls-bottom {
-            margin-top: auto;
-            padding: 4px 4px 8px;
-        }
+        align-items: center;
+      }
     }
-    #workspace {
-        flex-grow: 1;
-        overflow: hidden;
+    #top-links {
+      display: flex;
+      justify-content: space-around;
+      padding: 4px 12px;
     }
-    #detailed-stats {
-        background-color: $menu;
-        padding: 8px;
-        #plotly_area {
-            height: 300px;
+    #score {
+      display: flex;
+      flex-direction: row;
+      #stats-graph-btn {
+        cursor: pointer;
+      }
+      #stats {
+        text-align: right;
+        margin: auto;
+      }
+      .label {
+        line-height: 50px;
+        vertical-align: bottom;
+        padding-right: 8px;
+      }
+      padding: 4px 12px;
+    }
+    #weapon-select {
+      div {
+        position: relative;
+        width: 140px;
+        margin: 4px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        &:hover {
+          border-color: $foreground;
         }
+        &.selected {
+          border-color: $active;
+          background-color: adjust-color($active, $alpha: -0.5);
+          .name {
+            color: $background;
+          }
+        }
+        img {
+          padding: 4px;
+          max-width: 140px;
+          max-height: 50px;
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+        }
+        .name {
+          position: absolute;
+          bottom: 2px;
+          left: 2px;
+        }
+      }
     }
+    #attachment-select {
+      div {
+        width: 40px;
+        margin: 4px;
+        border: 1px solid transparent;
+        &:hover {
+          border-color: $foreground;
+        }
+        img {
+          padding: 4px;
+          width: 40px;
+          // height: 40px;
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+        }
+        &.attachment-0 {
+          &.selected {
+            border-color: $active;
+          }
+        }
+        &.attachment-1 {
+          &.selected {
+            border-color: $active;
+            background-color: $attachment_1;
+          }
+          background-color: adjust-color($attachment_1, $alpha: -0.5);
+        }
+        &.attachment-2 {
+          &.selected {
+            border-color: $active;
+            background-color: $attachment_2;
+          }
+          background-color: adjust-color($attachment_2, $alpha: -0.5);
+        }
+        &.attachment-3 {
+          &.selected {
+            border-color: $active;
+            background-color: $attachment_3;
+          }
+          background-color: adjust-color($attachment_3, $alpha: -0.5);
+        }
+      }
+    }
+    #mag-select {
+      div {
+        width: 40px;
+        margin: 4px;
+        border: 1px solid transparent;
+        &:hover {
+          border-color: $foreground;
+        }
+        img {
+          padding: 4px;
+          width: 40px;
+          height: 40px;
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+        }
+        &.mag-0 {
+          &.selected {
+            border-color: $active;
+          }
+        }
+        &.mag-1 {
+          background-color: adjust-color($attachment_1, $alpha: -0.5);
+          &.selected {
+            border-color: $active;
+            background-color: $attachment_1;
+          }
+        }
+        &.mag-2 {
+          background-color: adjust-color($attachment_2, $alpha: -0.5);
+          &.selected {
+            border-color: $active;
+            background-color: $attachment_2;
+          }
+        }
+        &.mag-3 {
+          background-color: adjust-color($attachment_3, $alpha: -0.5);
+          &.selected {
+            border-color: $active;
+            background-color: $attachment_3;
+          }
+        }
+      }
+    }
+    #controls-bottom {
+      margin-top: auto;
+      padding: 4px 4px 8px;
+    }
+    #mode-selection {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      .btn {
+        width: 90px;
+        border: 1px solid transparent;
+        &:hover {
+          border-color: $foreground;
+        }
+        height: auto;
+        display: flex;
+        align-content: center;
+        justify-content: center;
+        div {
+          padding: 4px;
+          margin: auto;
+          text-align: center;
+        }
+      }
+    }
+  }
+  #workspace {
+    flex-grow: 1;
+    overflow: hidden;
+  }
+  #detailed-stats {
+    background-color: $menu;
+    padding: 8px;
+    #plotly_area {
+      height: 300px;
+    }
+  }
 }
 
 input[type="text"] {
-    width: 6ch;
-    margin-right: 4px;
+  width: 6ch;
+  margin-right: 4px;
 }
 
 .slider {
+  -webkit-appearance: none;
+  width: 100px;
+  height: 2px;
+  background: $foreground;
+  outline: none;
+  &::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 100px;
-    height: 2px;
-    background: $foreground;
-    outline: none;
-    &::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 16px;
-        width: 16px;
-        border-radius: 50%;
-        background: $active;
-    }
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: $active;
+  }
 
-    &::-moz-range-thumb {
-        // box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-        height: 16px;
-        width: 16px;
-        border-radius: 50%;
-        background: $active;
-    }
+  &::-moz-range-thumb {
+    // box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: $active;
+  }
 }
 
 .action {
-    text-decoration: underline;
-    cursor: pointer;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 #copyright {
-    .links {
-        font-size: 0.7em;
-        flex-direction: row;
-        display: flex;
-        .vertical {
-            flex-direction: column;
-            display: flex;
-            align-items: flex-end;
-            flex-grow: 1;
-        }
+  .links {
+    font-size: 0.7em;
+    flex-direction: row;
+    display: flex;
+    .vertical {
+      flex-direction: column;
+      display: flex;
+      align-items: flex-end;
+      flex-grow: 1;
     }
-    a {
-        margin: 2px;
-        img {
-            border-bottom: 1px solid transparent;
-            padding-bottom: 2px;
-            &:hover {
-                border-bottom: 1px solid $foreground;
-            }
-        }
+  }
+  a {
+    margin: 2px;
+    img {
+      border-bottom: 1px solid transparent;
+      padding-bottom: 2px;
+      &:hover {
+        border-bottom: 1px solid $foreground;
+      }
     }
-    font-size: 0.8em;
-    margin-bottom: 4px;
+  }
+  font-size: 0.8em;
+  margin-bottom: 4px;
 }
 
 #version {
-    text-align: right;
-    font-size: 0.8em;
+  text-align: right;
+  font-size: 0.8em;
 }
 
 #mobile-info {
-    text-align: center;
+  text-align: center;
 }
 
 @media (min-device-width: 901px) {
-    #mobile-info {
-        display: none;
-    }
+  #mobile-info {
+    display: none;
+  }
 }
 
 @media (max-device-width: 900px) {
-    #game {
-        display: none;
+  #game {
+    display: none;
+  }
+  html,
+  body {
+    font-size: 20px;
+    margin: 0.5em;
+  }
+  #mobile-info {
+    display: block;
+    position: relative;
+    height: 100%;
+    img {
+      padding: 16px 0;
     }
-    html,
-    body {
-        font-size: 20px;
-        margin: 0.5em;
-    }
-    #mobile-info {
-        display: block;
-        position: relative;
-        height: 100%;
-        img {
-            padding: 16px 0;
-        }
-    }
-    #copyright-mobile {
-        position: absolute;
-        bottom: 50px;
-        font-size: 0.8em;
-    }
+  }
+  #copyright-mobile {
+    position: absolute;
+    bottom: 50px;
+    font-size: 0.8em;
+  }
 }
 
 .tooltip {
-    position: relative;
-    display: inline-block;
-    &.underlined {
-        border-bottom: 1px dotted $foreground;
+  position: relative;
+  display: inline-block;
+  &.underlined {
+    border-bottom: 1px dotted $foreground;
+  }
+  .tooltiptext {
+    visibility: hidden;
+    width: 300px;
+    &.small {
+      width: 180px;
     }
-    .tooltiptext {
-        visibility: hidden;
-        width: 300px;
-        &.small {
-            width: 180px;
-        }
-        background-color: #555;
-        color: #fff;
-        text-align: center;
-        padding: 4px;
-        border-radius: 6px;
-    
-        /* Position the tooltip text */
-        position: absolute;
-        z-index: 1;
-        top: 125%;
-        left: 10%;
-        // margin-left: -60px;
-    
-        /* Fade in tooltip */
-        opacity: 0;
-        transition: opacity 0.3s;
-        &::after {
-            content: "";
-            position: absolute;
-            bottom: 100%;
-            left: 16px;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: transparent transparent #555 transparent;
-        }
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 4px;
+    border-radius: 6px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    top: 125%;
+    left: 10%;
+    // margin-left: -60px;
+
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 100%;
+      left: 16px;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent #555 transparent;
     }
-    &:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
+  }
+  &:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+
+div.btn {
+  border: 1px solid transparent;
+  cursor: pointer;
+  &:hover {
+    border-color: $foreground;
+  }
+  &.selected {
+    border-color: $active;
+    background-color: adjust-color($active, $alpha: -0.5);
+    .name {
+      color: $background;
     }
+  }
 }
