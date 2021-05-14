@@ -23,18 +23,18 @@ export function attrNamespace(v?: string): string {
   return _attrNamespace;
 }
 
-export function getAttr(name: string, ns?: string): string {
+function getAttr(name: string, ns?: string): string {
   ns = ns || _attrNamespace;
   return localStorage.getItem(ns + ':' + name) || '';
 }
 
-export function initAttr(name: string, def: string, ns?: string) {
+function initAttr(name: string, def: string, ns?: string) {
   ns = ns || _attrNamespace;
   const s = ns + ':' + name;
   if (localStorage.getItem(s) == null) localStorage.setItem(s, def);
 }
 
-export function createAttrFunc(id: string, def: string) {
+function createAttrFunc(id: string, def: string) {
   let firstCall = true;
   return function (v?: string): string {
     if (firstCall) {
@@ -58,7 +58,7 @@ export function resumeAttrUpdates() {
   attrUpdatesActive = true;
 }
 
-export function setAttr(name: string, value: string, ns?: string) {
+function setAttr(name: string, value: string, ns?: string) {
   ns = ns || _attrNamespace;
   localStorage.setItem(ns + ':' + name, value);
   if (attrUpdatesActive) {
@@ -81,7 +81,7 @@ export function watchAttr(names: string | string[], fn: (v: string) => void, ns?
     }
   });
 }
-
+// TODO: instead set 0 timeout in attr
 export function pokeAttrs() {
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
@@ -93,7 +93,7 @@ export function pokeAttrs() {
   }
 }
 
-export function attrInput(id: string, ns: string) {
+function attrInput(id: string, ns: string) {
   const a = document.getElementById(id) as HTMLInputElement;
   if (a == null) return;
   a.value = getAttr(id, ns);
@@ -121,7 +121,7 @@ export function attrInput(id: string, ns: string) {
   console.error('unknown input type', id, a.type);
 }
 
-export function attrNumericInput(id: string, ns: string) {
+function attrNumericInput(id: string, ns: string) {
   attrInput(id, ns);
   const a = document.getElementById(id) as HTMLInputElement;
   if (a == null) {
@@ -157,6 +157,15 @@ class Attribute {
   }
   setRaw(v: string) {
     setAttr(this.name, v, this.namespace);
+  }
+}
+
+export class StringAttribute extends Attribute {
+  get(): string {
+    return this.getRaw();
+  }
+  set(v: string) {
+    this.setRaw(v);
   }
 }
 

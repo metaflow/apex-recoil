@@ -37,7 +37,7 @@ export function checkT<T extends PrimitiveOrConstructor>(o: any, className: T): 
 
 export function error(...args: any): Error {
   onError(...args);
-  return new Error('error occured');
+  return new Error('error ocurred');
 }
 
 export function onError(...args: any) {
@@ -45,7 +45,7 @@ export function onError(...args: any) {
   const c = document.getElementById("error-bar");
   if (c) {
     c.classList.remove('hidden');
-    c.innerText = 'Error occured. See console for the details';
+    c.innerText = 'Error ocurred. See console for the details';
   }
 }
 

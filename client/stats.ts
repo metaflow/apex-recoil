@@ -1,8 +1,10 @@
-import { getAttr, setAttr } from "./storage";
+// import { getAttr, setAttr } from "./storage";
+import { StringAttribute } from "./storage";
 import { today } from "./utils";
 
 const statsDataVersion = 3;
 export let stats: TrialStats[] = [];
+const aStats = new StringAttribute('stats', 'game:', '[]');
 
 export function percentile(values: number[], p: number) {
   const xx = values.map(x => x);
@@ -18,7 +20,7 @@ export function percentile(values: number[], p: number) {
 
 export interface TrialSetup {
   weapon: string;
-  mag: string;
+  mag: number;
   hint: boolean;
   moving: boolean;
 }
@@ -37,12 +39,12 @@ interface TrialStats {
 
 export function loadStats() {
   // console.log('stats raw', JSON.parse(getAttr('stats')));
-  JSON.parse(getAttr('stats')).forEach((t: any) => {
+  JSON.parse(aStats.get()).forEach((t: any) => {
     const s = t['setup'];
     if (s === undefined) return;
     let version = t['v'];
     if (version == null) {
-      // Initial unversioned storage.
+      // Initial un-versioned storage.
       if (s['barrel'] != null && s['barrel'] != '0') return;
       if (s['stock'] != null && s['stock'] != '0') return;
       const setup: TrialSetup = {
@@ -80,6 +82,7 @@ export function loadStats() {
     if (version == 2) {
       s['moving'] = false;
       s['hint'] = s['hint'] == 'true';
+      s['mag'] = Number(s['mag']);
       version = 3;
     }
     t['v'] = statsDataVersion;
@@ -146,6 +149,6 @@ export function addStat(v: number, setup: TrialSetup): TrialStats {
   touchStat(s);
   s.todayResults.push(v);
   s.bestAllTime = Math.max(s.bestAllTime, v);
-  setAttr('stats', JSON.stringify(stats));
+  aStats.set(JSON.stringify(stats));
   return s;
 }

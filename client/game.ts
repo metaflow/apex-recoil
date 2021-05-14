@@ -17,12 +17,12 @@
 import { Howl } from "howler";
 import Konva from "konva";
 import { cursor, layer, stage } from "./main";
-import { resumeAttrUpdates, setAttr, getAttr, initAttr, attrInput, attrNamespace, createAttrFunc, suspendAttrUpdates, watchAttr, BooleanAttribute, NumericAttribute } from './storage';
+import { resumeAttrUpdates, attrNamespace, suspendAttrUpdates, watchAttr, BooleanAttribute, NumericAttribute, StringAttribute } from './storage';
 import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
 import { addStat, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
-import { numberToDate, today } from "./utils";
+import { clamp, numberToDate, today } from "./utils";
 
 let sound: Howl | null = null;
 let soundPath = '';
@@ -52,6 +52,14 @@ const aShowSensitivityWarn = new BooleanAttribute('show-sensitivity-warn', NS, f
 const aShowInstructions = new BooleanAttribute('show-instructions', NS, true);
 const aMovingTarget = new BooleanAttribute('moving-target', NS, false);
 const aTargetSpeed = new NumericAttribute('target-speed', NS, 100);
+const aSens = new NumericAttribute('sens', NS, 5);
+const aWeapon = new StringAttribute('weapon', NS, 'r99');
+const aMag = new NumericAttribute('mag', NS, 0);
+const aVolume = new NumericAttribute('volume', NS, 20);
+const aMute = new BooleanAttribute('mute', NS, false);
+const aHint = new BooleanAttribute('hint', NS, true);
+const aTraceMode = new NumericAttribute('trace-mode', NS, 1);
+const aFireSpeed = new NumericAttribute('speed', NS, 100);
 
 export interface MagInfo {
   size: number;
@@ -164,13 +172,13 @@ class Target {
 let target: Target = new Target();
 
 export function trialSetup(): TrialSetup {
-  const weapon = getAttr('weapon');
-  let mag = getAttr('mag');
-  if (weapon == 'prowler') mag = '0';
+  const weapon = aWeapon.get();
+  let mag = aMag.get();
+  if (weapon == 'prowler') mag = 0;
   return {
     weapon,
     mag,
-    hint: getAttr('hint') == 'true',
+    hint: aHint.get(),
     moving: aMovingTarget.get(),
   };
 }
@@ -207,14 +215,16 @@ function instructionsControls() {
   }
 }
 
+function selectedWeapon(): Weapon {
+  const w = weapons.get(aWeapon.get());
+  if (w == null) throw Error("weapon not found");
+  return w;
+}
+
 function updateSound() {
-  if (getAttr('mute') == 'true') return;
-  const w = weapons.get(getAttr('weapon'));
-  if (w == null) {
-    console.log('weapon', getAttr('weapon'), 'not found');
-    return;
-  }
-  const newPath = `./audio/${w.mags[Number(getAttr('mag'))].audio}.mp3`;
+  if (aMute.get()) return;
+  const w = selectedWeapon();
+  const newPath = `./audio/${w.mags[aMag.get()].audio}.mp3`;
   if (soundPath != newPath) {
     soundPath = newPath;
     sound = new Howl({ src: soundPath });
@@ -235,14 +245,14 @@ function soundControls() {
         mute.classList.add('hidden');
       }
     });
-    unmute.addEventListener('click', () => setAttr('mute', 'true'));
-    mute.addEventListener('click', () => setAttr('mute', 'false'));
+    unmute.addEventListener('click', () => aMute.set(true));
+    mute.addEventListener('click', () => aMute.set(false));
   }
 }
 
 function scale() {
-  const sens = Number(getAttr('sens'));
-  return 1 / sens;
+  const sens = Number(aSens.get());
+  return clamp(1 / sens, 0.1, 10); // TODO: try clamp NaN
 }
 
 function gradientColor(x: number) {
@@ -294,15 +304,10 @@ function drawPattern(pattern: Point[], mag: number, start: Point, sc: number) {
 class TracePreview {
   shapes: Konva.Shape[] = [];
   constructor() {
-    const name = getAttr('weapon');
-    const w = weapons.get(name);
+    const w = selectedWeapon();
     const sc = scale();
     if (!Number.isFinite(sc) || sc < 0.1) return;
-    if (w == null) {
-      console.error('weapon', getAttr('weapon'), 'not found');
-      return;
-    }
-    const n = w.mags[Number(getAttr('mag'))].size;
+    const n = w.mags[aMag.get()].size;
     pattern = [];
     for (let i = 0; i < n; i++) pattern.push(new Point(w.x[i], w.y[i]).s(sc));
     patternBox = box(pattern);
@@ -353,13 +358,7 @@ function redrawStartRectangle() {
     bottomRight
   };
   target.onSettingsUpdated();
-  // redraw();
 }
-
-// function clear() {
-//   layer.removeChildren();
-//   traceShapes = [];
-// }
 
 function weaponControls() {
   specs.forEach(s => {
@@ -373,13 +372,8 @@ function weaponControls() {
       x: s.x,
       y: s.y,
     });
-
     const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
-    if (d != null) {
-      d.addEventListener('click', () => {
-        setAttr('weapon', s.name);
-      });
-    }
+    if (d != null) d.addEventListener('click', () => aWeapon.set(s.name));
   });
 
   watchAttr('weapon', (v: string) => {
@@ -393,7 +387,7 @@ function weaponControls() {
   for (let i = 0; i <= 3; i++) {
     const d = document.querySelector(`#mag-select .mag-${i}`) as HTMLDivElement;
     if (d != null) {
-      d.addEventListener('click', () => { setAttr('mag', i + ''); });
+      d.addEventListener('click', () => aMag.set(i));
     } else {
       console.error(`#mag-select .mag-${i}`, 'not found');
     }
@@ -515,8 +509,7 @@ class Shooting {
   }
 
   start() {
-    this.weapon = weapons.get(getAttr('weapon'))!;
-    if (this.weapon == null) throw Error("weapon not found");
+    this.weapon = selectedWeapon();
     this.running = true;
     this.addShape(this.hintGroup);
     this.addShape(this.wallGroup);
@@ -528,17 +521,16 @@ class Shooting {
     this.start_t = Date.now();
     const cur = cursor();
     this.startPos = cur.clone();
-    
     const sc = scale();
-    this.speed = Math.min(1, Math.max(0.1, Number(getAttr('speed')) / 100));
-    this.mag = this.weapon.mags[Number(getAttr('mag'))]?.size || 1;
-    if (getAttr('mute') != 'true' && sound != null) {
-      sound.volume(Number(getAttr('volume')) / 100);
+    this.speed = clamp(aFireSpeed.get() / 100, 0.1, 1);
+    this.mag = this.weapon.mags[aMag.get()]?.size || 1;
+    if (!aMute.get() && sound != null) {
+      sound.volume(aVolume.get() / 100);
       sound.rate(this.speed);
       sound.play();
     }
     for (let i = 0; i < traceShapeTypes; i++) this.traceShapes.push([]);
-    this.showHint = (getAttr('hint') == 'true') && !this.movingTarget;
+    this.showHint = aHint.get() && !this.movingTarget;
     this.hintGroup.visible(this.showHint);
     // Target.
     if (!this.movingTarget) {
@@ -690,13 +682,12 @@ class Shooting {
     target.offset(new Point());
     this.crossHair?.visible(false);
     stage.container().classList.remove('no-cursor');
-    if (getAttr('toggle-modes') == 'true') setAttr('hint', `${!this.showHint}`);
     redrawStartRectangle();
     redraw();
   }
   displayTace() {
     // if (this.movingTarget) return;
-    const d = Number(getAttr('trace-mode')) % traceShapeTypes;
+    const d = aTraceMode.get() % traceShapeTypes;
     this.traceShapes.forEach((sh, i) => sh.forEach(s => s.visible(i == d)));
   }
   clear() {
@@ -718,25 +709,7 @@ export function setupGame() {
   layer.listening(false);
   layer.add(startRectangle);
   attrNamespace('game:');
-  initAttr('sens', '5');
-  initAttr('weapon', 'r99'); 1
-  initAttr('mag', '0');
-  initAttr('stats', '[]');
-  initAttr('volume', '20');
-  initAttr('mute', 'false');
-  initAttr('hint', 'true');
-  initAttr('trace-mode', '1');
-  initAttr('toggle-modes', 'false');
-  initAttr('speed', '100');
-
   loadStats();
-
-  attrInput('sens', NS);
-  attrInput('hint', NS);
-  attrInput('volume', NS);
-  attrInput('speed', NS);
-  attrInput('toggle-modes', NS);
-
   soundControls();
   instructionsControls();
   weaponControls();
@@ -790,7 +763,7 @@ export function setupGame() {
         }
         break;
       case 1:
-        setAttr('trace-mode', `${(Number(getAttr('trace-mode')) + 1) % traceShapeTypes}`);
+        aTraceMode.set((aTraceMode.get() + 1) % traceShapeTypes);
         break;
       default:
         break;
