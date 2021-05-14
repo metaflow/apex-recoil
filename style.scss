@@ -141,7 +141,7 @@ h2 {
     display: flex;
     #settings {
       padding: 4px;
-      p {
+      > p, > div {
         padding-top: 4px;
       }
       #toggle-modes {
@@ -183,7 +183,7 @@ h2 {
       div {
         position: relative;
         width: 140px;
-        margin: 4px;
+        margin: 1px 4px;
         border: 1px solid transparent;
         cursor: pointer;
         &:hover {
@@ -260,6 +260,7 @@ h2 {
         width: 40px;
         margin: 4px;
         border: 1px solid transparent;
+        cursor: pointer;
         &:hover {
           border-color: $foreground;
         }
@@ -303,28 +304,8 @@ h2 {
       margin-top: auto;
       padding: 4px 4px 8px;
     }
-    #mode-selection {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-around;
-      flex-wrap: nowrap;
-      align-items: stretch;
-      .btn {
-        width: 90px;
-        border: 1px solid transparent;
-        &:hover {
-          border-color: $foreground;
-        }
-        height: auto;
-        display: flex;
-        align-content: center;
-        justify-content: center;
-        div {
-          padding: 4px;
-          margin: auto;
-          text-align: center;
-        }
-      }
+    #recoil-mode .btn {
+      width: 90px;
     }
   }
   #workspace {
@@ -336,6 +317,26 @@ h2 {
     padding: 8px;
     #plotly_area {
       height: 300px;
+    }
+  }
+}
+
+.button-row {
+  padding: 0 4px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  .btn {
+    padding: 4px;
+    height: auto;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    div {
+      margin: auto;
+      text-align: center;
     }
   }
 }
@@ -446,36 +447,19 @@ input[type="text"] {
   }
   .tooltiptext {
     visibility: hidden;
-    width: 300px;
-    &.small {
-      width: 180px;
-    }
-    background-color: #555;
-    color: #fff;
+    background-color: adjust-color($background, $alpha:-0.05);
+    color: $active2;
     text-align: center;
+    white-space: nowrap;
     padding: 4px;
     border-radius: 6px;
-
-    /* Position the tooltip text */
+    border: 1px solid $active2;
     position: absolute;
     z-index: 1;
     top: 125%;
     left: 10%;
-    // margin-left: -60px;
-
-    /* Fade in tooltip */
     opacity: 0;
     transition: opacity 0.3s;
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: 100%;
-      left: 16px;
-      margin-left: -5px;
-      border-width: 5px;
-      border-style: solid;
-      border-color: transparent transparent #555 transparent;
-    }
   }
   &:hover .tooltiptext {
     visibility: visible;
@@ -497,4 +481,14 @@ div.btn {
       color: $background;
     }
   }
+}
+
+.center-text {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.pad-left {
+  padding-left: 4px;
 }

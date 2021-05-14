@@ -23,6 +23,7 @@ import specs from './specs.json';
 import theme from '../theme.json';
 import { addStat, aStats, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
 import { clamp, numberToDate, today } from "./utils";
+import assertExists from "ts-assert-exists";
 
 let sound: Howl | null = null;
 let soundPath = '';
@@ -46,7 +47,7 @@ let pattern: Point[] = [];
 let patternBox: [Point, Point] = [new Point(), new Point()];
 let animation: Konva.Animation | null = null;
 const NS = 'game:';
-const aStationaryTarget = new BooleanAttribute('stationary-target', NS, true);
+const aRecoilWeapon = new BooleanAttribute('stationary-target', NS, true);
 const aShowDetailedStats = new BooleanAttribute('show-detailed-stats', NS, false);
 const aShowSensitivityWarn = new BooleanAttribute('show-sensitivity-warn', NS, false);
 const aShowInstructions = new BooleanAttribute('show-instructions', NS, true);
@@ -419,12 +420,21 @@ function statControls() {
     aShowDetailedStats.set(false);
     return false;
   });
-  document.getElementById('stats-graph-btn')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    aShowDetailedStats.set(!aShowDetailedStats.get());
-    return false;
-  });
+  {
+    const btn = assertExists(document.getElementById('stats-graph-btn'));
+    document.getElementById('stats-graph-btn')?.addEventListener('click', () => {
+      aShowDetailedStats.set(!aShowDetailedStats.get());
+    });
+    aShowDetailedStats.watch((v: boolean) => setClass(btn, 'selected', v));
+  }
+}
+
+function setClass(element: HTMLElement, name: string, v: boolean) {
+  if (v) {
+    element.classList.add(name);
+  } else {
+    element.classList.remove(name);
+  }
 }
 
 function showStats() {
@@ -515,7 +525,7 @@ class Shooting {
     this.addShape(this.recoilGroup);
     this.addShape(this.fpsText);
     suspendAttrUpdates();
-    this.recoilTarget = !aStationaryTarget.get();
+    this.recoilTarget = !aRecoilWeapon.get();
     this.movingTarget = aMovingTarget.get();
     this.start_t = Date.now();
     const cur = cursor();
@@ -553,6 +563,7 @@ class Shooting {
       });
       this.addShape(this.crossHair);
       stage.container().classList.add('no-cursor');
+      console.log(stage.container(), stage.container().classList);
     }
     this.frame();
     stage.batchDraw();
@@ -775,10 +786,74 @@ export function setupGame() {
     if (e) e.innerText = `${v}`;
     target.onSettingsUpdated();
   });
+  console.log('setup buttons');
+  { 
+    const btnModeMoving = assertExists(document.getElementById('mode-moving'));
+    const btnFixedPath = assertExists(document.getElementById('mode-fixed-path'));
+    const btnFixed = assertExists(document.getElementById('mode-fixed'));
+    watch([aHint, aMovingTarget], () => {
+      btnFixed.classList.remove('selected');
+      btnFixedPath.classList.remove('selected');
+      btnModeMoving.classList.remove('selected');
+      if (aMovingTarget.get()) {
+        btnModeMoving.classList.add('selected');
+        return;
+      }
+      if (aHint.get()) {
+        btnFixedPath.classList.add('selected');
+        return;
+      }
+      btnFixed.classList.add('selected');
+    });
+    btnModeMoving.addEventListener('click', () => {
+      aHint.set(false);
+      aMovingTarget.set(true);
+    });
+    btnFixedPath.addEventListener('click', () => {
+      aHint.set(true);
+      aMovingTarget.set(false);
+    });
+    btnFixed.addEventListener('click', () => {
+      aHint.set(false);
+      aMovingTarget.set(false);
+    });
+  }
+  { 
+    const btnRecoilTarget = assertExists(document.getElementById('recoil-target'));
+    const btnRecoilWeapon = assertExists(document.getElementById('recoil-weapon'));
+    aRecoilWeapon.watch((v: boolean) => {
+      if (v) {
+        btnRecoilTarget.classList.remove('selected');
+        btnRecoilWeapon.classList.add('selected');
+      } else {
+        btnRecoilTarget.classList.add('selected');
+        btnRecoilWeapon.classList.remove('selected');
+      }
+    });
+    btnRecoilWeapon.addEventListener('click', () => {
+      aRecoilWeapon.set(true);
+    });
+    btnRecoilTarget.addEventListener('click', () => {
+      aRecoilWeapon.set(false);
+    });
+  }
+  {
+    for(let i = 0; i < traceShapeTypes; i++) {
+      const e = assertExists(document.getElementById(`trace-${i}`));
+      e.addEventListener('click', () => aTraceMode.set(i));
+    }
+    aTraceMode.watch((v: number) => {
+      for(let i = 0; i < traceShapeTypes; i++) {
+        const e = assertExists(document.getElementById(`trace-${i}`));
+        setClass(e, 'selected', i == v);
+      }
+    });
+  }
   animation = new Konva.Animation((f: any) => {
     const a = target.frame(f);
     const b = shooting.frame();
     return a || b;
   }, [layer]);
   animation.start();
+  console.log('done');
 }

@@ -66,7 +66,7 @@ abstract class Attribute {
     this.initInput();
   }
   poke() {
-    console.log('poke', this.fullName, this.rawWatchers.length);
+    // console.log('poke', this.fullName, this.rawWatchers.length);
     this.rawWatchers.forEach(f => f(this.value));
   }
   getRaw(): string {

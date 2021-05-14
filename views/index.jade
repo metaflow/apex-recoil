@@ -28,9 +28,9 @@ block content
         a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md" target="_blank")
           | FAQ
       #score
-        div#stats-graph-btn.tooltip
+        div#stats-graph-btn.tooltip.btn
           img(src="/outline_insert_chart_white_48dp.png"  alt="show graph")
-          .tooltiptext.small Show historical graph
+          .tooltiptext Show historical graph
         div#stats-wrap
           p#score-stats
       #weapon-select.grid
@@ -67,58 +67,76 @@ block content
         div.re45.btn
           img(src="/images/re45.png", alt="re45")
           p.name RE-45
-      #mag-select.grid
-        div.mag-0
+      #mag-select.button-row
+        div.mag-0.tooltip
           img(src="/images/magi.png" alt="no magazine")
-        div.mag-1
+          span.tooltiptext no magazine
+        div.mag-1.tooltip
           img(src="/images/magi.png" alt="magazine level 1")
-        div.mag-2
+          span.tooltiptext lvl 1
+        div.mag-2.tooltip
           img(src="/images/magi.png" alt="magazine level 2")
-        div.mag-3
+          span.tooltiptext lvl 2
+        div.mag-3.tooltip
           img(src="/images/magi.png" alt="magazine level 3")
+          span.tooltiptext lvl 3
       #settings
           p
             input(type='text' id='sens')
             span.tooltip.underlined
               | Sensitivity
               span.tooltiptext
-                | Example: for mouse sensitivity 3 and ADS multiplier 1.2 
-                | set "sensitivity" to 3 * 1.2 = 3.6
-          #mode-selection
+                | Example: for mouse sensitivity 3 and ADS <br/>
+                | multiplier 1.2 set "sensitivity" to 3 * 1.2 = 3.6
+          p.pad-left Mode:
+          #mode-selection.button-row
             #mode-fixed-path.btn
-              div Fixed target Path visible
+              div Follow path
             #mode-fixed.btn
-              div Fixed target
+              div Still target
             #mode-moving.btn
-              div Moving Target
-          p
-            input(type='checkbox' id='hint')
-            | Show path&nbsp;
-            input(type='checkbox' id='toggle-modes')
-            label.tooltip.underlined Auto toggle
-              span.tooltiptext.small
-                | Toggles "show path" after a spray.
-          p
-            input(type='checkbox' id='stationary-target')
-            label.tooltip.underlined Stationary target
+              div Moving target
+          div.pad-left.row
+            .tooltip
+              img(src="/outline_run_circle_white_24dp.png" alt="target control")
               span.tooltiptext
-                | Keep the target in place. Otherwise, the target will recoil as in the game.
-          p
-            input(type='checkbox' id='moving-target')
-            | Moving target&nbsp;
-          div.row
-            //- img(src="/speed_white_24dp.svg" alt="speed control")
+                | Target move speed
             input.slider#target-speed(type='range' min="1" max="300" step="1")
             span#target-speed-value
-          #sound-control.row
-            #toggle-mute
-              img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
-              img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
-            input.slider#volume(type='range' min="0" max="100")
-          .row
-            img(src="/speed_white_24dp.svg" alt="speed control")
+          #recoil-mode.button-row
+            .center-text Recoil:
+            #recoil-weapon.btn.tooltip
+              div Weapon
+              span.tooltiptext
+                | Apply recoil to the weapon and<br/>
+                | keep target still (or move smoothly)
+            #recoil-target.btn.tooltip
+              div Target
+              span.tooltiptext
+                | Apply recoil to the target.<br/>
+                | Close to in-game experience
+          .button-row
+            .center-text Result style:
+            #trace-0.btn
+              div Target
+            #trace-1.btn
+              div Path-dots
+            #trace-2.btn
+              div Path-lines
+          .row.pad-left
+            .tooltip
+              img(src="/outline_slow_motion_video_white_24dp.png" alt="speed control").tooltip
+              span.tooltiptext
+                | Firing speed. Reduce it if you struggle to follow the pattern
             input.slider#speed(type='range' min="10" max="100" step="10")
             span#speed-value
+          #sound-control.row.pad-left
+            #toggle-mute.tooltip
+              img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
+              img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
+              span.tooltiptext(style="width:200px")
+                | Sound volume (click to mute)
+            input.slider#volume(type='range' min="0" max="100")
       #controls-bottom
         #copyright
           div.links
@@ -160,8 +178,8 @@ block content
             li Set the #[i sensitivity]&nbsp;
               .tooltip.underlined your preference
                 .tooltiptext
-                  | Example: for mouse sensitivity 3 and ADS multiplier 1.2 
-                  | set "sensitivity" to 3 * 1.2 = 3.6
+                  | Example: for mouse sensitivity 3 and ADS <br/>
+                  | multiplier 1.2 set "sensitivity" to 3 * 1.2 = 3.6
               | . 
               a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.
             li Pick a weapon and magazine.
