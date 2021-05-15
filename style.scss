@@ -171,7 +171,7 @@ h2 {
       display: flex;
       flex-direction: row;
       #stats-graph-btn {
-        cursor: pointer;
+        margin-right: 4px;
       }
       #stats-wrap {
         text-align: right;
@@ -182,7 +182,7 @@ h2 {
         vertical-align: bottom;
         padding-right: 8px;
       }
-      padding: 4px 12px;
+      padding: 4px 8px;
     }
     #weapon-select {
       div {
