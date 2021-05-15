@@ -17,7 +17,7 @@
 import Konva from "konva";
 import { MagInfo, Weapon } from "./game";
 import { cursor, layer, stage } from "./main";
-import { NumericAttribute, StringAttribute, BooleanAttribute, watch } from './storage';
+import { NumericAttribute, StringAttribute, BooleanAttribute, watch, initAttributes } from './storage';
 import { PlainPoint, Point } from "./point";
 import specs from './specs.json';
 
@@ -54,6 +54,7 @@ const aConnectHover = new BooleanAttribute('connect-hover', NS, true);
 const aComment =  new StringAttribute('comment', NS, '');
 
 export function setupEditor() {
+  initAttributes(NS);
   setupControls();
   initImage();
   loadSpecs();

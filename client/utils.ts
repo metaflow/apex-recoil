@@ -85,5 +85,6 @@ export function numberToDate(n: number): string {
 }
 
 export function clamp(x: number, from: number, to: number) {
+  if (!Number.isFinite(x)) return from;
   return Math.max(from, Math.min(to, x));
 }

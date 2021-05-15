@@ -86,23 +86,26 @@ block content
             span.tooltip.underlined
               | Sensitivity
               span.tooltiptext
-                | Example: for mouse sensitivity 3 and ADS <br/>
-                | multiplier 1.2 set "sensitivity" to 3 * 1.2 = 3.6
+                | Example: for mouse sensitivity 3 and ADS<br/>
+                | multiplier 1.2 set this to 3 * 1.2 = 3.6
           p Mode:
           #mode-selection.button-row
-            #mode-fixed-path.btn
+            #mode-fixed-path.btn.tooltip
               div Follow path
-            #mode-fixed.btn
+              span.tooltiptext click anywhere in the area<br/>hotkey [a]
+            #mode-fixed.btn.tooltip
               div Still target
-            #mode-moving.btn
+              span.tooltiptext click anywhere in the area<br/>hotkey [s]
+            #mode-moving.btn.tooltip
               div Moving target
+              span.tooltiptext hotkey [d]
           div.row
             .tooltip
               img(src="/outline_run_circle_white_24dp.png" alt="target control")
               span.tooltiptext
                 | Target move speed
-            input.slider#target-speed(type='range' min="1" max="300" step="1")
-            span#target-speed-value
+            input.slider#target-speed(type='range' min="1" max="600" step="1")
+            #target-speed-value.value
           #recoil-mode.button-row
             .center-text Recoil:
             #recoil-weapon.btn.tooltip
@@ -129,7 +132,7 @@ block content
               span.tooltiptext
                 | Firing speed. Reduce it if you struggle to follow the pattern
             input.slider#speed(type='range' min="10" max="100" step="10")
-            span#speed-value
+            #speed-value.value
           #sound-control.row
             #toggle-mute.tooltip
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
@@ -137,6 +140,7 @@ block content
               span.tooltiptext(style="width:200px")
                 | Sound volume (click to mute)
             input.slider#volume(type='range' min="0" max="100")
+            .value
       #controls-bottom
         #copyright
           div.links
@@ -175,21 +179,12 @@ block content
           h2 Instructions
           ul
             li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="_blank") Make sure that "Enhance pointer precision" is off].
-            li Set the #[i sensitivity]&nbsp;
-              .tooltip.underlined your preference
-                .tooltiptext
-                  | Example: for mouse sensitivity 3 and ADS <br/>
-                  | multiplier 1.2 set "sensitivity" to 3 * 1.2 = 3.6
-              | . 
+            li Set the #[i sensitivity].&nbsp;
               a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.
             li Pick a weapon and magazine.
             li Click in the dotted area below and try to offset the recoil.
             li The better you compensate the higher score you get. The maximum is 100.
-          p #[i Show path] displays the ideal compensation trajectory.
-          p #[i Auto toggle] switches "show path" between sprays. I recommend enabling it for learning.
-          p Uncheck #[i Stationary target] to make the crosshair stationary and recoil the target - it's closer to in-game.
-          p Set a slower #[i speed] if you like; stats are not recorded for slow-mode.
-          p The #[i middle mouse button] toggles the display mode of a trace.
+          p Hover over options to see hints (if any).
           p.action#dismiss-instructions Dismiss instructions
       #stage
   #mobile-info 

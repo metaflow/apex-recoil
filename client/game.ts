@@ -17,13 +17,14 @@
 import { Howl } from "howler";
 import Konva from "konva";
 import { cursor, layer, stage } from "./main";
-import { resumeAttrUpdates, suspendAttrUpdates, BooleanAttribute, NumericAttribute, StringAttribute, watch } from './storage';
+import { resumeAttrUpdates, suspendAttrUpdates, BooleanAttribute, NumericAttribute, StringAttribute, watch, initAttributes } from './storage';
 import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
 import { addStat, aStats, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
 import { clamp, numberToDate, today } from "./utils";
 import assertExists from "ts-assert-exists";
+import hotkeys from "hotkeys-js";
 
 let sound: Howl | null = null;
 let soundPath = '';
@@ -87,6 +88,7 @@ function pointInRect(p: Point, r: Rect) {
 
 interface Frame {
   timeDiff: number;
+  frameRate: number;
 }
 
 class Target {
@@ -252,8 +254,7 @@ function soundControls() {
 }
 
 function scale() {
-  const sens = Number(aSens.get());
-  return clamp(1 / sens, 0.1, 10); // TODO: try clamp NaN
+  return clamp(1 / aSens.get(), 0.1, 10);
 }
 
 function gradientColor(x: number) {
@@ -376,9 +377,8 @@ function weaponControls() {
     const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
     if (d != null) d.addEventListener('click', () => aWeapon.set(s.name));
   });
-  
+
   aWeapon.watch((v: string) => {
-    console.log('weapon updated', v);
     const s = document.querySelector(`#weapon-select .selected`) as HTMLDivElement;
     if (s != null) s.classList.remove('selected');
     const d = document.querySelector(`#weapon-select .${v}`) as HTMLDivElement;
@@ -493,7 +493,6 @@ class Shooting {
   hintGroup: Konva.Group;
   wallGroup: Konva.Group;
   recoilGroup: Konva.Group;
-  fpsText: Konva.Text;
   recoilTarget: boolean = false;
   traceShapes: Konva.Shape[][] = [];
   running: boolean = false;
@@ -505,16 +504,6 @@ class Shooting {
     this.hintGroup = new Konva.Group();
     this.wallGroup = new Konva.Group();
     this.recoilGroup = new Konva.Group();
-    this.fpsText = new Konva.Text({
-      text: `FPS: -`,
-      fontSize: 14,
-      fill: theme.foreground,
-      shadowBlur: 0,
-      shadowOffset: { x: 1, y: 1 },
-      shadowOpacity: 1,
-      x: 10,
-      y: 10,
-    });
   }
 
   start() {
@@ -523,7 +512,6 @@ class Shooting {
     this.addShape(this.hintGroup);
     this.addShape(this.wallGroup);
     this.addShape(this.recoilGroup);
-    this.addShape(this.fpsText);
     suspendAttrUpdates();
     this.recoilTarget = !aRecoilWeapon.get();
     this.movingTarget = aMovingTarget.get();
@@ -563,7 +551,6 @@ class Shooting {
       });
       this.addShape(this.crossHair);
       stage.container().classList.add('no-cursor');
-      console.log(stage.container(), stage.container().classList);
     }
     this.frame();
     stage.batchDraw();
@@ -582,7 +569,6 @@ class Shooting {
 
   frame(): boolean {
     if (!this.running) return false;
-    this.fpsText.text(`FPS: ${Math.round(1000 * this.totalFrames / (Date.now() - this.start_t))}`);
     this.totalFrames++;
     const sc = scale();
     const cur = cursor();
@@ -716,6 +702,7 @@ export function setupGame() {
   * setting the listening property to false will improve
   * drawing performance because the rectangles won't have to be
   * drawn onto the hit graph */
+  initAttributes(NS);
   layer.listening(false);
   layer.add(startRectangle);
   loadStats();
@@ -786,8 +773,7 @@ export function setupGame() {
     if (e) e.innerText = `${v}`;
     target.onSettingsUpdated();
   });
-  console.log('setup buttons');
-  { 
+  {
     const btnModeMoving = assertExists(document.getElementById('mode-moving'));
     const btnFixedPath = assertExists(document.getElementById('mode-fixed-path'));
     const btnFixed = assertExists(document.getElementById('mode-fixed'));
@@ -805,11 +791,11 @@ export function setupGame() {
       }
       btnFixed.classList.add('selected');
     });
-    btnModeMoving.addEventListener('click', () => {
-      aHint.set(false);
-      aMovingTarget.set(true);
-    });
     btnFixedPath.addEventListener('click', () => {
+      aHint.set(true);
+      aMovingTarget.set(false);
+    });
+    hotkeys('a', () => {
       aHint.set(true);
       aMovingTarget.set(false);
     });
@@ -817,8 +803,20 @@ export function setupGame() {
       aHint.set(false);
       aMovingTarget.set(false);
     });
+    hotkeys('s', () => {
+      aHint.set(false);
+      aMovingTarget.set(false);
+    });
+    btnModeMoving.addEventListener('click', () => {
+      aHint.set(false);
+      aMovingTarget.set(true);
+    });
+    hotkeys('d', () => {
+      aHint.set(false);
+      aMovingTarget.set(true);
+    });
   }
-  { 
+  {
     const btnRecoilTarget = assertExists(document.getElementById('recoil-target'));
     const btnRecoilWeapon = assertExists(document.getElementById('recoil-weapon'));
     aRecoilWeapon.watch((v: boolean) => {
@@ -838,22 +836,43 @@ export function setupGame() {
     });
   }
   {
-    for(let i = 0; i < traceShapeTypes; i++) {
+    for (let i = 0; i < traceShapeTypes; i++) {
       const e = assertExists(document.getElementById(`trace-${i}`));
       e.addEventListener('click', () => aTraceMode.set(i));
     }
     aTraceMode.watch((v: number) => {
-      for(let i = 0; i < traceShapeTypes; i++) {
+      for (let i = 0; i < traceShapeTypes; i++) {
         const e = assertExists(document.getElementById(`trace-${i}`));
         setClass(e, 'selected', i == v);
       }
     });
   }
+
+  const fpsTxt = new Konva.Text({
+    text: `FPS: -`,
+    fontSize: 14,
+    fill: theme.foreground,
+    shadowBlur: 0,
+    shadowOffset: { x: 1, y: 1 },
+    shadowOpacity: 1,
+    x: 10,
+    y: 10,
+  });
+  layer.add(fpsTxt);
+  const fps: number[] = [];
+  for (let i = 0; i < 10; i++) fps.push(0);
+  let fpsIdx = 0;
+  let fpsSum = 0;
   animation = new Konva.Animation((f: any) => {
     const a = target.frame(f);
     const b = shooting.frame();
+    if (a || b) {
+      fpsIdx = (fpsIdx + 1) % 10;
+      fpsSum += f.frameRate - fps[fpsIdx];
+      fps[fpsIdx] = f.frameRate;
+      fpsTxt.text(`FPS: ${Math.round(fpsSum / 10)}`);
+    }
     return a || b;
   }, [layer]);
   animation.start();
-  console.log('done');
 }

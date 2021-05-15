@@ -35,6 +35,10 @@ export function resumeAttrUpdates() {
   attrUpdatesActive = true;
 }
 
+export function initAttributes(ns: string) {
+  allAttributes.filter(a => a.namespace == ns).forEach(a => a.init());
+}
+
 export function watch(attrs: Attribute[], fn: () => void) {
   attrs.forEach(a => a.watchRaw(fn));
 }
@@ -53,7 +57,6 @@ abstract class Attribute {
     this.namespace = namespace;
     this.fullName = namespace + ':' + name;
     this.def = def;
-    this.init();
     allAttributes.push(this);
   }
   init() {
@@ -66,7 +69,7 @@ abstract class Attribute {
     this.initInput();
   }
   poke() {
-    // console.log('poke', this.fullName, this.rawWatchers.length);
+    // console.log('poke', this.fullName, this.value, this.rawWatchers.length);
     this.rawWatchers.forEach(f => f(this.value));
   }
   getRaw(): string {
