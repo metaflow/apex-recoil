@@ -1,3 +1,11 @@
+# v11 Moving target and UI
+
+- Added "moving target" mode, stats are tracked separately for it. Speed is not taken in account as there are many variables to consider beside that.
+
+- Updated UI controls to make mode selection easier.
+
+- Added hints to many controls.
+
 # v10 Firing area and spitfire mag size
 
 - Added a dotted region that shows a good starting position for a spray. If region is too small user will see a warning.
