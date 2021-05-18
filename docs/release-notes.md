@@ -1,3 +1,11 @@
+# v12 small updates
+
+- Fixed a bug when moving target disappeared after switching back to the app from other tab.
+
+- Added a note and AHK script on how to lower window sens if in-game sensitivity is very low.
+
+- Added scrolling to the control panel if windows height is too small.
+
 # v11 Moving target and UI
 
 - Added "moving target" mode, stats are tracked separately for it. Speed is not taken in account as there are many variables to consider beside that.

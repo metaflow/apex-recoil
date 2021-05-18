@@ -94,6 +94,7 @@ b {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 ul {
@@ -132,12 +133,11 @@ h2 {
       padding: 0 4px;
       text-align: center;
     }
-    max-width: 300px;
-    min-width: 300px;
-    // border-right: 1px white solid;
-    // border-right-style: inset;
+    max-width: 315px;
+    min-width: 315px;
     background-color: $menu;
     flex-direction: column;
+    overflow-x: hidden;
     display: flex;
     #settings {
       padding: 4px 4px 0 8px;
@@ -261,6 +261,7 @@ h2 {
       }
     }
     #mag-select {
+      justify-content: flex-start;
       div {
         width: 40px;
         margin: 4px;

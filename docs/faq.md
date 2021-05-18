@@ -4,13 +4,13 @@
 
 It's assumed that your Windows sensitivity is 6/11 (x1.0) and the "Enhance pointer precision" is off so every mouse count equals 1 pixel on the screen.
 
-If you see a warning that "Active area is too small!" then it means that either you window is too small (resize it!) or in-game sensitivity is very low and recoil pattern will not fit the screen. In this case you should lower your mouse sensitivity for the game.
+If you see a warning that "Active area is too small!" then it means that either browser's window is too small (resize it!) or in-game sensitivity is very low and recoil pattern will not fit the screen. In this case you should lower your mouse sensitivity for the app:
 
 - most of mouse control software supports multiple CPI settings. Switch to a lower value e.g. from 2000 to 1000 CPI.
 
-- [script](https://gist.github.com/metaflow/dd0b38a66b74dad27d6af04358fbae40) for [autohotkey](https://www.autohotkey.com/) to switch between normal and low sensitivity.
+- use this [script](https://gist.github.com/metaflow/dd0b38a66b74dad27d6af04358fbae40) for [autohotkey](https://www.autohotkey.com/) to switch between normal and 1/2 sensitivity.
 
-after you've reduced you mouse speed you can then multiply web app sensitivity by the same value (e.g. 0.5 mouse speed -> x2 sensitivity).
+after you've reduced you mouse speed you can then multiply web app sensitivity by the same value (e.g. x0.5 mouse speed -> x2 sensitivity).
 
 ## How accurate are the patterns?
 

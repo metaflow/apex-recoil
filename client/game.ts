@@ -146,8 +146,12 @@ class Target {
       if (d.length() < move) {
         this.pickNext();
         d = this.next.clone().sub(this.pos);
+      } else {
+        this.pos.add(d.s(move / d.length()));
       }
-      this.pos.add(d.s(move / d.length()));
+      if (!pointInRect(this.pos, startRect)) {
+        console.log(f.timeDiff, d, this.pos);
+      }
       update = true;
     }
     if (update) {
