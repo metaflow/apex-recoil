@@ -320,7 +320,6 @@ class TracePreview {
     const [line, circles] = drawPattern(pattern, n, patternBox[0].clone().s(-1).add(new Point(50, 50)), sc);
     this.addShape(line as Konva.Line);
     (circles as Konva.Circle[]).forEach(c => this.addShape(c));
-    target.onSettingsUpdated();
     redraw();
   }
   addShape(s: Konva.Shape) {
@@ -682,7 +681,6 @@ class Shooting {
     target.offset(new Point());
     this.crossHair?.visible(false);
     stage.container().classList.remove('no-cursor');
-    redrawStartRectangle();
     redraw();
   }
   displayTace() {
@@ -720,9 +718,6 @@ export function setupGame() {
     tracePreview?.clear();
     tracePreview = new TracePreview();
     redrawStartRectangle();
-  });
-  aSens.watch(() => {
-    target.onSettingsUpdated();
   });
   window.addEventListener('resize', () => {
     redrawStartRectangle();
