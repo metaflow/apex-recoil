@@ -18,19 +18,19 @@ extends layout
 block content
   #game
     #control
-      h1 Apex Legends Recoil Patterns
-      p.description Learn and practice spray/recoil patterns
+      h1 Отдача оружия в Apex Legends
+      p.description Практическое обучение
       p#sensitivity-warning.hidden
-        | Active area is too small! #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#mouse-sensitivity" target="_blank") how to fix] 
+        | Активная зона слишком мала! Может быть расширить окно? #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#mouse-sensitivity" target="_blank") еще (англ.)] 
       #top-links
         p#show-instructions-btn.action
-          | Show instructions
+          | Инструкции
         a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md" target="_blank")
-          | FAQ
+          | FAQ (англ.)
       #score
         div#stats-graph-btn.tooltip.btn
-          img(src="/outline_insert_chart_white_48dp.png"  alt="show graph")
-          .tooltiptext Show historical graph
+          img(src="/outline_insert_chart_white_48dp.png" alt="show graph")
+          .tooltiptext Статистика
         div#stats-wrap
           p#score-stats
       #weapon-select.grid
@@ -70,75 +70,75 @@ block content
       #mag-select.button-row
         div.mag-0.tooltip
           img(src="/images/magi.png" alt="no magazine")
-          span.tooltiptext No magazine
+          span.tooltiptext Без магазина
         div.mag-1.tooltip
           img(src="/images/magi.png" alt="magazine level 1")
-          span.tooltiptext Level 1
+          span.tooltiptext Ур. 1
         div.mag-2.tooltip
           img(src="/images/magi.png" alt="magazine level 2")
-          span.tooltiptext Level 2
+          span.tooltiptext Ур. 2
         div.mag-3.tooltip
           img(src="/images/magi.png" alt="magazine level 3")
-          span.tooltiptext Level 3
+          span.tooltiptext Ур. 3
       #settings
           p
             input(type='text' id='sens')
             span.tooltip.underlined
-              | Sensitivity
+              | Чувствительность
               span.tooltiptext
-                | Example: for mouse sensitivity 3 and ADS<br/>
-                | multiplier 1.2 set this to 3 * 1.2 = 3.6
-          p Mode:
+                | Например: если игровая чувствительность 3 и ADS<br/>
+                | 1.2 впишите сюда 3 * 1.2 = 3.6
+          p Режим цели:
           #mode-selection.button-row
             #mode-fixed-path.btn.tooltip
-              div Follow path
-              span.tooltiptext click anywhere in the area<br/>hotkey [a]
+              div Траектория
+              span.tooltiptext Клавиша A
             #mode-fixed.btn.tooltip
-              div Still target
-              span.tooltiptext click anywhere in the area<br/>hotkey [s]
+              div Неподвижная
+              span.tooltiptext Клавиша S
             #mode-moving.btn.tooltip
-              div Moving target
-              span.tooltiptext hotkey [d]
+              div Движущаяся
+              span.tooltiptext Клавиша D
           div.row
             .tooltip
               img(src="/outline_run_circle_white_24dp.png" alt="target control")
               span.tooltiptext
-                | Target move speed
+                | Скорость цели
             input.slider#target-speed(type='range' min="1" max="600" step="1")
             #target-speed-value.value
           #recoil-mode.button-row
-            .center-text Recoil:
+            .center-text Отдача:
             #recoil-weapon.btn.tooltip
-              div Weapon
+              div Оружия
               span.tooltiptext
-                | Apply recoil to the weapon and<br/>
-                | keep target still (or move smoothly)
+                | Отдача применяется к курсору, цель<br/>
+                | неподвижна
             #recoil-target.btn.tooltip
-              div Target
+              div Цели
               span.tooltiptext
-                | Apply recoil to the target.<br/>
-                | Close to in-game experience
+                | Отдача применяется к цели,<br/>
+                | как в игре.
+          p Следы:
           .button-row
-            .center-text Result style:
             #trace-0.btn
-              div Target
+              div Вокруг мишени
             #trace-1.btn
-              div Path-dots
+              div Точки от идеала
             #trace-2.btn
-              div Path-lines
+              div Линии от идеала
           .row
             .tooltip
               img(src="/outline_slow_motion_video_white_24dp.png" alt="speed control").tooltip
               span.tooltiptext
-                | Firing speed. Reduce it if you struggle to follow the pattern
+                | Скорость стрельбы. Поставьте меньшее число если не успеваете за целью
             input.slider#speed(type='range' min="10" max="100" step="10")
             #speed-value.value
           #sound-control.row
             #toggle-mute.tooltip
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
               img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
-              span.tooltiptext(style="width:200px")
-                | Sound volume (click to mute)
+              span.tooltiptext
+                | Громкость звука (нажмите, чтобы выключить звук)
             input.slider#volume(type='range' min="0" max="100")
             .value
       #controls-bottom
@@ -146,8 +146,6 @@ block content
           div.links
             a(href="https://github.com/metaflow/apex-recoil" target="_blank")
               img(src="/GitHub-Mark-Light-32px.png", alt="github")
-            a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/" target="_blank")
-              img(src="/reddit.png", alt="reddit")
             a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/" target="_blank")
               img(src="/reddit.png", alt="reddit")
             div.vertical
@@ -173,32 +171,29 @@ block content
               | what's new
     #workspace
       #detailed-stats.hidden
-        div Note that the Y-scale for the score is logarithmic as it's quite easy to improve from score 40 to 50 but much harder from 90 to 92.
+        div Ось Y логарифмическая поскольку разница между 40 и 50 очками меньше, чем между 80 и 90.
         #plotly_area
         div
-          p.action#hide-stats Dismiss graph
+          p.action#hide-stats Скрыть график
       #instructions.hidden
-          h2 Instructions
-          p Check out an #[a(href="https://www.youtube.com/watch?v=tTPKHa4aXug") overview on YouTube].
+          h2 Инструкция
+          p #[a(href="https://www.youtube.com/watch?v=tTPKHa4aXug") Видео объяснение (англ.)].
           ul
-            li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="_blank") Make sure that "Enhance pointer precision" is off].
-            li Set the #[i sensitivity].&nbsp;
-              a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.
-            li Pick a weapon and magazine.
-            li Click in the dotted area below and try to offset the recoil.
-            li The better you compensate the higher score you get. The maximum is 100.            
-          p Hover over options to see hints (if any).
-          p.action#dismiss-instructions Dismiss instructions
+            li #[a(href="https://www.google.com/search?q=отключить+Повышение+точности+указателя+windows" target="_blank") Убедитесь, что настройка "повышение точности указателя" выключена].
+            li Выставите #[i чувствительность].&nbsp;            
+            li Выберите оружие и уровень магазина.
+            li Нажмите в обведенной точками области внизу и попробуйте компенсировать отдачу. Чем лучше получается это делать, тем больше очков вы наберете (максимум 100).
+          p При наведении на многие настройки и кнопки появится всплывающая подсказка.
+          p
+            a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Как настроить для контроллера (англ., экспериметально).
+          p.action#dismiss-instructions Закрыть инструкцию
       #stage
   #mobile-info 
     h1 Apex Legends Recoil Patterns
-    p Hi! Thanks for checking out this little app to practice recoil patterns. It's meant to be used on the desktop browser with a mouse or controller. 
-      | The screen width of your device must be greater than 900 pixels. 
-      | Meanwhile, please check this 
-      | #[a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/") post on Reddit] 
-      | and #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md") FAQ].
+    p Привет! Этот сайт позволят практиковать отдачу оружия в игре Apex Legends.
+      | Размер экрана устройства должен быть больше чем 900 пикселей.
     br
-    p Cheers!
+    p Увидимся!
     img(src="/trail.png", alt="trail")
     #copyright-mobile
       p
@@ -212,3 +207,5 @@ block content
           | Cookie settings
       p 2021 equanimity_rulez
       p This app is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.
+      script.
+        window.game_locale = 'ru';

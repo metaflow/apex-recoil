@@ -19,7 +19,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Apex Legends Recoils' });
+  res.render('index-ru', { title: 'Apex Legends Recoils' });
 });
 
 module.exports = router;

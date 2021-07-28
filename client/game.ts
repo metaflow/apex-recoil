@@ -464,16 +464,29 @@ function showStats() {
     (window as any).updateGraph(x, median, best, count);
   }
   const b = document.getElementById('score-stats');
+
   if (b) {
-    b.innerText = "Today's tries -, median -, best -\nAll time best -";
+    let todayCount = '-';
+    let todayMedian = '-';
+    let todayBest = '-';
+    let allTimeBest = '-';
     if (s) {
+      allTimeBest = `${s.bestAllTime}`;
       if (s.todayResults.length > 0) {
-        b.innerText = `Today's tries ${s.todayResults.length}, median ${Math.round(percentile(s.todayResults, 0.5))}, best ${percentile(s.todayResults, 1)}
-                    All time best ${s.bestAllTime}`;
-      } else {
-        b.innerText = `Today's tries -, median -, best -\nAll time best ${s.bestAllTime}`;
+        todayCount = `${s.todayResults.length}`;
+        todayMedian = `${Math.round(percentile(s.todayResults, 0.5))}`;
+        todayBest = `${percentile(s.todayResults, 1)}`;
       }
     }
+    const locale = (window as any).game_locale;
+    switch (locale) {
+      case 'ru':
+        b.innerText = `Сегодня: ${todayCount} попытки, ${todayMedian} медиана,\n${todayBest} лучший результат.\nЛучший за все время ${allTimeBest}.`;
+        break;
+      default:
+         b.innerText = `Today's tries ${todayCount}, median ${todayMedian}, best ${todayBest}\nAll time best ${allTimeBest}`;
+         break;
+    }    
   }
 }
 
@@ -729,7 +742,7 @@ export function setupGame() {
   {
     const b = document.getElementById('speed-value');
     if (b) aFireSpeed.watch((s: number) => {
-      b.innerText = s == 100 ? 'normal' : `x ${s / 100}`;
+      b.innerText = `x ${s / 100}`;
     });
   }
   aTraceMode.watch(() => {

@@ -1,3 +1,9 @@
+# v13
+
+- Russian locale.
+
+- Fix: tooltips not being fully visible.
+
 # v12 small updates
 
 - Fixed a bug when moving target disappeared after switching back to the app from other tab.
