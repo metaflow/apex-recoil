@@ -86,7 +86,7 @@ block content
             span.tooltip.underlined
               | Чувствительность
               span.tooltiptext
-                | Например: если игровая чувствительность 3 и ADS<br/>
+                | Например: если чувствительность в игре 3 и ADS<br/>
                 | 1.2 впишите сюда 3 * 1.2 = 3.6
           p Режим цели:
           #mode-selection.button-row
@@ -111,26 +111,24 @@ block content
             #recoil-weapon.btn.tooltip
               div Оружия
               span.tooltiptext
-                | Отдача применяется к курсору, цель<br/>
-                | неподвижна
+                | Отдача применяется к курсору, цель неподвижна
             #recoil-target.btn.tooltip
               div Цели
               span.tooltiptext
-                | Отдача применяется к цели,<br/>
-                | как в игре.
+                | Отдача применяется к цели, как в игре
           p Следы:
           .button-row
             #trace-0.btn
               div Вокруг мишени
             #trace-1.btn
-              div Точки от идеала
+              div Точки
             #trace-2.btn
-              div Линии от идеала
+              div Линии
           .row
             .tooltip
               img(src="/outline_slow_motion_video_white_24dp.png" alt="speed control").tooltip
               span.tooltiptext
-                | Скорость стрельбы. Поставьте меньшее число если не успеваете за целью
+                | Скорость стрельбы. Сделайте меньше, если не успеваете
             input.slider#speed(type='range' min="10" max="100" step="10")
             #speed-value.value
           #sound-control.row
@@ -148,6 +146,8 @@ block content
               img(src="/GitHub-Mark-Light-32px.png", alt="github")
             a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/" target="_blank")
               img(src="/reddit.png", alt="reddit")
+            a(href="/")
+              img(src="/en.png", alt="english")
             div.vertical
               a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/privacy-policy.md" target="_blank")
                 | Privacy Policy
@@ -185,7 +185,7 @@ block content
             li Нажмите в обведенной точками области внизу и попробуйте компенсировать отдачу. Чем лучше получается это делать, тем больше очков вы наберете (максимум 100).
           p При наведении на многие настройки и кнопки появится всплывающая подсказка.
           p
-            a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Как настроить для контроллера (англ., экспериметально).
+            a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Настройка для игры с контроллером (англ., экспериментально).
           p.action#dismiss-instructions Закрыть инструкцию
       #stage
   #mobile-info 

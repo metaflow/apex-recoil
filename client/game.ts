@@ -405,6 +405,33 @@ function weaponControls() {
   });
 }
 
+interface I18n {
+  median: string;
+  best: string;
+  tries: string;
+  score: string;
+}
+ 
+function getLocale(): I18n {
+  const locale = (window as any).game_locale;
+  switch (locale) {
+    case 'ru':
+      return {
+        median: 'медиана',
+        best: 'лучший',
+        tries: 'попыток',
+        score: 'очков',
+      };
+    default:
+      return {
+        median: 'median',
+        best: 'best',
+        tries: 'tries',
+        score: 'score',
+      };
+  }
+}
+
 function statControls() {
   aShowDetailedStats.watch((v: boolean) => {
     const e = document.getElementById('detailed-stats');
@@ -461,7 +488,7 @@ function showStats() {
         count.push(s.todayResults.length);
       }
     }
-    (window as any).updateGraph(x, median, best, count);
+    (window as any).updateGraph(x, median, best, count, getLocale());
   }
   const b = document.getElementById('score-stats');
 

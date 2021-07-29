@@ -1,15 +1,15 @@
-function updateGraph(x, median, best, count) {
+function updateGraph(x, median, best, count, i18n) {
     const data = [{
         x: x,
         y: median.map(v => 101 - v),
         text: median,
-        name: 'median',
+        name: i18n.median,
         hovertemplate: '%{text}',
         mode: 'lines',
     }, {
         x: x,
         y: best.map(v => 101 - v),
-        name: 'best',
+        name: i18n.best,
         text: best,
         hovertemplate: '%{text}',
         mode: 'lines',
@@ -17,7 +17,7 @@ function updateGraph(x, median, best, count) {
     {
         x: x,
         y: count,
-        name: 'tries',
+        name: i18n.tries,
         yaxis: 'y2',
         type: 'scatter',
         mode: 'markers',
@@ -41,7 +41,7 @@ function updateGraph(x, median, best, count) {
             // tickangle: -90,
         },
         yaxis: {
-            title: 'score',
+            title: i18n.score,
             color: '#F9F9F9',
             showgrid: false,
             range: [2.1, 0],
@@ -55,7 +55,7 @@ function updateGraph(x, median, best, count) {
             color: '#F9F9F9',
             overlaying: 'y',
             side: 'right',
-            title: 'tries',
+            title: i18n.tries,
             rangemode: 'tozero',
             zeroline: false,
         }
