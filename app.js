@@ -20,12 +20,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
-var editorRouter = require('./routes/editor');
-
 var app = express();
 
-// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -35,9 +31,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/editor', editorRouter);
-app.use('/*', indexRouter);
-app.use('/*', indexRouter);
+app.use('/editor', express.Router().get('/', function(req, res, next) {
+  res.render('editor', { title: 'Editor' });
+}));
+app.use('/ru', express.Router().get('/', function(req, res, next) {
+  res.render('index-ru', { title: 'Apex Legends Recoils' });
+}));
+app.use('/*',  express.Router().get('/', function(req, res, next) {
+  res.render('index', { title: 'Apex Legends Recoils' });
+}));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

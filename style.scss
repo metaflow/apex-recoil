@@ -143,6 +143,9 @@ h2 {
       > p, > div {
         padding-top: 4px;
       }
+      #mouse-settings {
+        padding-right: 10px;
+      }
       #toggle-modes {
         padding-left: 4px;
       }
@@ -333,17 +336,7 @@ h2 {
   justify-content: space-between;
   flex-wrap: nowrap;
   align-items: stretch;
-  .btn {
-    padding: 4px;
-    height: auto;
-    display: flex;
-    align-content: center;
-    justify-content: center;
-    div {
-      margin: auto;
-      text-align: center;
-    }
-  }
+  
 }
 
 input[type="text"] {
@@ -485,6 +478,15 @@ div.btn {
     .name {
       color: $background;
     }
+  }
+  padding: 4px;
+  height: auto;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  div {
+    margin: auto;
+    text-align: center;
   }
 }
 

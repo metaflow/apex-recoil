@@ -59,6 +59,7 @@ const aWeapon = new StringAttribute('weapon', NS, 'r99');
 const aMag = new NumericAttribute('mag', NS, 0);
 const aVolume = new NumericAttribute('volume', NS, 20);
 const aMute = new BooleanAttribute('mute', NS, false);
+const aInvertY = new BooleanAttribute('invert-y', NS, false);
 const aHint = new BooleanAttribute('hint', NS, true);
 const aTraceMode = new NumericAttribute('trace-mode', NS, 1);
 const aFireSpeed = new NumericAttribute('speed', NS, 100);
@@ -315,7 +316,8 @@ class TracePreview {
     if (!Number.isFinite(sc) || sc < 0.1) return;
     const n = w.mags[aMag.get()].size;
     pattern = [];
-    for (let i = 0; i < n; i++) pattern.push(new Point(w.x[i], w.y[i]).s(sc));
+    const my = aInvertY.get() ? -1 : 1;
+    for (let i = 0; i < n; i++) pattern.push(new Point(w.x[i], my * w.y[i]).s(sc));
     patternBox = box(pattern);
     const [line, circles] = drawPattern(pattern, n, patternBox[0].clone().s(-1).add(new Point(50, 50)), sc);
     this.addShape(line as Konva.Line);
@@ -577,8 +579,9 @@ class Shooting {
       target.position(this.startPos.clone());
       target.offset(new Point());
     }
+    const my = aInvertY.get() ? -1 : 1;
     this.pattern = this.weapon.x.map((x, idx) => {
-      return new Point(x, this.weapon.y[idx]).s(sc);
+      return new Point(x, my * this.weapon.y[idx]).s(sc);
     });
     {
       const [ln, circles] = drawPattern(this.pattern, this.mag, this.startPos.clone(), sc);
@@ -752,7 +755,15 @@ export function setupGame() {
   instructionsControls();
   weaponControls();
   statControls();
-  watch([aWeapon, aMag, aSens], () => {
+  {
+    const d = document.querySelector(`#invert-y-btn`) as HTMLDivElement;
+    if (d != null) {
+      d.addEventListener('click', () => aInvertY.set(!aInvertY.get()));
+      aInvertY.watch((v: boolean) => setClass(d, 'selected', v));
+    }
+  }
+  
+  watch([aWeapon, aMag, aSens, aInvertY], () => {
     if (shooting.running) return;
     shooting.clear();
     tracePreview?.clear();

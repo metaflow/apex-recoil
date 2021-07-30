@@ -1,3 +1,7 @@
+# v14
+
+- "Invert Y" setting.
+
 # v13
 
 - Russian locale.

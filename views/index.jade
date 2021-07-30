@@ -81,13 +81,16 @@ block content
           img(src="/images/magi.png" alt="magazine level 3")
           span.tooltiptext Level 3
       #settings
-          p
-            input(type='text' id='sens')
-            span.tooltip.underlined
-              | Sensitivity
-              span.tooltiptext
-                | Example: for mouse sensitivity 3 and ADS<br/>
-                | multiplier 1.2 set this to 3 * 1.2 = 3.6
+          #mouse-settings.row
+            div
+              input(type='text' id='sens')
+              span.tooltip.underlined
+                | Sensitivity
+                span.tooltiptext
+                  | Example: for mouse sensitivity 3 and ADS<br/>
+                  | multiplier 1.2 set this to 3 * 1.2 = 3.6
+            #invert-y-btn.btn
+              div Invert Y
           p Mode:
           #mode-selection.button-row
             #mode-fixed-path.btn.tooltip
@@ -168,7 +171,7 @@ block content
             | #[a(href="https://apexlegends.fandom.com/wiki/" target="_blank") Apex Legends Wiki].
         #version
           p
-            | version 13&nbsp;
+            | version 14&nbsp;
             a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md" target="_blank")
               | what's new
     #workspace
