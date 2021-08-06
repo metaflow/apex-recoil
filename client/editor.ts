@@ -298,7 +298,7 @@ function updateSpec(_?: string) {
   }
   const c = document.getElementById("count");
   if (c) {
-    c.innerText = `${points.size} / ${pp.length} / ${w.mags[3].size}`;
+    c.innerText = `${points.size} / ${pp.length} / ${w.mags[w.mags.length - 1].size}`;
   }
   // <distance in raw pixels> / <distance in image pixels>
   // = <A in raw pixels for 1.0 sensitivity>.

@@ -181,8 +181,8 @@ let target: Target = new Target();
 
 export function trialSetup(): TrialSetup {
   const weapon = aWeapon.get();
-  let mag = aMag.get();
-  if (weapon == 'prowler') mag = 0;
+  const w = selectedWeapon();
+  let mag = Math.min(aMag.get(), w.mags.length - 1);
   return {
     weapon,
     mag,
@@ -232,7 +232,7 @@ function selectedWeapon(): Weapon {
 function updateSound() {
   if (aMute.get()) return;
   const w = selectedWeapon();
-  const newPath = `./audio/${w.mags[aMag.get()].audio}.mp3`;
+  const newPath = `./audio/${w.mags[Math.min(aMag.get(), w.mags.length - 1)].audio}.mp3`;
   if (soundPath != newPath) {
     soundPath = newPath;
     sound = new Howl({ src: soundPath });
@@ -314,7 +314,7 @@ class TracePreview {
     const w = selectedWeapon();
     const sc = scale();
     if (!Number.isFinite(sc) || sc < 0.1) return;
-    const n = w.mags[aMag.get()].size;
+    const n = w.mags[Math.min(aMag.get(), w.mags.length - 1)].size;
     pattern = [];
     const my = aInvertY.get() ? -1 : 1;
     for (let i = 0; i < n; i++) pattern.push(new Point(w.x[i], my * w.y[i]).s(sc));
@@ -389,6 +389,12 @@ function weaponControls() {
     const d = document.querySelector(`#weapon-select .${v}`) as HTMLDivElement;
     if (d == null) return;
     d.classList.add('selected');
+    const w = selectedWeapon();
+    console.log('mags', w.mags.length);
+    for (let i = 0; i <= 3; i++) {
+      setClass(document.querySelector(`#mag-select .mag-${i}`), 'hidden', w.mags.length == 1);
+    }
+    setClass(document.querySelector(`#mag-select .mag-drop`), 'hidden', w.mags.length != 1);
   });
   for (let i = 0; i <= 3; i++) {
     const d = document.querySelector(`#mag-select .mag-${i}`) as HTMLDivElement;
@@ -461,7 +467,8 @@ function statControls() {
   }
 }
 
-function setClass(element: HTMLElement, name: string, v: boolean) {
+function setClass(element: HTMLElement | null, name: string, v: boolean) {
+  if (element == null) return;
   if (v) {
     element.classList.add(name);
   } else {
@@ -565,7 +572,7 @@ class Shooting {
     this.startPos = cur.clone();
     const sc = scale();
     this.speed = clamp(aFireSpeed.get() / 100, 0.1, 1);
-    this.mag = this.weapon.mags[aMag.get()]?.size || 1;
+    this.mag = this.weapon.mags[Math.min(aMag.get(), this.weapon.mags.length - 1)]?.size || 1;
     if (!aMute.get() && sound != null) {
       sound.volume(aVolume.get() / 100);
       sound.rate(this.speed);

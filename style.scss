@@ -69,7 +69,7 @@ b {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 #editor {
@@ -305,6 +305,10 @@ h2 {
             border-color: $active;
             background-color: $attachment_3;
           }
+        }
+        &.mag-drop {
+          background-color: rgba($color: #FF0000, $alpha: 0.5);
+          border-color: $active;
         }
       }
     }
