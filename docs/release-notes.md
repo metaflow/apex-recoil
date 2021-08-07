@@ -1,3 +1,15 @@
+# v15
+
+Recoils and weapons updates for the Season 10.
+
+- Prowler is removed as it only has burst mode.
+
+- Added mag levels for L-Star.
+
+- Added special fixed mag for drop weapons (Spitfire and Alternator).
+
+- Added Rampage and ad toggle for it's "Revved Up" mod.
+
 # v14
 
 - "Invert Y" setting.

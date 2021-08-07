@@ -82,8 +82,9 @@ block content
           span.tooltiptext Level 3
         div.mag-drop.hidden
           img(src="/images/magi.png" alt="drop magazine")
-        div.mod-revved_up.mod.hidden
+        div.mod-revved_up.mod.hidden.tooltip
           img(src="/images/thermite_grenade.png" alt="thermite grenade")
+          span.tooltiptext Load thermite grenade
       #settings
           #mouse-settings.row
             div
@@ -144,7 +145,7 @@ block content
             #toggle-mute.tooltip
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
               img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
-              span.tooltiptext(style="width:200px")
+              span.tooltiptext
                 | Sound volume (click to mute)
             input.slider#volume(type='range' min="0" max="100")
             .value
@@ -175,7 +176,7 @@ block content
             | #[a(href="https://apexlegends.fandom.com/wiki/" target="_blank") Apex Legends Wiki].
         #version
           p
-            | version 14&nbsp;
+            | version 15&nbsp;
             a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md" target="_blank")
               | what's new
     #workspace
