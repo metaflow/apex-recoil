@@ -22,9 +22,10 @@ import { Point } from "./point";
 import specs from './specs.json';
 import theme from '../theme.json';
 import { addStat, aStats, distanceScore, loadStats, percentile, statsForSetup, TrialSetup } from "./stats";
-import { clamp, numberToDate, today } from "./utils";
+import { clamp, copy, numberToDate, today } from "./utils";
 import assertExists from "ts-assert-exists";
 import hotkeys from "hotkeys-js";
+import e from "express";
 
 let sound: Howl | null = null;
 let soundPath = '';
@@ -63,6 +64,7 @@ const aInvertY = new BooleanAttribute('invert-y', NS, false);
 const aHint = new BooleanAttribute('hint', NS, true);
 const aTraceMode = new NumericAttribute('trace-mode', NS, 1);
 const aFireSpeed = new NumericAttribute('speed', NS, 100);
+const aMods = new StringAttribute('mods', NS, '');
 
 export interface MagInfo {
   size: number;
@@ -72,9 +74,10 @@ export interface MagInfo {
 export interface Weapon {
   name: string;
   mags: MagInfo[];
-  timePoints: number[];
+  time_points: number[];
   x: number[];
   y: number[];
+  mods:  { [key: string]: any; };
 }
 
 interface Rect {
@@ -224,8 +227,17 @@ function instructionsControls() {
 }
 
 function selectedWeapon(): Weapon {
-  const w = weapons.get(aWeapon.get());
+  const w = copy(weapons.get(aWeapon.get())) as Weapon;  
   if (w == null) throw Error("weapon not found");
+  activeMods().forEach(name => {
+    const mod = w.mods[name];
+    if (mod == null) return;
+    for (const k in mod) {
+      console.log('key', k, mod[k]);
+      (w as any)[k] = mod[k];
+    }
+  })
+  console.log('selected weapon', w);
   return w;
 }
 
@@ -240,7 +252,7 @@ function updateSound() {
 }
 
 function soundControls() {
-  watch([aWeapon, aMag, aMute], updateSound);
+  watch([aWeapon, aMag, aMute, aMods], updateSound);
   const mute = (document.getElementById('muted') as HTMLImageElement);
   const unmute = (document.getElementById('unmuted') as HTMLImageElement);
   if (mute != null || unmute != null) {
@@ -375,9 +387,10 @@ function weaponControls() {
         var z: MagInfo = { size: m.size, audio: m.audio };
         return z;
       }),
-      timePoints: s.time_points,
+      time_points: s.time_points,
       x: s.x,
       y: s.y,
+      mods: s.mods,
     });
     const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
     if (d != null) d.addEventListener('click', () => aWeapon.set(s.name));
@@ -395,6 +408,14 @@ function weaponControls() {
       setClass(document.querySelector(`#mag-select .mag-${i}`), 'hidden', w.mags.length == 1);
     }
     setClass(document.querySelector(`#mag-select .mag-drop`), 'hidden', w.mags.length != 1);
+    document.querySelectorAll(".mod").forEach(e => {
+      setClass(e as HTMLElement, 'hidden', true);
+    });
+    console.log(w);
+    for (const v in w.mods) {
+      console.log('show mod', v)
+      setClass(document.querySelector(`.mod-${v}`), 'hidden', false);
+    }
   });
   for (let i = 0; i <= 3; i++) {
     const d = document.querySelector(`#mag-select .mag-${i}`) as HTMLDivElement;
@@ -411,6 +432,38 @@ function weaponControls() {
     if (d == null) return;
     d.classList.add('selected');
   });
+  {
+    const revved = document.querySelector('.mod-revved_up') as HTMLElement;
+    if (revved != null) {
+      (revved as HTMLDivElement).addEventListener('click', () => {
+        const k = 'revved_up';
+        setMod(k, !activeMods().has(k));
+      });
+    }
+  }
+  aMods.watch(() => {
+    document.querySelectorAll(".mod").forEach(e => {
+      setClass(e as HTMLElement, 'selected', false);
+    });
+    console.log(activeMods());
+    activeMods().forEach(s => {
+      setClass(document.querySelector(`.mod-${s}`), 'selected', true);
+    });
+  });
+}
+
+function setMod(name: string, on: boolean) {
+  const m = activeMods();
+  if (on) {
+    m.add(name);
+  } else {
+    m.delete(name);
+  }
+  aMods.set(Array.from(m.values()).join(','));
+}
+
+function activeMods(): Set<string> {
+  return new Set(aMods.get().split(',').filter(v => v != ''));
 }
 
 interface I18n {
@@ -538,7 +591,7 @@ class Shooting {
   hitScores: number[] = [];
   showHint = true;
   start_t = 0;
-  weapon: Weapon = { name: '', mags: [], x: [], y: [], timePoints: [] };
+  weapon: Weapon = { name: '', mags: [], x: [], y: [], time_points: [], mods: new Map() };
   hitIndex = -1; // Position in the patter we already passed.
   hitMarkers: Konva.Circle[] = [];
   crossHair?: Konva.Circle;
@@ -611,11 +664,11 @@ class Shooting {
   }
 
   recoilVector(t: number, i: number): [Point, number] {
-    while (i + 1 < this.mag && t > this.weapon.timePoints[i + 1]) i++;
+    while (i + 1 < this.mag && t > this.weapon.time_points[i + 1]) i++;
     if (i == -1) return [new Point(), i];
     if (i + 1 >= this.mag) return [this.pattern[this.mag - 1].clone(), i];
-    const dt = (this.weapon.timePoints[i + 1] - this.weapon.timePoints[i]);
-    let progress = Math.max(Math.min((t - this.weapon.timePoints[i]) / dt, 1), 0);
+    const dt = (this.weapon.time_points[i + 1] - this.weapon.time_points[i]);
+    let progress = Math.max(Math.min((t - this.weapon.time_points[i]) / dt, 1), 0);
     const p = this.pattern[i];
     return [this.pattern[i + 1].clone().sub(p).s(progress).add(p), i];
   }
@@ -770,7 +823,7 @@ export function setupGame() {
     }
   }
   
-  watch([aWeapon, aMag, aSens, aInvertY], () => {
+  watch([aWeapon, aMag, aSens, aInvertY, aMods], () => {
     if (shooting.running) return;
     shooting.clear();
     tracePreview?.clear();
@@ -782,7 +835,7 @@ export function setupGame() {
   });
   aShowDetailedStats.watch(redrawStartRectangle);
   aShowInstructions.watch(redrawStartRectangle);
-  watch([aStats, aMag, aWeapon, aHint], showStats);
+  watch([aStats, aMag, aWeapon, aHint, aMods], showStats);
   aMovingTarget.watch(showStats); // TODO add watching of multiple obj attributes.
   {
     const b = document.getElementById('speed-value');

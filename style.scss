@@ -272,6 +272,9 @@ h2 {
         &:hover {
           border-color: $foreground;
         }
+        &.selected {
+          border-color: $active;
+        }
         img {
           padding: 4px;
           width: 40px;

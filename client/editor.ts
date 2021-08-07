@@ -335,9 +335,10 @@ function loadSpecs() {
         var z: MagInfo = { size: m.size, audio: m.audio };
         return z;
       }),
-      timePoints: s.time_points,
+      time_points: s.time_points,
       x: s.x,
       y: s.y,
+      mods: {},
     });
   });
 }
