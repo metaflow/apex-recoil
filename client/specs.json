@@ -125,10 +125,10 @@
     {
         "name": "lstar",
         "mags": [
-            {"size": 22, "audio":  "lstar_0"},
-            {"size": 24, "audio":  "lstar_1"},
-            {"size": 26, "audio":  "lstar_2"},
-            {"size": 28, "audio":  "lstar_3"}
+            {"size": 20, "audio":  "lstar_20"},
+            {"size": 22, "audio":  "lstar_22"},
+            {"size": 24, "audio":  "lstar_24"},
+            {"size": 26, "audio":  "lstar_26"}
         ],
         "mods": {},
         "rpm": 600,
