@@ -37,6 +37,9 @@ app.use('/editor', express.Router().get('/', function(req, res, next) {
 app.use('/ru', express.Router().get('/', function(req, res, next) {
   res.render('index-ru', { title: 'Apex Legends Recoils' });
 }));
+app.use('/zh-CN', express.Router().get('/', function(req, res, next) {
+  res.render('index-zh-CN', { title: 'Apex Legends Recoils' });
+}));
 app.use('/*',  express.Router().get('/', function(req, res, next) {
   res.render('index', { title: 'Apex Legends Recoils' });
 }));
