@@ -156,8 +156,10 @@ block content
               img(src="/GitHub-Mark-Light-32px.png", alt="github")
             a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/" target="_blank")
               img(src="/reddit.png", alt="reddit")
-            a(href="/")
-              img(src="/en.png", alt="english")
+            a(href="/").lang
+              | english
+            a(href="/ru").lang
+              | русский
             div.vertical
               a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/privacy-policy.md" target="_blank")
                 | Privacy Policy
@@ -176,7 +178,7 @@ block content
             | #[a(href="https://apexlegends.fandom.com/wiki/" target="_blank") Apex Legends Wiki].
         #version
           p
-            | version 15&nbsp;
+            | version 16&nbsp;
             a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md" target="_blank")
               | what's new
     #workspace
@@ -220,3 +222,5 @@ block content
           | Cookie settings
       p 2021 equanimity_rulez
       p This app is not affiliated with or sponsored by Electronic Arts Inc. or its licensors.
+  script.
+    window.game_locale = 'zh-CN';

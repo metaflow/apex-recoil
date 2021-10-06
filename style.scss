@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Mikhail Goncharov
+ * Copyright 2021 khail Goncharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -380,6 +380,7 @@ input[type="text"] {
 }
 
 #copyright {
+  
   .links {
     font-size: 0.7em;
     flex-direction: row;
@@ -389,6 +390,10 @@ input[type="text"] {
       display: flex;
       align-items: flex-end;
       flex-grow: 1;
+    }
+    .lang {
+      font-size: 15px;
+      margin: auto 4px;
     }
   }
   a {
