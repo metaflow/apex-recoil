@@ -18,127 +18,127 @@ extends layout
 block content
   #game
     #control
-      h1 Apex Legends Recoil Patterns
-      p.description Learn and practice spray/recoil patterns
+      h1 Apex Legends 后坐力弹道
+      p.description 练习连射控枪
       p#sensitivity-warning.hidden
-        | Active area is too small! #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#mouse-sensitivity" target="_blank") how to fix] 
+        | 练习区域太小了! #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#mouse-sensitivity" target="_blank") 如何修复] 
       #top-links
         p#show-instructions-btn.action
-          | Show instructions
+          | 显示说明
         a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md" target="_blank")
           | FAQ
       #score
         div#stats-graph-btn.tooltip.btn
           img(src="/outline_insert_chart_white_48dp.png"  alt="show graph")
-          .tooltiptext Show historical graph
+          .tooltiptext 显示历史成绩
         div#stats-wrap
           p#score-stats
       #weapon-select.grid
         div.havoc_tc.btn
           img(src="/images/havoc.png", alt="havoc")
-          p.name HAVOC
+          p.name 哈沃克步枪
         div.flatline.btn
           img(src="/images/flatline.png", alt="flatline")
-          p.name Flatline
+          p.name 平行步枪
         div.r301.btn
           img(src="/images/r301.png", alt="r-301")
           p.name R-301
         div.alternator.btn
             img(src="/images/alternator.png", alt="alternator")
-            p.name Alternator
+            p.name 转换者冲锋枪
         div.r99.btn
           img(src="/images/r99.png", alt="r-99")
           p.name R-99
         div.volt.btn
           img(src="/images/volt.png", alt="volt")
-          p.name Volt
+          p.name 电能冲锋枪
         div.devotion_tc.btn
           img(src="/images/devotion.png", alt="devotion")
-          p.name Devotion
+          p.name 专注轻机枪
         div.lstar.btn
           img(src="/images/lstar.png", alt="lstar")
           p.name L-STAR
         div.spitfire.btn
           img(src="/images/spitfire.png", alt="spitfire")
-          p.name Spitfire
+          p.name 喷火轻机枪
         div.rampage.btn
           img(src="/images/rampage.png", alt="rampage")
-          p.name Rampage
+          p.name 暴走轻机枪
         div.re45.btn
           img(src="/images/re45.png", alt="re45")
           p.name RE-45
       #mag-select.button-row
         div.mag-0.tooltip
           img(src="/images/magi.png" alt="no magazine")
-          span.tooltiptext No magazine
+          span.tooltiptext 无扩容
         div.mag-1.tooltip
           img(src="/images/magi.png" alt="magazine level 1")
-          span.tooltiptext Level 1
+          span.tooltiptext 等级1
         div.mag-2.tooltip
           img(src="/images/magi.png" alt="magazine level 2")
-          span.tooltiptext Level 2
+          span.tooltiptext 等级2
         div.mag-3.tooltip
           img(src="/images/magi.png" alt="magazine level 3")
-          span.tooltiptext Level 3
+          span.tooltiptext 等级3
         div.mag-drop.hidden
           img(src="/images/magi.png" alt="drop magazine")
         div.mod-revved_up.mod.hidden.tooltip
           img(src="/images/thermite_grenade.png" alt="thermite grenade")
-          span.tooltiptext Load thermite grenade
+          span.tooltiptext 装填铝热剂
       #settings
           #mouse-settings.row
             div
               input(type='text' id='sens')
               span.tooltip.underlined
-                | Sensitivity
+                | 灵敏度
                 span.tooltiptext
-                  | Example: for mouse sensitivity 3 and ADS<br/>
-                  | multiplier 1.2 set this to 3 * 1.2 = 3.6
+                  | 例如: 鼠标灵敏度3和游戏中ADS<br/>
+                  | 1.2 在此设置为 3 * 1.2 = 3.6
             #invert-y-btn.btn
-              div Invert Y
-          p Mode:
+              div 反转 Y 轴
+          p 模式:
           #mode-selection.button-row
             #mode-fixed-path.btn.tooltip
-              div Follow path
-              span.tooltiptext click anywhere in the area<br/>hotkey [a]
+              div 跟随弹道
+              span.tooltiptext 点击区域中任意位置<br/>快捷键 [a]
             #mode-fixed.btn.tooltip
-              div Still target
-              span.tooltiptext click anywhere in the area<br/>hotkey [s]
+              div 静止目标
+              span.tooltiptext 点击区域中任意位置<br/>快捷键 [s]
             #mode-moving.btn.tooltip
-              div Moving target
-              span.tooltiptext hotkey [d]
+              div 移动目标
+              span.tooltiptext 快捷键 [d]
           div.row
             .tooltip
               img(src="/outline_run_circle_white_24dp.png" alt="target control")
               span.tooltiptext
-                | Target move speed
+                | 目标移动速度
             input.slider#target-speed(type='range' min="1" max="600" step="1")
             #target-speed-value.value
           #recoil-mode.button-row
-            .center-text Recoil:
+            .center-text 后坐力:
             #recoil-weapon.btn.tooltip
-              div Weapon
+              div 武器
               span.tooltiptext
-                | Apply recoil to the weapon and<br/>
-                | keep target still (or move smoothly)
+                | 对武器施加后坐力且<br/>
+                | 保持目标静止（或平滑移动）
             #recoil-target.btn.tooltip
-              div Target
+              div 目标
               span.tooltiptext
-                | Apply recoil to the target.<br/>
-                | Close to in-game experience
+                | 对目标施加后坐力。<br/>
+                | 更贴近游戏中体验
           .button-row
-            .center-text Result style:
+            .center-text 结果风格:
             #trace-0.btn
-              div Target
+              div 目标
             #trace-1.btn
-              div Path-dots
+              div 路径-点
             #trace-2.btn
-              div Path-lines
+              div 路径-线
           .row
             .tooltip
               img(src="/outline_slow_motion_video_white_24dp.png" alt="speed control").tooltip
               span.tooltiptext
-                | Firing speed. Reduce it if you struggle to follow the pattern
+                | 开火速度。如果你无法控制后坐，可以尝试减速。
             input.slider#speed(type='range' min="10" max="100" step="10")
             #speed-value.value
           #sound-control.row
@@ -146,7 +146,7 @@ block content
               img(src="/volume_up_white_24dp.svg"  alt="sound is not muted")#unmuted
               img(src="/volume_off_white_24dp.svg" alt="sound is muted")#muted.hidden
               span.tooltiptext
-                | Sound volume (click to mute)
+                | 音量 (点击静音)
             input.slider#volume(type='range' min="0" max="100")
             .value
       #controls-bottom
@@ -156,8 +156,8 @@ block content
               img(src="/GitHub-Mark-Light-32px.png", alt="github")
             a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/" target="_blank")
               img(src="/reddit.png", alt="reddit")
-            a(href="/ru")
-              img(src="/ru.png", alt="russian")
+            a(href="/")
+              img(src="/en.png", alt="english")
             div.vertical
               a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/privacy-policy.md" target="_blank")
                 | Privacy Policy
@@ -176,35 +176,34 @@ block content
             | #[a(href="https://apexlegends.fandom.com/wiki/" target="_blank") Apex Legends Wiki].
         #version
           p
-            | version 16&nbsp;
+            | version 15&nbsp;
             a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/release-notes.md" target="_blank")
               | what's new
     #workspace
       #detailed-stats.hidden
-        div Note that the Y-scale for the score is logarithmic as it's quite easy to improve from score 40 to 50 but much harder from 90 to 92.
+        div 请注意，Y 轴分数是取对数的，因为从 40 分提高到 50 分很容易，但从 90 分提高到 92 分要困难得多。
         #plotly_area
         div
-          p.action#hide-stats Dismiss graph
+          p.action#hide-stats 关闭图表
       #instructions.hidden
-          h2 Instructions
-          p #[a(href="/ru") Russian version].#[a(href="/zh-CN") Chinese version].
-          p Check out an #[a(href="https://www.youtube.com/watch?v=tTPKHa4aXug") overview on YouTube].
+          h2 说明
+          p 在Youtube上 #[a(href="https://www.youtube.com/watch?v=tTPKHa4aXug") 查看简介].
           ul
-            li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="_blank") Make sure that "Enhance pointer precision" is off].
-            li Set the #[i sensitivity].&nbsp;
-              a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") Setup for controller.
-            li Pick a weapon and magazine.
-            li Click in the dotted area below and try to offset the recoil.
-            li The better you compensate the higher score you get. The maximum is 100.            
-          p Hover over options to see hints (if any).
-          p.action#dismiss-instructions Dismiss instructions
+            li #[a(href="https://www.google.com/search?q=turn+off+enhance+pointer+precision" target="_blank") 确保“增强鼠标精度”选项已关闭].
+            li 设置 #[i 灵敏度].&nbsp;
+              a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md#controller-support" target="_blank") 手柄设置办法.
+            li 选择武器和弹夹。
+            li 点击下方虚线区域并尝试控枪。
+            li 你控制的越好分数就越高。最高为100分。           
+          p 鼠标悬停在选项上可以看到提示 (如果有的话).
+          p.action#dismiss-instructions 关闭说明
       #stage
   #mobile-info 
-    h1 Apex Legends Recoil Patterns
-    p Hi! Thanks for checking out this little app to practice recoil patterns. It's meant to be used on the desktop browser with a mouse or controller. 
-      | The screen width of your device must be greater than 900 pixels. 
-      | Meanwhile, please check this 
-      | #[a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/") post on Reddit] 
+    h1 Apex Legends 后坐力弹道
+    p 你好! 感谢你使用这个小程序来练习后坐力弹道. 它旨在通过鼠标或者手柄在电脑浏览器上使用。
+      | 您的屏幕宽度必须大于900像素。
+      | 同时请看Reddit上
+      | #[a(href="https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/") 这个帖子] 
       | and #[a(href="https://github.com/metaflow/apex-recoil/blob/main/docs/faq.md") FAQ].
     br
     p Cheers!

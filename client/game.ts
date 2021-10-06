@@ -572,6 +572,9 @@ function showStats() {
       case 'ru':
         b.innerText = `Сегодня: ${todayCount} попытки, ${todayMedian} медиана,\n${todayBest} лучший результат.\nЛучший за все время ${allTimeBest}.`;
         break;
+      case 'zh-CN':
+        b.innerText = `今天尝试: ${todayCount} 次, 平均分 ${todayMedian}, 最高分\n${todayBest}.\n历史最高分 ${allTimeBest}.`;
+        break;
       default:
          b.innerText = `Today's tries ${todayCount}, median ${todayMedian}, best ${todayBest}\nAll time best ${allTimeBest}`;
          break;
