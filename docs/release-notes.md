@@ -1,3 +1,7 @@
+# v17
+
+Simplified Chinese translation. Thank you, @SkywalkerJi!
+
 # v16
 
 Updates to L-STAR mag size after [evolution collection event](https://www.ea.com/en-gb/games/apex-legends/news/evolution-collection-event).
