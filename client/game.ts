@@ -483,6 +483,13 @@ function getLocale(): I18n {
         tries: 'попыток',
         score: 'очков',
       };
+    case 'zh-CN':
+      return {
+        median: '中位数',
+        best: '最高分',
+        tries: '尝试次数',
+        score: '得分',
+      };
     default:
       return {
         median: 'median',
