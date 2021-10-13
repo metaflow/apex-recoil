@@ -1,3 +1,7 @@
+# v18
+
+Now shooting is interrupted when you release the mouse button. Score is computed for the bullets already shot and not recorded.
+
 # v17
 
 Simplified Chinese translation. Thank you, @SkywalkerJi!

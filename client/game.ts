@@ -25,7 +25,6 @@ import { addStat, aStats, distanceScore, loadStats, percentile, statsForSetup, T
 import { clamp, copy, numberToDate, today } from "./utils";
 import assertExists from "ts-assert-exists";
 import hotkeys from "hotkeys-js";
-import e from "express";
 
 let sound: Howl | null = null;
 let soundPath = '';
@@ -77,7 +76,7 @@ export interface Weapon {
   time_points: number[];
   x: number[];
   y: number[];
-  mods:  { [key: string]: any; };
+  mods: { [key: string]: any; };
 }
 
 interface Rect {
@@ -227,7 +226,7 @@ function instructionsControls() {
 }
 
 function selectedWeapon(): Weapon {
-  const w = copy(weapons.get(aWeapon.get())) as Weapon;  
+  const w = copy(weapons.get(aWeapon.get())) as Weapon;
   if (w == null) throw Error("weapon not found");
   activeMods().forEach(name => {
     const mod = w.mods[name];
@@ -472,7 +471,7 @@ interface I18n {
   tries: string;
   score: string;
 }
- 
+
 function getLocale(): I18n {
   const locale = (window as any).game_locale;
   switch (locale) {
@@ -583,9 +582,9 @@ function showStats() {
         b.innerText = `今天尝试: ${todayCount} 次, 平均分 ${todayMedian}, 最高分\n${todayBest}.\n历史最高分 ${allTimeBest}.`;
         break;
       default:
-         b.innerText = `Today's tries ${todayCount}, median ${todayMedian}, best ${todayBest}\nAll time best ${allTimeBest}`;
-         break;
-    }    
+        b.innerText = `Today's tries ${todayCount}, median ${todayMedian}, best ${todayBest}\nAll time best ${allTimeBest}`;
+        break;
+    }
   }
 }
 
@@ -745,11 +744,12 @@ class Shooting {
   finish() {
     this.running = false;
     stage.listening(true);
+    sound?.stop();
     resumeAttrUpdates();
-    this.score /= this.mag;
+    this.score /= this.hitIndex + 1;
     this.score = Math.max(0, Math.min(1, this.score));
     const x = Math.round(100 * this.score);
-    if (this.speed == 1) addStat(x, trialSetup());
+    if ((this.speed == 1) && (this.hitIndex + 1 >= this.mag)) addStat(x, trialSetup());
     this.hintGroup.visible(true);
     this.hitMarkers.forEach(m => m.radius(2));
     const txt = new Konva.Text({
@@ -817,6 +817,8 @@ export function setupGame() {
   * setting the listening property to false will improve
   * drawing performance because the rectangles won't have to be
   * drawn onto the hit graph */
+  const version = document.getElementById('version-value');
+  if (version != null) version.innerText = '18';
   initAttributes(NS);
   layer.listening(false);
   layer.add(startRectangle);
@@ -832,7 +834,7 @@ export function setupGame() {
       aInvertY.watch((v: boolean) => setClass(d, 'selected', v));
     }
   }
-  
+
   watch([aWeapon, aMag, aSens, aInvertY, aMods], () => {
     if (shooting.running) return;
     shooting.clear();
@@ -884,6 +886,9 @@ export function setupGame() {
       default:
         break;
     }
+  });
+  stage.on('mouseup', function (e: Konva.KonvaEventObject<MouseEvent>) {
+    if (e.evt.button == 0 && shooting.running) shooting.finish();
   });
   aMovingTarget.watch((v: boolean) => {
     target.onSettingsUpdated();
