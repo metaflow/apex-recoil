@@ -194,7 +194,7 @@ h2 {
         border: 1px solid transparent;
         cursor: pointer;
         &:hover {
-          border-color: $foreground;
+          border-color: adjust-color($active, $alpha: -0.5);
         }
         &.selected {
           border-color: $active;
@@ -321,6 +321,9 @@ h2 {
     }
     #recoil-mode .btn {
       width: 90px;
+    }
+    #scale-x, #scale-y, #sens {
+      width: 4ch;
     }
   }
   #workspace {
@@ -479,10 +482,10 @@ input[type="text"] {
 
 
 div.btn {
-  border: 1px solid transparent;
+  border: 1px solid adjust-color($active, $alpha: -0.8);
   cursor: pointer;
   &:hover {
-    border-color: $foreground;
+    border-color: adjust-color($active, $alpha: -0.5);
   }
   &.selected {
     border-color: $active;

@@ -1,3 +1,7 @@
+# v19
+
+- Added scale: it's useful if your sensitivity is too high and pattern is very small. You can also set is proportional to 4:3 (e.g. 1.3 x 1)
+
 # v18
 
 Now shooting is interrupted when you release the mouse button. Score is computed for the bullets already shot and not recorded.

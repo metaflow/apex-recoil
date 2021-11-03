@@ -60,6 +60,14 @@ export class Point implements Konva.Vector2d {
     this.y = this.y * v;
     return this;
   }
+  sx(v: number): this {
+    this.x = this.x * v;
+    return this;
+  }
+  sy(v: number): this {
+    this.y = this.y * v;
+    return this;
+  }
   sub(other: this): this {
     this.x = this.x - other.x;
     this.y = this.y - other.y;

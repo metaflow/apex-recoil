@@ -64,6 +64,8 @@ const aHint = new BooleanAttribute('hint', NS, true);
 const aTraceMode = new NumericAttribute('trace-mode', NS, 1);
 const aFireSpeed = new NumericAttribute('speed', NS, 100);
 const aMods = new StringAttribute('mods', NS, '');
+const aScaleX = new NumericAttribute('scale-x', NS, 1);
+const aScaleY = new NumericAttribute('scale-y', NS, 1);
 
 export interface MagInfo {
   size: number;
@@ -138,7 +140,7 @@ class Target {
     d.add(startRect.topLeft);
     this.next = d;
     this.v = aTargetSpeed.get() * scale() / 1000;
-    this.circle.radius(6 * scale()); // Head radius from 40m is ~6px.
+    this.circle.radius(6); // Head radius from 40m is ~6px.
     this.dirty = true;
   }
   frame(f: Frame): boolean {
@@ -159,26 +161,27 @@ class Target {
     }
     if (update) {
       this.circle.position(this.pos);
-      this.circle.offset(this._offset);
+      this.circle.offset(screen(this._offset));
       this.dirty = false;
     }
     return update;
   }
   position(p?: Point): Point {
     if (p) {
-      this.pos = p;
+      this.pos = p.clone();
       this.dirty = true;
     }
     return this.pos.clone();
   }
   offset(p?: Point): Point {
     if (p) {
-      this._offset = p;
+      this._offset = p.clone();
       this.dirty = true;
     }
     return this._offset;
   }
 }
+
 let target: Target = new Target();
 
 export function trialSetup(): TrialSetup {
@@ -319,17 +322,39 @@ function drawPattern(pattern: Point[], mag: number, start: Point, sc: number) {
   return [hintLine, circles];
 }
 
+function screen(p: Point): Point {
+  return p.clone().sx( aScaleX.get()).sy(aScaleY.get());
+}
+
+function scaledPattern(): Point[] {
+  const w = selectedWeapon();
+  const sc = scale();
+  const n = w.mags[Math.min(aMag.get(), w.mags.length - 1)].size;
+  const pattern = [];
+  const my = aInvertY.get() ? -1 : 1;
+  for (let i = 0; i < n; i++) pattern.push(screen(new Point(w.x[i], my * w.y[i]).s(sc)));
+  return pattern;
+}
+
+function unscaledPattern(): Point[] {
+  const w = selectedWeapon();
+  const sc = scale();
+  const n = w.mags[Math.min(aMag.get(), w.mags.length - 1)].size;
+  const pattern = [];
+  const my = aInvertY.get() ? -1 : 1;
+  for (let i = 0; i < n; i++) pattern.push(new Point(w.x[i], my * w.y[i]).s(sc));
+  return pattern;
+}
+
 class TracePreview {
   shapes: Konva.Shape[] = [];
   constructor() {
     const w = selectedWeapon();
     const sc = scale();
-    if (!Number.isFinite(sc) || sc < 0.1) return;
     const n = w.mags[Math.min(aMag.get(), w.mags.length - 1)].size;
-    pattern = [];
-    const my = aInvertY.get() ? -1 : 1;
-    for (let i = 0; i < n; i++) pattern.push(new Point(w.x[i], my * w.y[i]).s(sc));
+    pattern = scaledPattern();
     patternBox = box(pattern);
+    // TODO: do we need to pass all args?
     const [line, circles] = drawPattern(pattern, n, patternBox[0].clone().s(-1).add(new Point(50, 50)), sc);
     this.addShape(line as Konva.Line);
     (circles as Konva.Circle[]).forEach(c => this.addShape(c));
@@ -596,6 +621,7 @@ class Shooting {
   speed = 1;
   hitMarker = new Konva.Circle();
   hitVectors: Point[] = [];
+  displayPattern: Point[] = [];
   pattern: Point[] = [];
   hitScores: number[] = [];
   showHint = true;
@@ -603,7 +629,7 @@ class Shooting {
   weapon: Weapon = { name: '', mags: [], x: [], y: [], time_points: [], mods: new Map() };
   hitIndex = -1; // Position in the patter we already passed.
   hitMarkers: Konva.Circle[] = [];
-  crossHair?: Konva.Circle;
+  crossHair?: Konva.Group;
   hintGroup: Konva.Group;
   wallGroup: Konva.Group;
   recoilGroup: Konva.Group;
@@ -630,8 +656,7 @@ class Shooting {
     this.recoilTarget = !aRecoilWeapon.get();
     this.movingTarget = aMovingTarget.get();
     this.start_t = Date.now();
-    const cur = cursor();
-    this.startPos = cur.clone();
+    this.startPos = cursor();
     const sc = scale();
     this.speed = clamp(aFireSpeed.get() / 100, 0.1, 1);
     this.mag = this.weapon.mags[Math.min(aMag.get(), this.weapon.mags.length - 1)]?.size || 1;
@@ -648,25 +673,33 @@ class Shooting {
       target.position(this.startPos.clone());
       target.offset(new Point());
     }
-    const my = aInvertY.get() ? -1 : 1;
-    this.pattern = this.weapon.x.map((x, idx) => {
-      return new Point(x, my * this.weapon.y[idx]).s(sc);
-    });
+    this.displayPattern = scaledPattern();
+    this.pattern = unscaledPattern();
     {
-      const [ln, circles] = drawPattern(this.pattern, this.mag, this.startPos.clone(), sc);
+      const [ln, circles] = drawPattern(this.displayPattern, this.mag, this.startPos.clone(), sc);
       this.hintGroup.add(ln as Konva.Line);
       (circles as Konva.Circle[]).forEach(c => this.hintGroup.add(c));
     }
     // Replace cursor with a fixed point.
-    if (this.recoilTarget || !this.showHint) {
-      this.crossHair = new Konva.Circle({
-        radius: 2,
-        fill: 'red',
-        position: cur.plain(),
-      });
-      this.addShape(this.crossHair);
-      stage.container().classList.add('no-cursor');
-    }
+    this.crossHair = new Konva.Group();
+    const sp = this.startPos;
+    this.crossHair.add(new Konva.Line({
+      points: [sp.x-10, sp.y, sp.x - 2, sp.y],
+      stroke: 'yellow',
+      strokeWidth: 2,
+    }));
+    this.crossHair.add(new Konva.Line({
+      points: [sp.x+2, sp.y, sp.x + 10, sp.y],
+      stroke: 'yellow',
+      strokeWidth: 2,
+    }));
+    this.crossHair.add(new Konva.Line({
+      points: [sp.x, sp.y+2, sp.x, sp.y+10],
+      stroke: 'yellow',
+      strokeWidth: 2,
+    }));
+    this.addShape(this.crossHair);
+    stage.container().classList.add('no-cursor');
     this.frame();
     stage.batchDraw();
     stage.listening(false);
@@ -686,24 +719,28 @@ class Shooting {
     if (!this.running) return false;
     this.totalFrames++;
     const sc = scale();
+    const dCur = cursor().clone().sub(this.startPos);
+    const dCurScaled = screen(dCur);
+    console.log('d cur', dCur, dCurScaled);
     const cur = cursor();
-    const dCur = cur.clone().sub(this.startPos);
     const frame_t = (Date.now() - this.start_t) * this.speed + 8; // Add half frame.
     let [vRecoil, i] = this.recoilVector(frame_t, this.hitIndex);
     let [vRecoilNextFrame, _] = this.recoilVector(frame_t + 24, i);
-    this.recoilGroup.offset(vRecoilNextFrame);
+    this.recoilGroup.offset(screen(vRecoilNextFrame));
     const vRecoilCompensated = vRecoil.clone().add(dCur);
     if (this.recoilTarget) {
-      this.hintGroup.offset(dCur);
+      this.hintGroup.offset(dCurScaled);
     } else {
-      this.crossHair?.offset(vRecoilCompensated.clone().s(-1));
+      // this.crossHair?.offset(vRecoilCompensated.clone().s(-1));
+      this.crossHair?.offset(dCurScaled.clone().s(-1));
     }
-    this.wallGroup.offset(vRecoilCompensated);
+    this.wallGroup.offset(screen(vRecoilCompensated));
     if (this.recoilTarget) {
-      target.offset(vRecoilCompensated.clone());
+      target.offset(vRecoilCompensated);
     } else {
+      // target.offset()
       if (this.showHint && !this.movingTarget) {
-        target.offset(vRecoilNextFrame.clone());
+        target.offset(vRecoilNextFrame);
       }
     }
     // Register new shots.
@@ -716,17 +753,17 @@ class Shooting {
       let s = distanceScore(rawDistance);
       this.hitScores.push(s);
       this.score += s;
-      this.hitMarker.radius(this.recoilTarget ? 1 : 2);
-      var hitP: Point;
+      this.hitMarker.radius(2);
+      var hitScreen: Point;
       if (this.recoilTarget) {
-        hitP = this.startPos.clone().add(new Point(this.wallGroup.offset()));
+        hitScreen = this.startPos.clone().add(new Point(this.wallGroup.offset()));
       } else {
-        hitP = cur.clone().add(p);
+        hitScreen = this.startPos.clone().add(dCurScaled).add(screen(p));
       }
       this.hitMarker = new Konva.Circle({
         radius: Math.max(4 * sc, 2),
         fill: gradientColor(this.hitScores[this.hitScores.length - 1]),
-        position: hitP,
+        position: hitScreen,
       });
       this.hitMarkers.push(this.hitMarker);
       if (this.recoilTarget) {
@@ -761,25 +798,26 @@ class Shooting {
       shadowOffset: { x: 1, y: 1 },
       shadowOpacity: 1,
     });
-    txt.position(this.startPos.clone().add(new Point(20, -10)).plain());
+    txt.position(new Point(20, -10).add(this.startPos).plain());
     this.addShape(txt);
     // Display trail.
     this.hitVectors.forEach((v, idx) => {
-      const p = this.pattern[idx];
-      const c = this.startPos.clone().add(v);
+      const p = this.displayPattern[idx];
+      const vd = screen(v);
+      const hit = this.startPos.clone().add(vd);
       let traceTarget = this.startPos.clone().sub(p);
       const clr = gradientColor(this.hitScores[idx]);
       const b = new Konva.Circle({
         radius: 2,
         fill: clr,
-        position: this.startPos.clone().add(v),
+        position: this.startPos.clone().add(vd),
         visible: false,
       });
-      (this.traceShapes[0][idx] as Konva.Circle).position(v.clone().add(p).add(this.startPos));
+      (this.traceShapes[0][idx] as Konva.Circle).position(vd.clone().add(p).add(this.startPos));
       this.hintGroup.add(b);
       this.traceShapes[1].push(b);
       const ln = new Konva.Line({
-        points: [c.x, c.y, traceTarget.x, traceTarget.y],
+        points: [hit.x, hit.y, traceTarget.x, traceTarget.y],
         stroke: clr,
         strokeWidth: 1,
         visible: false,
@@ -797,7 +835,6 @@ class Shooting {
     redraw();
   }
   displayTace() {
-    // if (this.movingTarget) return;
     const d = aTraceMode.get() % traceShapeTypes;
     this.traceShapes.forEach((sh, i) => sh.forEach(s => s.visible(i == d)));
   }
@@ -812,13 +849,13 @@ class Shooting {
 }
 let shooting = new Shooting();
 
-export function setupGame() {
+export function initGame() {
   /* https://konvajs.org/docs/sandbox/Animation_Stress_Test.html#page-title
   * setting the listening property to false will improve
   * drawing performance because the rectangles won't have to be
   * drawn onto the hit graph */
   const version = document.getElementById('version-value');
-  if (version != null) version.innerText = '18';
+  if (version != null) version.innerText = '19';
   initAttributes(NS);
   layer.listening(false);
   layer.add(startRectangle);
@@ -834,14 +871,19 @@ export function setupGame() {
       aInvertY.watch((v: boolean) => setClass(d, 'selected', v));
     }
   }
-
-  watch([aWeapon, aMag, aSens, aInvertY, aMods], () => {
+  watch([aWeapon, aMag, aSens, aInvertY, aMods, aScaleX, aScaleY], () => {
     if (shooting.running) return;
     shooting.clear();
     tracePreview?.clear();
     tracePreview = new TracePreview();
     redrawStartRectangle();
   });
+  // watch([aScaleX, aScaleY], () => {
+  //   console.log('scale', aScaleX.get(), aScaleY.get());
+  //   layer.scaleX(aScaleX.get());
+  //   layer.scaleY(aScaleY.get());
+  //   redraw(); 
+  // });
   window.addEventListener('resize', () => {
     redrawStartRectangle();
   });

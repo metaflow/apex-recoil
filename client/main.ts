@@ -16,7 +16,7 @@
 
 import Konva from 'konva';
 import { Point } from './point';
-import { setupGame } from './game';
+import { initGame } from './game';
 import { setupEditor } from './editor';
 import { pokeAttrs } from './storage';
 
@@ -42,7 +42,7 @@ export function cursor(): Point {
 if (window.location.pathname.startsWith('/editor')) {
   setupEditor();
 } else {
-  setupGame();
+  initGame();
 }
 pokeAttrs();
 stage.batchDraw();
