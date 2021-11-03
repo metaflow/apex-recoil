@@ -1,6 +1,10 @@
 # v19
 
-- Added scale: it's useful if your sensitivity is too high and pattern is very small. You can also set is proportional to 4:3 (e.g. 1.3 x 1)
+- C.A.R. recoils;
+
+- updated crosshair to be easily distinguishable from hit markers;
+
+- added scale: it's useful if your sensitivity is too high and pattern is very small. You can also set is proportional to 4:3 (e.g. 1.3 x 1).
 
 # v18
 
