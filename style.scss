@@ -62,7 +62,7 @@ b {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  cursor: url(/red_dot.png) 3 3, crosshair;
+  cursor: crosshair;
   &.no-cursor {
     cursor: none;
   }
