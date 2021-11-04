@@ -731,8 +731,11 @@ class Shooting {
     if (this.recoilTarget) {
       this.hintGroup.offset(dCurScaled);
     } else {
-      // this.crossHair?.offset(vRecoilCompensated.clone().s(-1));
-      this.crossHair?.offset(dCurScaled.clone().s(-1));
+      if (this.showHint) {
+        this.crossHair?.offset(dCurScaled.clone().s(-1));
+      } else {
+        this.crossHair?.offset(vRecoilCompensated.clone().s(-1));
+      }
     }
     this.wallGroup.offset(screen(vRecoilCompensated));
     if (this.recoilTarget) {
