@@ -899,8 +899,7 @@ export function initGame() {
   weaponControls();
   statControls();
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const params = Object.fromEntries(urlSearchParams.entries());
-  if (params['dev']) dev = true;
+  if (urlSearchParams.has('dev')) dev = true;
   {
     const d = document.querySelector(`#invert-y-btn`) as HTMLDivElement;
     if (d != null) {
