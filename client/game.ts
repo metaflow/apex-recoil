@@ -27,6 +27,7 @@ import assertExists from "ts-assert-exists";
 import hotkeys from "hotkeys-js";
 
 let sound: Howl | null = null;
+let pings: Howl[] = [new Howl({ src: `./audio/ping0.wav` }), new Howl({ src: `./audio/ping1.wav`})];
 let soundPath = '';
 const weapons = new Map<string, Weapon>();
 const colorStartCircle = theme.colorStartCircle;
@@ -34,6 +35,8 @@ const colorHintPath = theme.colorHintPath;
 const scoreGradient = theme.scoreGradient;
 let tracePreview: TracePreview | null = null;
 const traceShapeTypes = 3;
+const pingOffset = 100;
+let dev = false;
 
 let startRectangle = new Konva.Rect({
   stroke: theme.foreground,
@@ -79,6 +82,7 @@ export interface Weapon {
   x: number[];
   y: number[];
   mods: { [key: string]: any; };
+  ping_points: number[];
 }
 
 interface Rect {
@@ -239,7 +243,6 @@ function selectedWeapon(): Weapon {
       (w as any)[k] = mod[k];
     }
   })
-  console.log('selected weapon', w);
   return w;
 }
 
@@ -300,18 +303,25 @@ function box(pattern: Point[]): [Point, Point] {
 function drawPattern(pattern: Point[], mag: number, start: Point, sc: number) {
   const hintLinePoints: number[] = [];
   const circles: Konva.Circle[] = [];
+  const texts: Konva.Text[] = [];
   pattern.forEach((p, i) => {
     if (i >= mag) return;
     const xy = start.clone().sub(p);
     hintLinePoints.push(xy.x, xy.y);
     if (sc > 0.3) {
       const c = new Konva.Circle({
-        radius: 1,
+        radius: 1.5,
         stroke: colorHintPath,
         strokeWidth: 1,
         position: xy,
       });
       circles.push(c);
+      texts.push(new Konva.Text({
+        text: `${i}`,
+        fontSize: 10,
+        fill: 'white',
+        position: xy,
+      }))
     }
   });
   const hintLine = new Konva.Line({
@@ -319,7 +329,7 @@ function drawPattern(pattern: Point[], mag: number, start: Point, sc: number) {
     stroke: colorHintPath,
     strokeWidth: 1,
   });
-  return [hintLine, circles];
+  return [hintLine, circles, texts];
 }
 
 function screen(p: Point): Point {
@@ -355,8 +365,9 @@ class TracePreview {
     pattern = scaledPattern();
     patternBox = box(pattern);
     // TODO: do we need to pass all args?
-    const [line, circles] = drawPattern(pattern, n, patternBox[0].clone().s(-1).add(new Point(50, 50)), sc);
+    const [line, circles, texts] = drawPattern(pattern, n, patternBox[0].clone().s(-1).add(new Point(50, 50)), sc);
     this.addShape(line as Konva.Line);
+    if (dev) (texts as Konva.Text[]).forEach(t => this.addShape(t));
     (circles as Konva.Circle[]).forEach(c => this.addShape(c));
     redraw();
   }
@@ -415,6 +426,7 @@ function weaponControls() {
       x: s.x,
       y: s.y,
       mods: s.mods,
+      ping_points: s.ping_points,
     });
     const d = document.querySelector(`#weapon-select .${s.name}`) as HTMLDivElement;
     if (d != null) d.addEventListener('click', () => aWeapon.set(s.name));
@@ -469,7 +481,6 @@ function weaponControls() {
     document.querySelectorAll(".mod").forEach(e => {
       setClass(e as HTMLElement, 'selected', false);
     });
-    console.log(activeMods());
     activeMods().forEach(s => {
       setClass(document.querySelector(`.mod-${s}`), 'selected', true);
     });
@@ -626,8 +637,9 @@ class Shooting {
   hitScores: number[] = [];
   showHint = true;
   start_t = 0;
-  weapon: Weapon = { name: '', mags: [], x: [], y: [], time_points: [], mods: new Map() };
+  weapon: Weapon = { name: '', mags: [], x: [], y: [], time_points: [], mods: new Map(), ping_points: [] };
   hitIndex = -1; // Position in the patter we already passed.
+  pingIndex = -1; // Position in weapon pings.
   hitMarkers: Konva.Circle[] = [];
   crossHair?: Konva.Group;
   hintGroup: Konva.Group;
@@ -662,8 +674,14 @@ class Shooting {
     this.mag = this.weapon.mags[Math.min(aMag.get(), this.weapon.mags.length - 1)]?.size || 1;
     if (!aMute.get() && sound != null) {
       sound.volume(aVolume.get() / 100);
+      pings.forEach(p => {
+        p.volume(sound!.volume());
+        p.mute(false);
+      });
       sound.rate(this.speed);
       sound.play();
+    } else {
+      pings.forEach(p => p.mute(true));
     }
     for (let i = 0; i < traceShapeTypes; i++) this.traceShapes.push([]);
     this.showHint = aHint.get() && !this.movingTarget;
@@ -676,13 +694,19 @@ class Shooting {
     this.displayPattern = scaledPattern();
     this.pattern = unscaledPattern();
     {
-      const [ln, circles] = drawPattern(this.displayPattern, this.mag, this.startPos.clone(), sc);
+      const [ln, circles, texts] = drawPattern(this.displayPattern, this.mag, this.startPos.clone(), sc);
       this.hintGroup.add(ln as Konva.Line);
       (circles as Konva.Circle[]).forEach(c => this.hintGroup.add(c));
     }
     // Replace cursor with a fixed point.
     this.crossHair = new Konva.Group();
     const sp = this.startPos;
+    this.crossHair.add(new Konva.Circle({
+      fill: 'cyan',
+      position: sp,
+      radius: 2,
+    }));
+    /*
     this.crossHair.add(new Konva.Line({
       points: [sp.x-10, sp.y, sp.x - 2, sp.y],
       stroke: 'yellow',
@@ -698,6 +722,7 @@ class Shooting {
       stroke: 'yellow',
       strokeWidth: 2,
     }));
+    */
     this.addShape(this.crossHair);
     stage.container().classList.add('no-cursor');
     this.frame();
@@ -721,7 +746,6 @@ class Shooting {
     const sc = scale();
     const dCur = cursor().clone().sub(this.startPos);
     const dCurScaled = screen(dCur);
-    console.log('d cur', dCur, dCurScaled);
     const cur = cursor();
     const frame_t = (Date.now() - this.start_t) * this.speed + 8; // Add half frame.
     let [vRecoil, i] = this.recoilVector(frame_t, this.hitIndex);
@@ -776,6 +800,13 @@ class Shooting {
       }
       this.traceShapes[0].push(this.hitMarker);
       this.hitMarker.zIndex(0); // To put behind the scope.
+    }
+    if (dev) {
+      while (this.pingIndex + 1 < this.weapon.ping_points.length &&
+        frame_t + pingOffset >= this.weapon.ping_points[this.pingIndex + 1]) {
+          this.pingIndex += 1;
+        pings[this.pingIndex % 2].play();
+      }
     }
     if (this.hitIndex + 1 >= this.mag) this.finish();
     return true;
@@ -867,6 +898,9 @@ export function initGame() {
   instructionsControls();
   weaponControls();
   statControls();
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const params = Object.fromEntries(urlSearchParams.entries());
+  if (params['dev']) dev = true;
   {
     const d = document.querySelector(`#invert-y-btn`) as HTMLDivElement;
     if (d != null) {

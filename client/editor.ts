@@ -339,6 +339,7 @@ function loadSpecs() {
       x: s.x,
       y: s.y,
       mods: {},
+      ping_points: [],
     });
   });
 }
