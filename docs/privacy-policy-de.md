@@ -73,7 +73,7 @@ Tel.: 01704486728
 
 E-Mail: goncharov.mikhail@gmail.com
 
-Website: https://apexlegendsrecoils.online
+Website: https://apexlegendsrecoil.net
 
 #### 3\. Cookies
 
