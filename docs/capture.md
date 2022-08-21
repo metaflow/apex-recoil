@@ -14,13 +14,13 @@
 
     Save pattern image and cut it:
 
-    ![sample](./res/cut.png)
+    <img src="./res/cut.png" width="150px"/>
 
-3. Open ./processing/recoils.ipynb jupyter lab and enter angle coordinates of two distant points in `np.round(points(...), 2)` cell. That will give you a distance in pixels between points.
+3. Open ./processing/recoils.ipynb jupyter notebooks and enter angle coordinates of two distant points into `np.round(points(...), 2)` cell. That will give you a distance in pixels between points.
 
-    Open https://apexlegendsrecoils.net/editor, load an image of the pattern, enter name of the weapon (see ./client/specs.json for possible values). Use left mouse click to add and move individual points, right button to remove them and middle button to mark "anchors". There should be exatly two anchors at marks that we just measured. "auto targets" might also be useful as it converts detected areas to marks - play with settings to understand how it works.
+    Open https://apexlegendsrecoils.net/editor, load an image of the pattern, enter name of the weapon (see ./client/specs.json for possible values). Use left mouse click to add and move individual points, right button to remove them and middle button to mark "anchors". There should be exactly two anchors at marks that we just measured. "auto targets" might also be useful as it converts detected areas to marks - play with settings to understand how it works. Then select starting mark and hover over points to create a path.
 
-    Copy resulting json string back to jupyter notebook. Running next cell will produce arrays for X and Y coordinates that now can be put into ./client/specs.json or somewhere else.
+    Copy the resulting json string back to jupyter notebook `rc = []`. Running next cell will produce arrays for X and Y coordinates that now can be put into ./client/specs.json. This coordinates correspond to mouse positons for sensitivity 1.
 
     [![sample capture](./res/yt_convert.png)](https://www.youtube.com/watch?v=tvXYcHC7TbU)
 
