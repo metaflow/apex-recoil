@@ -8,9 +8,7 @@
 
 2. Go to fire range and take a weapon with maximum mag and a sniper rifle with x4-8. Start recoding, fire the whole magazine then point to the most distant points through sniper scope, capture the whole pattern too. For example:
 
-    [![sample capture](https://img.youtube.com/vi/f52L6WkNIS0/0.jpg)](https://www.youtube.com/watch?v=f52L6WkNIS0)
-
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/f52L6WkNIS0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    [![sample capture](./res/yt_capture.png)](https://www.youtube.com/watch?v=f52L6WkNIS0)
 
     It's important not to move mouse while shooting. One can either lift a mouse from a pad or map mouse buttons to keyboard if possible.
 
@@ -24,7 +22,7 @@
 
     Copy resulting json string back to jupyter notebook. Running next cell will produce arrays for X and Y coordinates that now can be put into ./client/specs.json or somewhere else.
 
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/tvXYcHC7TbU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    [![sample capture](./res/yt_convert.png)](https://www.youtube.com/watch?v=tvXYcHC7TbU)
 
     As there is some randomness of the pattern - repeat 2-4 steps a few times - there is a "error estimation" cell that might help to understand if results have converged enough.
 
