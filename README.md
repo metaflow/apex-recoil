@@ -4,6 +4,8 @@ https://apexlegendsrecoils.online
 
 Visualization of recoil patterns from [Apex Legends](https://www.ea.com/games/apex-legends).
 
+[How recoils are captured](./doc/capture.md).
+
 # Contributing and support
 
 I would appreciate a kind word and up arrow [on Reddit](https://www.reddit.com/r/apexlegends/comments/mosk0l/i_have_created_an_app_to_practice_recoils/). Or just tell your friends about it.

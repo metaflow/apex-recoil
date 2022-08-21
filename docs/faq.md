@@ -47,7 +47,7 @@ The reasoning for the shape and constants selection:
 ## No registration?
 
 As you probably noticed there is no registration and email confirmation.
-Settings and scores are stored locally in your browser. Please don't ask me if you lost them after browser or system update.
+Settings and scores are stored locally in your browser. So they might be lost browser or system update.
 
 ## FPS
 
