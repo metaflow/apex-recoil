@@ -12,7 +12,7 @@
 
     It's important not to move mouse while shooting. One can either lift a mouse from a pad or map mouse buttons to keyboard if possible.
 
-    Save pattern image and cut it:
+    Save pattern image and crop it:
 
     <img src="./res/cut.png" width="150px"/>
 
