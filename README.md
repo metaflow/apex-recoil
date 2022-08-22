@@ -1,6 +1,6 @@
 # About
 
-https://apexlegendsrecoils.online
+https://apexlegendsrecoils.net
 
 Visualization of recoil patterns from [Apex Legends](https://www.ea.com/games/apex-legends).
 
