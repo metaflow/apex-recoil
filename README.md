@@ -27,3 +27,10 @@ Images, audio fragments, weapon names and behavior come from Apex Legends game o
 Some images and reference materials come from [Apex Legends Wiki](https://apexlegends.fandom.com/wiki).
 
 Thus multimedia content from [assets](./assets) <ins>is NOT under Apache 2.0 License</ins>. Get in touch with EA if you want to use it.
+
+## Running the app
+
+For development run `npm run devstart` and open `http://localhost:3000`.
+
+Deployment is completely static and assembled with `npm run static`. Copy files
+from `./static` to the web server dir.

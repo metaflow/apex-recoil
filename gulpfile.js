@@ -23,7 +23,7 @@ var gulp = require('gulp'),
     gutil = require("gulp-util"),
     wait = require("gulp-wait"),
     livereload = require('gulp-livereload'),
-    sass = require('gulp-sass')(require('node-sass')),
+    sass = require('gulp-sass')(require('sass')),
     maps = require('gulp-sourcemaps'),
     jsonSass = require('json-sass'),
     fs = require('fs'),
@@ -34,7 +34,7 @@ var gulp = require('gulp'),
     zip = require('gulp-zip'),
     clean = require('gulp-clean');
 
-sass.compiler = require('node-sass');
+sass.compiler = require('sass');
 
 function compile_sass() {
     gutil.log(gutil.colors.green('Compiling styles...'));
