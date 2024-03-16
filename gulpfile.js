@@ -125,10 +125,10 @@ gulp.task('js', function () {
         .pipe(gulp.dest('./static'));
 });
 
-var jade = require('gulp-jade');
+var pug = require('gulp-pug');
 gulp.task('templates', function () {
-    return gulp.src('./views/*.jade')
-        .pipe(jade({
+    return gulp.src('./views/*.pug')
+        .pipe(pug({
             locals: {
                 'title': 'Apex Legends Recoils'
             }
