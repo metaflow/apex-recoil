@@ -33,4 +33,5 @@ Thus multimedia content from [assets](./assets) <ins>is NOT under Apache 2.0 Lic
 For development run `npm run devstart` and open `http://localhost:3000`.
 
 Deployment is completely static and assembled with `npm run static`. Copy files
-from `./static` to the web server dir.
+from `./static` to the web server dir, for example by running
+`scp -r -i id_rsa .\static\* root@1.2.3.4:/var/www/html`.

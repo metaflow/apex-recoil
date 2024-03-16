@@ -31,7 +31,6 @@ var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     cleanCSS = require('gulp-clean-css'),
     buffer = require('vinyl-buffer'),
-    zip = require('gulp-zip'),
     clean = require('gulp-clean');
 
 sass.compiler = require('sass');
@@ -153,12 +152,6 @@ gulp.task('etc-static', function () {
     return gulp
         .src(['./etc/**/*.*'])
         .pipe(gulp.dest('static'));
-});
-
-gulp.task('zip-static', function () {
-    return gulp.src('static/**/*.*')
-        .pipe(zip('static.zip'))
-        .pipe(gulp.dest('./'));
 });
 
 gulp.task('clean-static', function () {
