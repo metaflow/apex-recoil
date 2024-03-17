@@ -30,8 +30,10 @@ Thus multimedia content from [assets](./assets) <ins>is NOT under Apache 2.0 Lic
 
 ## Running the app
 
-For development run `npm run devstart` and open `http://localhost:3000`.
+For development run `npm run dev` and open `http://localhost:3000`. That will watch for file changes and update the
+content of `./public`. Running `start` by itself will not rebuild
+the bundle.
 
-Deployment is completely static and assembled with `npm run static`. Copy files
-from `./static` to the web server dir, for example by running
-`scp -r -i id_rsa .\static\* root@1.2.3.4:/var/www/html`.
+Deployment is completely static and assembled with `npm run static`.
+
+Copy files from `./static` to the web server dir, for example by running `scp -r -i id_rsa .\static\* root@1.2.3.4:/var/www/html`.

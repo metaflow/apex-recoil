@@ -84,7 +84,13 @@ function scripts(watch) {
 }
 
 gulp.task('sass', compile_sass);
-gulp.task('default', function () { scripts(false); });
+gulp.task('scripts', function (done) {
+    scripts(false).on('end', done);
+});
+
+gulp.task('watch-scripts', function (done) {
+    scripts(true).on('end', done);
+});
 
 gulp.task('watch', gulp.series(
     function () {
@@ -95,17 +101,26 @@ gulp.task('watch', gulp.series(
     copy_assets,
     theme_sass,
     compile_sass,
+    'watch-scripts',
     function () {
-        theme_sass().on('end', function () {
-            gutil.log('theme sass completed');
-        });
-        scripts(true);
         livereload();
         livereload.listen();
         gulp.watch(['etc/**/*.*'], copy_assets);
         gulp.watch(['theme.json'], theme_sass);
         gulp.watch(['*.scss'], compile_sass);
     }
+));
+
+gulp.task('public', gulp.series(
+    function () {
+        return gulp
+            .src('public/*', { read: false, allowEmpty: true })
+            .pipe(clean());
+    },
+    copy_assets,
+    theme_sass,
+    compile_sass,
+    function (done) { scripts(false).on('end', done); }
 ));
 
 gulp.task('js', function () {

@@ -3,11 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "devstart": "nodemon ./bin/www",
+    "start": "nodemon ./bin/www",
     "watch": "gulp watch",
     "tsc": "tsc",
-    "dev": "npm-run-all -p -r devstart watch",
+    "dev": "npm-run-all -p -r start watch",
     "static": "gulp static"
   },
   "dependencies": {
