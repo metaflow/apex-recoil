@@ -1,25 +1,39 @@
 #include <Mouse.h>
 #include <Arduino.h>
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
 const float mx[] = { 0,-4.5,-16.0,-14.8,-31.5,-32.9,-45.7,-61.0,-59.0,-39.0,-35.1,-25.5,-4.6,9.5,12.3,-5.7,-31.5,-46.0,-43.2,-29.2,-16.1,4.5,8.5,8.1,-0.7,-13.2,-17.2 };
 const float my[] = { 0,-33.7,-60.6,-92.6,-123.8,-153.2,-188.9,-213.2,-250.4,-285.1,-322.7,-333.2,-332.2,-335.6,-351.1,-366.1,-364.0,-375.8,-388.7,-395.2,-397.4,-396.9,-399.0,-409.4,-424.0,-432.5,-448.0 };
 const long mt[] ={ 0,64,129,193,258,322,387,451,516,580,645,709,774,838,903,967,1032,1096,1161,1225,1290,1354,1419,1483,1548,1612,1677 };
 const long n = 27 ;
 float scale = 1.0;
 const int invert = 1;  // Or -1.
+const int BTN_1 = 4;
 
-void setup()
-{
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+
 //   Serial.begin( 115200 );
 // #if !defined(__MIPSEL__)
 //   while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
 // #endif
-//   Serial.println("Start");
+//   Serial.println("Start");  
+  // Wire.begin();
+  lcd.init();
+  lcd.home();
+  lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("1234567890abcdf");
+  lcd.setCursor(0, 1);
+  lcd.print("1234567890abcdf");
   Mouse.begin();
-  pinMode(2, INPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  digitalWrite(3, HIGH);
-  digitalWrite(4, LOW);
+  pinMode(BTN_1, INPUT);
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  digitalWrite(5, HIGH);
+  digitalWrite(6, LOW);
   Mouse.begin();
 }
 
@@ -37,7 +51,10 @@ void move() {
     // Serial.println(String("shot ") + String(idx + 1));
   }
   if (idx + 1 >= n) {
-    // Serial.println(String(signals) + " finished");    
+    // Serial.println(String(signals) + " finished");
+    lcd.home();
+    lcd.clear();
+    lcd.print("finished");
     shooting = false;
     delay(50);
     Mouse.release(MOUSE_LEFT);
@@ -110,9 +127,12 @@ void loop()
 {
     if (shooting) move();
     // if (shooting) move_line();
-    if (digitalRead(2) == HIGH) {
+    if (digitalRead(BTN_1) == HIGH) {
       if (!shooting) {
         // Serial.println(String("scale ") + String(scale));
+        lcd.clear();
+        lcd.home();
+        lcd.print("shooting..");
         shooting = true;
         idx = 0;
         mouse_x = 0;
@@ -125,12 +145,12 @@ void loop()
         start_time = millis();
       }
     }
-    if (digitalRead(5) == HIGH) {
-      // scale = 5 * (1.0 - (scale_modifer - 1) * 0.02);
+    // if (digitalRead(5) == HIGH) {
+          // scale = 5 * (1.0 - (scale_modifer - 1) * 0.02);
       // Serial.println(String("scale ") + String(scale));
       // scale_modifer = (scale_modifer + 1) % 3;
       // delay(1000);
       // Serial.println(">>>");
       // Mouse.move(-1,0,0); 
-    }
+    // }
 }
