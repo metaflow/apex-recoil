@@ -123,26 +123,23 @@ const float radius = 40.0;
 
 int scale_modifer = 0;
 
-void loop()
-{
-    if (shooting) move();
-    // if (shooting) move_line();
+void loop() {
+    if (shooting) {
+      move();
+      return;
+    }
     if (digitalRead(BTN_1) == HIGH) {
-      if (!shooting) {
-        // Serial.println(String("scale ") + String(scale));
-        lcd.clear();
-        lcd.home();
-        lcd.print("running..");
-        shooting = true;
-        idx = 0;
-        mouse_x = 0;
-        mouse_y = 0;
-        signals = 0;
-        Mouse.press(MOUSE_RIGHT);
-        delay(700);
-        Mouse.press(MOUSE_LEFT);
-        // Serial.println(String("shot ") + String(idx + 1));
-        start_time = millis();
-      }
+      lcd.clear();
+      lcd.home();
+      lcd.print("running..");
+      shooting = true;
+      idx = 0;
+      mouse_x = 0;
+      mouse_y = 0;
+      signals = 0;
+      Mouse.press(MOUSE_RIGHT);
+      delay(700);
+      Mouse.press(MOUSE_LEFT);
+      start_time = millis();
     }
 }
