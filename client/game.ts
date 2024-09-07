@@ -889,7 +889,7 @@ export function initGame() {
   * drawing performance because the rectangles won't have to be
   * drawn onto the hit graph */
   const version = document.getElementById('version-value');
-  if (version != null) version.innerText = '19';
+  if (version != null) version.innerText = '240907';
   initAttributes(NS);
   layer.listening(false);
   layer.add(startRectangle);

@@ -1,3 +1,13 @@
+# v240907
+
+First update since 2021!
+
+- Added donation button for supporters;
+
+- R301 recoils are updated (many others are still out of date!);
+
+- using a YYMMDD as a version number now;
+
 # v19
 
 - C.A.R. recoils;
