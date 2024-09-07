@@ -6,6 +6,7 @@
 float scale = 1.0;
 const int invert = 1;  // Or -1.
 const int BTN_1 = 4;
+const int BTN_2 = 10;
 const int MAX_LENGTH = 55;
 
 String name;
@@ -46,32 +47,33 @@ void load_recoil() {
   }
 }
 
-void setup() {
-//   Serial.begin( 115200 );
-// #if !defined(__MIPSEL__)
-//   while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-// #endif
-//   Serial.println("Start");  
-  // Wire.begin();
-  lcd.init();
+void print_current() {
   lcd.home();
+  lcd.clear();
+  lcd.print(name + " mag " + String(n));  
+}
+
+void setup() {
+  lcd.init();
   lcd.backlight();
-  lcd.setCursor(0,0);
 
   load_recoil();
-  lcd.print(name);
-  lcd.setCursor(0, 1);
-  lcd.print(String(current_recoil));
+  print_current(); 
 
-  Mouse.begin();
   pinMode(BTN_1, INPUT);
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   digitalWrite(5, HIGH);
   digitalWrite(6, LOW);
+
+  pinMode(BTN_2, INPUT);
+  pinMode(8, OUTPUT);
+  digitalWrite(8, LOW);
+  pinMode(9, OUTPUT);
+  digitalWrite(9, HIGH);
+
   Mouse.begin();
 }
-
 
 long start_time = 0;
 bool shooting = false;
@@ -79,6 +81,8 @@ long idx = 0; // Index of the point we currently moving from;
 long mouse_x = 0;
 long mouse_y = 0; 
 long signals = 0;
+
+
 
 void move() {  
   long t = millis() - start_time;
@@ -88,15 +92,8 @@ void move() {
   }
   if (idx + 1 >= n) {
     // Serial.println(String(signals) + " finished");    
-    shooting = false;
-    current_recoil = (current_recoil + 1) % RECOILS_LENGTH;
-
-    load_recoil();
-    lcd.home();
-    lcd.clear();
-    lcd.print(name);
-    lcd.setCursor(0, 1);
-    lcd.print(String(current_recoil));
+    shooting = false;    
+    print_current();
 
     delay(50);
     Mouse.release(MOUSE_LEFT);
@@ -141,5 +138,11 @@ void loop() {
       delay(700);
       Mouse.press(MOUSE_LEFT);
       start_time = millis();
+    }
+    if (digitalRead(BTN_2) == HIGH) {
+      delay(1000);
+      current_recoil = (current_recoil + 1) % RECOILS_LENGTH;
+      load_recoil();
+      print_current();
     }
 }
