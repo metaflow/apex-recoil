@@ -94,7 +94,7 @@ void move() {
   int progress = (idx * 17 / (n - 1));
   while (progress > last_progress) {
     last_progress++;
-    lcd.print("X");
+    lcd.print(char(0b11111111));
   }
   if (idx + 1 >= n) {
     shooting = false;
