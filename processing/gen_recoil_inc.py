@@ -1,6 +1,9 @@
 import json
 import io
 
+def extend(lst, desired_length, fill_value=None):
+    return lst + [fill_value] * (desired_length - len(lst))
+
 with open('../client/specs.json') as f:
   data = json.load(f)
 
