@@ -281,13 +281,17 @@ function updateSpec(_?: string) {
   idx.forEach(x => {
     if (!points.has(x)) anchors.delete(x);
   });
+  // Traverse the path.
   let x = edgeStartName;
   let pp: Point[] = [];
   const visited = new Set<string>();
+  let i = 0;
+  let anchorIndexes = [];
   while (true) {
     const p = points.get(x);
     if (p == null) break;
     pp.push(new Point(p.position()));
+    if (anchors.has(p.name())) anchorIndexes.push(i);
     visited.add(x);
     const e = edges.find(e => {
       return (e.from == x && !visited.has(e.to)) ||
@@ -295,33 +299,27 @@ function updateSpec(_?: string) {
     });
     if (e == null) break;
     x = (x == e.from) ? e.to : e.from;
+    i++;
   }
   const c = document.getElementById("count");
   if (c) {
-    c.innerText = `${points.size} / ${pp.length} / ${w.mags[w.mags.length - 1].size}`;
+    c.innerText = `points: ${points.size} graph: ${pp.length} mag: ${w.mags[w.mags.length - 1].size}`;
   }
-  // <distance in raw pixels> / <distance in image pixels>
-  // = <A in raw pixels for 1.0 sensitivity>.
+  console.log('points', points, anchors, anchorIndexes);
   idx = Array.from(anchors.values())
-  if (idx.length != 2) {
-    setText('mark exactly two anchors');
-    return;
-  }
-  const c1 = points.get(idx[0])!;
-  const c2 = points.get(idx[1])!;
-  const p1 = new Point(c1.position());
-  const p2 = new Point(c2.position());
-  const sc = distance / p1.distance(p2);
-  pp.forEach(p => p.s(sc));
+  // TODO: warn about anchors length != 2.
   const ort = pp[0];
   pp = pp.map(p => p.clone().sub(ort));
   const spec = {
+    version: 2,
     weapon: aWeapon.get(),
     barrel: aBarrel.get(),
     stock: aStock.get(),
     comment: aComment.get(),
-    x: pp.map(p => Math.round(p.x * 10) / 10),
-    y: pp.map(p => Math.round(p.y * 10) / 10),
+    x: pp.map(p => Math.round(p.x)),
+    y: pp.map(p => Math.round(p.y)),
+    anchor_indexes: anchorIndexes,
+    anchor_in_game_distance: aDistance.get(),
   };
   setText(JSON.stringify(spec));
 };
