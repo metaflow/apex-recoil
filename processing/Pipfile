@@ -8,6 +8,5 @@ jupyterlab = "*"
 seaborn = "*"
 matplotlib = "*"
 numpy = "*"
-mypy = "*"
 
 [dev-packages]
