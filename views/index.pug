@@ -38,7 +38,7 @@ block content
       #weapon-select.grid
         div.havoc_tc.btn
           img(src="/images/havoc.png", alt="havoc")
-          p.name HAVOC
+          p.name HAVOC (old)
         div.flatline.btn
           img(src="/images/flatline.png", alt="flatline")
           p.name Flatline
@@ -47,31 +47,31 @@ block content
           p.name R-301
         div.alternator.btn
             img(src="/images/alternator.png", alt="alternator")
-            p.name Alternator
+            p.name Alternator (old)
         div.r99.btn
           img(src="/images/r99.png", alt="r-99")
           p.name R-99
         div.volt.btn
           img(src="/images/volt.png", alt="volt")
-          p.name Volt
+          p.name Volt (old)
         div.car.btn
           img(src="/images/car.png", alt="car")
-          p.name C.A.R.
+          p.name C.A.R. (old)
         div.devotion_tc.btn
           img(src="/images/devotion.png", alt="devotion")
-          p.name Devotion
+          p.name Devotion (old)
         div.lstar.btn
           img(src="/images/lstar.png", alt="lstar")
-          p.name L-STAR
+          p.name L-STAR (old)
         div.spitfire.btn
           img(src="/images/spitfire.png", alt="spitfire")
-          p.name Spitfire
+          p.name Spitfire (old)
         div.rampage.btn
           img(src="/images/rampage.png", alt="rampage")
-          p.name Rampage
+          p.name Rampage (old)
         div.re45.btn
           img(src="/images/re45.png", alt="re45")
-          p.name RE-45
+          p.name RE-45 (old)
       #mag-select.button-row
         div.mag-0.tooltip
           img(src="/images/magi.png" alt="no magazine")
@@ -214,7 +214,20 @@ block content
           p Hover over options to see hints (if any).
           p.action#dismiss-instructions Dismiss instructions
       #stage
-  #mobile-info 
+  #notify-splash.hidden
+    h2 Development update September 2024
+    p <b>After a long break (since 2021) I am resuming the app updates!</b>
+    p While most of the weapons are still similar to how they were in 2021,
+      | changes like movement to and from drop packages, updated recoil patterns,
+      | magazine sizes, and other tweaks have made the app less relevant to the
+      | current state of the game.
+    p I have already updated R301, R99 and Flatline and hopefully will soon update all recoils.
+    p Please consider #[a(href="https://www.paypal.com/donate/?hosted_button_id=ZM3AS9J6VDYVN" target="_blank") supporting] 
+      | this project if you like it, that will help cover hosting and development
+      | costs.
+    p Thank you!
+    p.action#close-notify-splash Close
+  #mobile-info
     h1 Apex Legends Recoil Patterns
     p Hi! Thanks for checking out this little app to practice recoil patterns. It's meant to be used on the desktop browser with a mouse or controller. 
       | The screen width of your device must be greater than 900 pixels. 

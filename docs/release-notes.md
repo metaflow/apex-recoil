@@ -1,3 +1,9 @@
+# v240915
+
+- Added splash screen about current state of the project;
+
+- Updated recoils of Flatline and R99.
+
 # v240907
 
 First update since 2021!

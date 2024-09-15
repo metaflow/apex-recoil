@@ -510,3 +510,21 @@ div.btn {
   justify-content:center;
   align-items:center;
 }
+
+#notify-splash {
+  width: 500px;
+  height: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: $background;
+  border: 3px solid $active;
+  padding: 12px;
+  p {
+    margin-bottom: 8px;
+    &.action {
+      text-align: right;
+    }
+  }  
+}
