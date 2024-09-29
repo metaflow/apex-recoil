@@ -4,7 +4,7 @@ https://apexlegendsrecoils.net
 
 Visualization of recoil patterns from [Apex Legends](https://www.ea.com/games/apex-legends).
 
-[How recoils are captured](./doc/capture.md).
+[How recoils are captured](./docs/capture.md).
 
 # Contributing and support
 
